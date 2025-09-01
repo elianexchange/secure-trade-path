@@ -7,7 +7,10 @@ import { Layout } from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import ItemDetails from "./pages/ItemDetails";
 import VendorDetails from "./pages/VendorDetails";
+import OrderConfirmation from "./pages/OrderConfirmation";
+import Payment from "./pages/Payment";
 import OrderStatus from "./pages/OrderStatus";
+import Notifications from "./pages/Notifications";
 import UserProfile from "./pages/UserProfile";
 import NotFound from "./pages/NotFound";
 
@@ -24,10 +27,10 @@ const App = () => (
             <Route path="/" element={<Dashboard />} />
             <Route path="/items" element={<ItemDetails />} />
             <Route path="/vendors" element={<VendorDetails />} />
-            <Route path="/orders" element={<Dashboard />} />
-            <Route path="/payment" element={<Dashboard />} />
+            <Route path="/orders" element={<OrderConfirmation />} />
+            <Route path="/payment" element={<Payment />} />
             <Route path="/status" element={<OrderStatus />} />
-            <Route path="/notifications" element={<Dashboard />} />
+            <Route path="/notifications" element={<Notifications />} />
             <Route path="/profile" element={<UserProfile />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
