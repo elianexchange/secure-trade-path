@@ -1,6 +1,6 @@
 [build]
   # Build command for the frontend
-  command = "npm install && npm run build:prod"
+  command = "npm install --include=dev && npm run build:prod"
   
   # Directory to publish (Vite builds to 'dist' by default)
   publish = "dist"
