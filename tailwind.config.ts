@@ -17,6 +17,14 @@ export default {
 				'2xl': '1400px'
 			}
 		},
+		screens: {
+			'xs': '475px',
+			'sm': '640px',
+			'md': '768px',
+			'lg': '1024px',
+			'xl': '1280px',
+			'2xl': '1400px',
+		},
 		extend: {
 			fontFamily: {
 				sans: ['Open Sans', 'sans-serif'],
@@ -80,6 +88,15 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				/* Custom Theme Colors */
+				theme: {
+					primary: '#4c11c2',
+					accent: '#191970',
+					'primary-light': '#7c3aed',
+					'primary-dark': '#3730a3',
+					'accent-light': '#312e81',
+					'accent-dark': '#0f172a'
 				}
 			},
 			backgroundImage: {
@@ -110,11 +127,29 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'spin-slow': {
+					from: {
+						transform: 'rotate(0deg)'
+					},
+					to: {
+						transform: 'rotate(360deg)'
+					}
+				},
+				'spin-slow-reverse': {
+					from: {
+						transform: 'rotate(360deg)'
+					},
+					to: {
+						transform: 'rotate(0deg)'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'spin-slow': 'spin-slow 20s linear infinite',
+				'spin-slow-reverse': 'spin-slow-reverse 15s linear infinite'
 			}
 		}
 	},

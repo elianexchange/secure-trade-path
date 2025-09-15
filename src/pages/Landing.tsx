@@ -1,0 +1,2027 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Shield, 
+  CheckCircle, 
+  ArrowRight,
+  CreditCard,
+  Package,
+  Search,
+  Clock,
+  Handshake,
+  Calculator,
+  ChevronDown,
+  Menu,
+  X,
+  RefreshCw,
+  MessageCircle,
+  ChevronUp,
+  Star,
+  Users,
+  TrendingUp,
+  Award,
+  Zap,
+  Lock,
+  Globe,
+  Smartphone,
+  DollarSign,
+  Truck,
+  CheckCircle2,
+  UserCheck,
+  Plus,
+  BarChart3
+} from 'lucide-react';
+
+export default function Landing() {
+  const [transactionAmount, setTransactionAmount] = useState('');
+  const [calculatedFee, setCalculatedFee] = useState(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [currentUserType, setCurrentUserType] = useState(0);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const userTypes = [
+    { text: "Individuals", icon: Users, color: "text-primary" },
+    { text: "Vendors", icon: UserCheck, color: "text-secondary" },
+    { text: "Marketers", icon: TrendingUp, color: "text-primary" },
+    { text: "Entrepreneurs", icon: Star, color: "text-secondary" },
+    { text: "Businesses", icon: Globe, color: "text-primary" }
+  ];
+
+  const transactionSteps = [
+    { text: "Paid", icon: DollarSign, color: "text-green-500", delay: 0 },
+    { text: "Secured", icon: Lock, color: "text-blue-500", delay: 1 },
+    { text: "Confirmed", icon: CheckCircle, color: "text-primary", delay: 2 },
+    { text: "Processed", icon: RefreshCw, color: "text-yellow-500", delay: 3 },
+    { text: "Delivered", icon: Truck, color: "text-green-600", delay: 4 },
+    { text: "Completed", icon: CheckCircle2, color: "text-primary", delay: 5 }
+  ];
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentUserType((prev) => (prev + 1) % userTypes.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (cardRef.current) {
+        const rect = cardRef.current.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        setMousePosition({ x, y });
+      }
+    };
+
+    const card = cardRef.current;
+    if (card) {
+      card.addEventListener('mousemove', handleMouseMove);
+      return () => card.removeEventListener('mousemove', handleMouseMove);
+    }
+  }, []);
+
+  const calculateFee = (amount: string) => {
+    const numAmount = parseFloat(amount) || 0;
+    // 2.5% fee structure
+    const fee = numAmount * 0.025;
+    setCalculatedFee(fee);
+  };
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setTransactionAmount(value);
+    calculateFee(value);
+  };
+
+  // Helper function to position icons randomly across the entire right section
+  const getIconPosition = (index: number) => {
+    const positions = [
+      { x: 25, y: 20 },   // Top left area - visible
+      { x: 80, y: 15 },   // Top right area - visible
+      { x: 70, y: 40 },   // Middle right - visible
+      { x: 85, y: 70 },   // Bottom right - visible
+      { x: 20, y: 75 },   // Bottom left - visible
+      { x: 60, y: 35 }    // Middle area - visible
+    ];
+    return positions[index % positions.length];
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header Navigation */}
+      <header className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 transition-all duration-300">
+        <div className="max-w-5xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            {/* Logo */}
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                {/* Main Logo Container */}
+                <div className="w-10 h-10 bg-gradient-to-br from-primary via-primary/90 to-primary/80 rounded-xl flex items-center justify-center shadow-lg relative overflow-hidden">
+                  {/* Background Pattern */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+                  
+                  {/* Central Shield */}
+                  <div className="relative z-10">
+                    <Shield className="h-5 w-5 text-white drop-shadow-sm" />
+                  </div>
+                  
+                  {/* Security Ring */}
+                  <div className="absolute inset-1 border border-white/20 rounded-lg"></div>
+                  
+                  {/* Corner Accents */}
+                  <div className="absolute top-1 left-1 w-1.5 h-1.5 bg-white/30 rounded-sm"></div>
+                  <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-white/30 rounded-sm"></div>
+                  <div className="absolute bottom-1 left-1 w-1.5 h-1.5 bg-white/30 rounded-sm"></div>
+                  <div className="absolute bottom-1 right-1 w-1.5 h-1.5 bg-white/30 rounded-sm"></div>
+                  
+                  {/* Glow Effect */}
+                  <div className="absolute -inset-0.5 bg-primary/20 rounded-xl blur-sm opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+                </div>
+                
+                {/* Floating Elements */}
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-secondary/80 rounded-full flex items-center justify-center animate-pulse">
+                  <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                </div>
+                <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 bg-green-500/80 rounded-full flex items-center justify-center animate-pulse" style={{animationDelay: '0.5s'}}>
+                  <CheckCircle className="h-1.5 w-1.5 text-white" />
+                </div>
+              </div>
+              
+              {/* Logo Text */}
+              <div className="flex flex-col">
+                <span className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent leading-none">
+                  Tranzio
+                </span>
+                <span className="text-xs text-muted-foreground font-medium tracking-wider">
+                  SECURE ESCROW
+                </span>
+              </div>
+            </div>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center space-x-8">
+              <div className="flex items-center space-x-1 cursor-pointer group">
+                <span className="text-muted-foreground group-hover:text-foreground transition-colors">How It Works</span>
+                <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+              </div>
+              <div className="flex items-center space-x-1 cursor-pointer group">
+                <span className="text-muted-foreground group-hover:text-foreground transition-colors">Security</span>
+                <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+              </div>
+              <div className="flex items-center space-x-1 cursor-pointer group">
+                <span className="text-muted-foreground group-hover:text-foreground transition-colors">Pricing</span>
+                <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+              </div>
+              <div className="flex items-center space-x-1 cursor-pointer group">
+                <span className="text-muted-foreground group-hover:text-foreground transition-colors">Support</span>
+                <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+              </div>
+            </nav>
+
+            {/* Desktop CTA Buttons */}
+            <div className="hidden md:flex items-center space-x-3">
+              <Button variant="outline" className="border-border text-foreground hover:bg-muted/50 px-4 py-2 h-auto transition-all duration-200" asChild>
+                <Link to="/signup">Sign Up <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              </Button>
+              <Button className="bg-primary hover:bg-primary/90 px-4 py-2 h-auto transition-all duration-200" asChild>
+                <Link to="/login">Login <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              </Button>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="md:hidden"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </Button>
+          </div>
+
+          {/* Mobile Navigation Menu */}
+          {mobileMenuOpen && (
+            <div className="md:hidden mt-4 pb-4 border-t border-border/40 animate-in slide-in-from-top-2 duration-200">
+              <nav className="flex flex-col space-y-4 mt-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">How It Works</span>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Security</span>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Pricing</span>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Support</span>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div className="flex flex-col space-y-2 pt-4 border-t border-border/40">
+                  <Button variant="outline" className="border-border text-foreground hover:bg-muted/50" asChild>
+                    <Link to="/signup" onClick={() => setMobileMenuOpen(false)}>
+                      Sign Up <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                  <Button className="bg-primary hover:bg-primary/90" asChild>
+                    <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
+                      Login <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
+              </nav>
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="py-24 bg-gradient-to-br from-background via-muted/10 to-muted/20 relative overflow-hidden">
+        {/* Enhanced Animated Background */}
+        <div className="absolute inset-0">
+          {/* Large Glowing Orbs */}
+          <div className="absolute top-20 left-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-10 w-24 h-24 bg-secondary/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/4 w-16 h-16 bg-primary/10 rounded-full blur-2xl animate-pulse delay-500"></div>
+          <div className="absolute top-1/3 right-1/3 w-20 h-20 bg-secondary/8 rounded-full blur-2xl animate-pulse delay-700"></div>
+          <div className="absolute bottom-1/3 left-1/2 w-28 h-28 bg-primary/8 rounded-full blur-3xl animate-pulse delay-300"></div>
+          
+          {/* Animated Grid Pattern */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.02)_1px,transparent_1px)] bg-[size:50px_50px] animate-grid-move"></div>
+          
+          {/* Floating Geometric Shapes */}
+          <div className="absolute top-32 left-20 w-12 h-12 border border-primary/10 rounded-lg rotate-45 animate-spin-slow"></div>
+          <div className="absolute top-40 right-32 w-8 h-8 border border-secondary/10 rounded-full animate-pulse"></div>
+          <div className="absolute bottom-32 left-32 w-16 h-16 border border-primary/10 rounded-lg rotate-12 animate-bounce-slow"></div>
+          <div className="absolute bottom-40 right-20 w-6 h-6 border border-secondary/10 rounded-full animate-ping"></div>
+          
+          {/* Animated Particles */}
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-1 bg-primary/20 rounded-full animate-float"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 5}s`,
+                animationDuration: `${4 + Math.random() * 3}s`
+              }}
+            />
+          ))}
+          
+          {/* Additional Floating Icons */}
+          <div className="absolute top-1/4 left-1/3 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center animate-float">
+            <CreditCard className="h-4 w-4 text-primary/60" />
+          </div>
+          <div className="absolute top-1/3 right-1/4 w-6 h-6 bg-secondary/10 rounded-full flex items-center justify-center animate-float" style={{animationDelay: '1s'}}>
+            <Shield className="h-3 w-3 text-secondary/60" />
+          </div>
+          <div className="absolute bottom-1/4 left-1/4 w-7 h-7 bg-primary/10 rounded-full flex items-center justify-center animate-float" style={{animationDelay: '2s'}}>
+            <Lock className="h-3.5 w-3.5 text-primary/60" />
+          </div>
+          <div className="absolute bottom-1/3 right-1/3 w-5 h-5 bg-secondary/10 rounded-full flex items-center justify-center animate-float" style={{animationDelay: '3s'}}>
+            <CheckCircle className="h-2.5 w-2.5 text-secondary/60" />
+          </div>
+          
+          {/* Animated Connection Lines */}
+          <div className="absolute top-1/2 left-1/4 w-32 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent animate-pulse"></div>
+          <div className="absolute top-1/3 right-1/3 w-24 h-px bg-gradient-to-r from-transparent via-secondary/20 to-transparent animate-pulse" style={{animationDelay: '1s'}}></div>
+          <div className="absolute bottom-1/4 left-1/2 w-28 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent animate-pulse" style={{animationDelay: '2s'}}></div>
+          
+          {/* Subtle Wave Animation */}
+          <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-primary/5 to-transparent animate-wave"></div>
+        </div>
+        
+        <div className="max-w-5xl mx-auto px-6 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-24 items-center">
+            {/* Left Content */}
+            <div className={`space-y-8 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+              <div className="space-y-6">
+                <div className="inline-block bg-primary/10 px-4 py-2 rounded-lg border border-primary/20">
+                  <span className="text-sm font-medium text-primary">Secure Escrow Platform</span>
+                </div>
+                
+                <h1 className="text-5xl lg:text-6xl font-bold text-foreground leading-tight">
+                  Trust in every
+                  <span className="text-primary block">transaction</span>
+                </h1>
+                
+                <p className="text-xl font-semibold text-muted-foreground flex items-center space-x-2">
+                  <span>Built for</span>
+                  <span className="relative inline-block min-w-[120px]">
+                    {userTypes.map((type, index) => (
+                      <span
+                        key={type.text}
+                        className={`absolute inset-0 flex items-center space-x-2 transition-all duration-500 ${
+                          index === currentUserType ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                        }`}
+                      >
+                        <type.icon className={`h-5 w-5 ${type.color}`} />
+                        <span className={type.color}>{type.text}</span>
+                      </span>
+                    ))}
+                  </span>
+                </p>
+                
+                <p className="text-lg text-muted-foreground leading-relaxed max-w-lg">
+                  An end-to-end transaction solution that seamlessly integrates payments, 
+                  fulfilment and support into your marketplace or ecommerce store.
+                </p>
+              </div>
+              
+              {/* Enhanced Button Design */}
+              <div className="relative group">
+                <Button 
+                  size="lg" 
+                  className="relative bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white text-base px-6 py-3 h-auto transition-all duration-300 hover:scale-105 hover:shadow-xl border-0 font-medium" 
+                  asChild
+                >
+                  <Link to="/signup" className="flex items-center space-x-2">
+                    <span>Get Started</span>
+                    <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+
+            {/* Enhanced Right Graphic - Advanced 3D Card System with Transaction Flow */}
+            <div className={`relative transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+              {/* Enhanced Background Effects */}
+              <div className="absolute inset-0 pointer-events-none">
+                {/* Animated Background Particles */}
+                {[...Array(15)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="absolute w-2 h-2 bg-primary/20 rounded-full animate-float"
+                    style={{
+                      left: `${Math.random() * 100}%`,
+                      top: `${Math.random() * 100}%`,
+                      animationDelay: `${Math.random() * 5}s`,
+                      animationDuration: `${3 + Math.random() * 4}s`
+                    }}
+                  />
+                ))}
+                
+                {/* Animated Geometric Shapes */}
+                <div className="absolute top-10 left-10 w-16 h-16 border border-primary/20 rounded-lg rotate-45 animate-spin-slow"></div>
+                <div className="absolute top-20 right-20 w-12 h-12 border border-secondary/20 rounded-full animate-pulse"></div>
+                <div className="absolute bottom-20 left-20 w-20 h-20 border border-primary/20 rounded-lg rotate-12 animate-bounce-slow"></div>
+                <div className="absolute bottom-10 right-10 w-8 h-8 border border-secondary/20 rounded-full animate-ping"></div>
+                
+                  {/* Subtle background patterns */}
+                <div className="absolute top-10 right-20 w-32 h-32 bg-primary/5 rounded-full blur-3xl animate-pulse"></div>
+                <div className="absolute bottom-20 left-10 w-24 h-24 bg-secondary/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
+                <div className="absolute top-1/2 right-10 w-16 h-16 bg-primary/5 rounded-full blur-2xl animate-pulse delay-500"></div>
+                </div>
+
+                {/* Appearing/Disappearing Transaction Icons */}
+                {transactionSteps.map((step, index) => (
+                  <div
+                    key={step.text}
+                    className="absolute w-12 h-12"
+                    style={{
+                      left: `${getIconPosition(index).x}%`,
+                      top: `${getIconPosition(index).y}%`,
+                      animationDelay: `${step.delay * 0.8}s`
+                    }}
+                  >
+                    <div className="relative w-full h-full animate-fade-in-out">
+                      {/* Icon Container */}
+                      <div className={`absolute inset-0 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-white flex items-center justify-center group/icon hover:scale-110 transition-transform duration-300`}>
+                        <step.icon className={`h-4 w-4 ${step.color} group-hover/icon:scale-110 transition-transform duration-300`} />
+                      </div>
+                      
+                      {/* Text Label */}
+                      <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full shadow-lg border border-white/50">
+                        <span className="text-xs font-medium text-foreground whitespace-nowrap">{step.text}</span>
+                      </div>
+                      
+                      {/* Subtle Glow Effect */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-full blur-sm opacity-0 group-hover/icon:scale-110 transition-opacity duration-500"></div>
+                    </div>
+                  </div>
+                ))}
+
+              <div 
+                ref={cardRef}
+                className="relative z-10 perspective-1000"
+                style={{
+                  transform: `perspective(1000px) rotateX(${(mousePosition.y - 200) * 0.02}deg) rotateY(${(mousePosition.x - 400) * 0.02}deg)`,
+                  transition: 'transform 0.1s ease-out'
+                }}
+              >
+                {/* Floating Particles Background - Spread across right section */}
+                <div className="absolute inset-0 pointer-events-none">
+                  {[...Array(8)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="absolute w-3 h-3 bg-primary/30 rounded-full animate-float"
+                      style={{
+                        left: `${20 + (i % 4) * 20}%`,
+                        top: `${25 + Math.floor(i / 4) * 30}%`,
+                        animationDelay: `${i * 0.4}s`,
+                        animationDuration: `${3 + i * 0.5}s`
+                      }}
+                    />
+                  ))}
+                </div>
+
+                {/* Main Credit Card - Enhanced 3D */}
+                <div className="w-80 h-48 mx-auto bg-gradient-to-br from-foreground via-muted-foreground to-foreground rounded-2xl shadow-2xl transform rotate-3 relative hover:rotate-6 transition-all duration-700 hover:scale-105 group">
+                  {/* Card Glow Effect */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-secondary/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  
+                  {/* Card Content */}
+                  <div className="absolute inset-4 bg-white/10 rounded-xl backdrop-blur-sm"></div>
+                  
+                  {/* Card Chip */}
+                  <div className="absolute top-6 left-6 w-8 h-6 bg-yellow-400/80 rounded-sm"></div>
+                  
+                  {/* Card Number */}
+                  <div className="absolute bottom-6 left-6 text-white">
+                    <div className="text-sm font-mono mb-2 tracking-wider">0000 0000 0000 0000</div>
+                    <div className="flex items-center space-x-4">
+                      <div className="text-xs">VALID THRU</div>
+                      <div className="text-xs">12/25</div>
+                    </div>
+                  </div>
+                  
+                  {/* Card Logo */}
+                  <div className="absolute top-6 right-6 text-white/80">
+                    <Shield className="h-6 w-6" />
+                  </div>
+                </div>
+
+                
+                {/* Enhanced Tranzio Logo Above Card */}
+                <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+                  <div className="w-16 h-16 bg-white rounded-full shadow-lg flex items-center justify-center relative">
+                    {/* Glowing Ring */}
+                    <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping"></div>
+                    <div className="w-12 h-12 bg-gradient-to-br from-primary via-primary/90 to-primary/80 rounded-full flex items-center justify-center relative z-10 shadow-lg overflow-hidden">
+                      {/* Background Pattern */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-white/10"></div>
+                      
+                      {/* Central Shield */}
+                      <Shield className="h-5 w-5 text-white relative z-10" />
+                      
+                      {/* Security Ring */}
+                      <div className="absolute inset-1 border border-white/30 rounded-full"></div>
+                      
+                      {/* Corner Accents */}
+                      <div className="absolute top-1 left-1 w-1 h-1 bg-white/60 rounded-full"></div>
+                      <div className="absolute top-1 right-1 w-1 h-1 bg-white/60 rounded-full"></div>
+                      <div className="absolute bottom-1 left-1 w-1 h-1 bg-white/60 rounded-full"></div>
+                      <div className="absolute bottom-1 right-1 w-1 h-1 bg-white/60 rounded-full"></div>
+                      
+                      {/* Glow Effect */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary/50 to-transparent rounded-full blur-sm"></div>
+                      
+                      {/* Floating Elements */}
+                      <div className="absolute -top-0.5 -right-0.5 w-1 h-1 bg-white/80 rounded-full animate-pulse"></div>
+                      <div className="absolute -bottom-0.5 -left-0.5 w-0.5 h-0.5 bg-white/60 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Enhanced Floating Elements */}
+                <div className="absolute -top-4 right-8 animate-pulse">
+                  <div className="w-8 h-8 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-primary/30">
+                    <RefreshCw className="h-4 w-4 text-primary" />
+                  </div>
+                </div>
+                
+                <div className="absolute top-0 right-0 space-y-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-muted to-muted/80 rounded-full flex items-center justify-center animate-pulse backdrop-blur-sm border border-border/30">
+                    <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div className="w-8 h-8 bg-gradient-to-br from-muted to-muted/80 rounded-full flex items-center justify-center backdrop-blur-sm border border-border/30">
+                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </div>
+
+                {/* Additional Floating Icons */}
+                <div className="absolute -bottom-4 left-8 animate-bounce delay-1000">
+                  <div className="w-6 h-6 bg-gradient-to-br from-secondary/30 to-primary/30 rounded-full flex items-center justify-center backdrop-blur-sm border border-secondary/30">
+                    <Lock className="h-3 w-3 text-secondary" />
+                  </div>
+                </div>
+
+                <div className="absolute bottom-8 right-16 animate-pulse delay-500">
+                  <div className="w-5 h-5 bg-gradient-to-br from-primary/20 to-muted/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-primary/20">
+                    <Zap className="h-2.5 w-2.5 text-primary" />
+                  </div>
+                </div>
+
+                {/* Geometric Shapes - Spread across right section */}
+                <div className="absolute top-8 left-20 w-4 h-4 bg-primary/40 rounded-full animate-ping delay-700"></div>
+                <div className="absolute top-20 right-15 w-3 h-3 bg-secondary/50 rounded-full animate-pulse delay-300"></div>
+                <div className="absolute bottom-15 left-30 w-5 h-5 bg-primary/30 rotate-45 animate-pulse delay-1000"></div>
+                <div className="absolute top-1/2 right-20 w-3 h-3 bg-secondary/40 rounded-full animate-pulse delay-500"></div>
+                <div className="absolute bottom-1/3 left-15 w-4 h-4 bg-primary/35 rounded-full animate-ping delay-1200"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Transaction Calculator Section */}
+      <section className="py-16 bg-muted/20">
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="bg-background rounded-2xl shadow-lg p-8 border border-border/20">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-foreground mb-2">Transaction Calculator</h2>
+              <p className="text-muted-foreground">Calculate your transaction fees instantly</p>
+            </div>
+            
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div className="space-y-4">
+                <Label htmlFor="amount" className="text-foreground font-medium">Transaction Amount</Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  placeholder="Enter amount"
+                  value={transactionAmount}
+                  onChange={handleAmountChange}
+                  className="text-lg py-3"
+                />
+                <p className="text-sm text-muted-foreground">Our fee: 2.5% of transaction value</p>
+              </div>
+              
+              <div className="bg-muted/30 rounded-xl p-6 text-center">
+                <div className="text-2xl font-bold text-foreground mb-2">Fee: ₦{calculatedFee.toLocaleString()}</div>
+                <div className="text-muted-foreground">Net Amount: ₦{(parseFloat(transactionAmount) || 0) - calculatedFee}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Overview of Achievements */}
+      <section className="py-20 bg-background">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center space-y-3 group hover:scale-105 transition-transform duration-200">
+              <div className="text-5xl font-bold text-foreground group-hover:text-primary transition-colors">₦10M+</div>
+              <div className="text-muted-foreground">Monthly GMV</div>
+            </div>
+            <div className="text-center space-y-3 relative group hover:scale-105 transition-transform duration-200">
+              <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-px h-20 bg-border"></div>
+              <div className="text-5xl font-bold text-foreground group-hover:text-primary transition-colors">250+</div>
+              <div className="text-muted-foreground">Marketplace Partners</div>
+            </div>
+            <div className="text-center space-y-3 relative group hover:scale-105 transition-transform duration-200">
+              <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-px h-20 bg-border"></div>
+              <div className="text-5xl font-bold text-foreground group-hover:text-primary transition-colors">840,000+</div>
+              <div className="text-muted-foreground">Users</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Zero Worries Section */}
+      <section className="py-12 bg-muted/20">
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 rounded-2xl shadow-lg p-6 border border-blue-500/20 relative overflow-hidden">
+            {/* Creative Background Elements */}
+            <div className="absolute inset-0">
+              {/* Animated Grid Pattern */}
+              <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:40px_40px] animate-grid-move rounded-2xl"></div>
+              
+              {/* Floating Geometric Shapes */}
+              <div className="absolute top-8 left-16 w-12 h-12 border border-white/20 rounded-lg rotate-45 animate-spin-slow"></div>
+              <div className="absolute top-12 right-20 w-8 h-8 border border-white/20 rounded-full animate-pulse"></div>
+              <div className="absolute bottom-8 left-20 w-16 h-16 border border-white/20 rounded-lg rotate-12 animate-bounce-slow"></div>
+              <div className="absolute bottom-12 right-16 w-6 h-6 border border-white/20 rounded-full animate-ping"></div>
+              
+              {/* Glowing Orbs */}
+              <div className="absolute top-4 left-1/4 w-20 h-20 bg-white/10 rounded-full blur-xl animate-pulse"></div>
+              <div className="absolute bottom-4 right-1/4 w-16 h-16 bg-white/10 rounded-full blur-xl animate-pulse" style={{animationDelay: '1s'}}></div>
+              <div className="absolute top-1/2 left-1/2 w-12 h-12 bg-white/10 rounded-full blur-xl animate-pulse" style={{animationDelay: '2s'}}></div>
+              
+              {/* Creative Small Boxes - Much Smaller */}
+              <div className="absolute top-1/3 left-1/4 flex space-x-1">
+                <div className="w-1 h-1 bg-white/30 rounded-sm animate-pulse"></div>
+                <div className="w-0.5 h-0.5 bg-white/20 rounded-sm animate-pulse" style={{animationDelay: '0.3s'}}></div>
+                <div className="w-1.5 h-0.5 bg-white/25 rounded-sm animate-pulse" style={{animationDelay: '0.6s'}}></div>
+                <div className="w-0.5 h-1 bg-white/20 rounded-sm animate-pulse" style={{animationDelay: '0.9s'}}></div>
+              </div>
+              <div className="absolute bottom-1/3 right-1/4 flex space-x-0.5">
+                <div className="w-0.5 h-0.5 bg-white/25 rounded-sm animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                <div className="w-1 h-0.5 bg-white/30 rounded-sm animate-pulse" style={{animationDelay: '0.8s'}}></div>
+                <div className="w-0.5 h-1.5 bg-white/20 rounded-sm animate-pulse" style={{animationDelay: '1.1s'}}></div>
+                <div className="w-1 h-1 bg-white/25 rounded-sm animate-pulse" style={{animationDelay: '1.4s'}}></div>
+              </div>
+              <div className="absolute top-1/2 left-1/3 flex space-x-0.5">
+                <div className="w-0.5 h-1 bg-white/20 rounded-sm animate-pulse" style={{animationDelay: '0.7s'}}></div>
+                <div className="w-1.5 h-0.5 bg-white/30 rounded-sm animate-pulse" style={{animationDelay: '1s'}}></div>
+                <div className="w-0.5 h-0.5 bg-white/25 rounded-sm animate-pulse" style={{animationDelay: '1.3s'}}></div>
+                <div className="w-1 h-1 bg-white/20 rounded-sm animate-pulse" style={{animationDelay: '1.6s'}}></div>
+              </div>
+              <div className="absolute top-1/4 right-1/3 flex space-x-0.5">
+                <div className="w-1 h-0.5 bg-white/25 rounded-sm animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                <div className="w-0.5 h-1.5 bg-white/20 rounded-sm animate-pulse" style={{animationDelay: '0.7s'}}></div>
+                <div className="w-0.5 h-0.5 bg-white/30 rounded-sm animate-pulse" style={{animationDelay: '1s'}}></div>
+              </div>
+              <div className="absolute bottom-1/4 left-1/2 flex space-x-0.5">
+                <div className="w-0.5 h-0.5 bg-white/20 rounded-sm animate-pulse" style={{animationDelay: '0.6s'}}></div>
+                <div className="w-1 h-1 bg-white/25 rounded-sm animate-pulse" style={{animationDelay: '0.9s'}}></div>
+                <div className="w-0.5 h-1 bg-white/30 rounded-sm animate-pulse" style={{animationDelay: '1.2s'}}></div>
+                <div className="w-1.5 h-0.5 bg-white/20 rounded-sm animate-pulse" style={{animationDelay: '1.5s'}}></div>
+              </div>
+            </div>
+            
+            <div className="text-center relative z-10">
+              <div className="space-y-6">
+                {/* Main Heading */}
+                <h2 className="text-4xl md:text-5xl font-bold text-white leading-tight">
+                  Buy with <span className="text-yellow-300">zero worries</span>, 
+                  <br />
+                  sell with <span className="text-green-300">assurance</span>
+                </h2>
+                
+                {/* Subheading */}
+                <div className="flex items-center justify-center space-x-4">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                    <Shield className="h-6 w-6 text-white" />
+                  </div>
+                  <p className="text-xl md:text-2xl font-semibold text-white/90">
+                    No Scam. No Fraud. No Worries.
+                  </p>
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                    <CheckCircle className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+                
+                {/* Trust Indicators */}
+                <div className="flex flex-wrap justify-center items-center gap-8 pt-4">
+                  <div className="flex items-center space-x-2 bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span className="text-white/90 font-medium">100% Secure</span>
+                  </div>
+                  <div className="flex items-center space-x-2 bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                    <span className="text-white/90 font-medium">Bank Protected</span>
+                  </div>
+                  <div className="flex items-center space-x-2 bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
+                    <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+                    <span className="text-white/90 font-medium">Instant Support</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Live Dashboard Demo Section */}
+      <section className="py-24 bg-gradient-to-br from-muted/20 via-background to-muted/10">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left - Real Dashboard UI Demo */}
+            <div className="relative">
+              {/* Actual Dashboard Interface */}
+              <div className="relative w-full max-w-xs mx-auto">
+                {/* Dashboard Container - Compact replica */}
+                <div className="bg-background border border-border rounded-lg shadow-2xl overflow-hidden transform hover:scale-105 transition-all duration-500 animate-dashboard-entrance">
+                  {/* Dashboard Header - Compact */}
+                  <div className="bg-card border-b border-border p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-6 h-6 bg-primary rounded-lg flex items-center justify-center animate-spin-slow">
+                          <Shield className="h-3 w-3 text-primary-foreground" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-card-foreground text-sm">Dashboard</h3>
+                          <p className="text-xs text-muted-foreground">Welcome back, John</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-ping"></div>
+                        <span className="text-xs text-muted-foreground">Live</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Transaction Stats - Compact Cards */}
+                  <div className="p-4 space-y-4">
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-card border border-border rounded-lg p-3 animate-bounce-in" style={{animationDelay: '0.5s'}}>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Total</p>
+                            <p className="text-lg font-bold text-card-foreground animate-count-up">₦2.45M</p>
+                          </div>
+                          <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center animate-wiggle">
+                            <TrendingUp className="h-4 w-4 text-blue-600" />
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-card border border-border rounded-lg p-3 animate-bounce-in" style={{animationDelay: '1s'}}>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Active</p>
+                            <p className="text-lg font-bold text-card-foreground animate-pulse-number">3</p>
+                          </div>
+                          <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center animate-wiggle" style={{animationDelay: '0.5s'}}>
+                            <Clock className="h-4 w-4 text-orange-600" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Active Transaction - Compact */}
+                    <div className="bg-card border border-border rounded-lg p-4 animate-slide-up" style={{animationDelay: '1.5s'}}>
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="font-semibold text-card-foreground text-sm">Active TXN</h4>
+                        <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs animate-pulse-badge">Live</Badge>
+                      </div>
+                      
+                      {/* Transaction Details - Compact */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">ID</span>
+                          <span className="text-xs font-mono text-card-foreground">#TXN-001</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">Amount</span>
+                          <span className="text-sm font-semibold text-card-foreground animate-money-glow">₦50K</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">Party</span>
+                          <span className="text-xs text-card-foreground">Sarah J.</span>
+                        </div>
+                      </div>
+
+                      {/* Progress Steps - Compact */}
+                      <div className="mt-4 space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center animate-success-pulse">
+                            <CheckCircle className="h-3 w-3 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-xs font-medium text-card-foreground">Payment</p>
+                            <p className="text-xs text-muted-foreground">Secured</p>
+                          </div>
+                          <Badge variant="outline" className="text-green-600 border-green-200 text-xs">✓</Badge>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center animate-success-pulse" style={{animationDelay: '0.5s'}}>
+                            <CheckCircle className="h-3 w-3 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-xs font-medium text-card-foreground">Order</p>
+                            <p className="text-xs text-muted-foreground">Confirmed</p>
+                          </div>
+                          <Badge variant="outline" className="text-green-600 border-green-200 text-xs">✓</Badge>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center animate-current-step">
+                            <Package className="h-3 w-3 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-xs font-medium text-card-foreground">Transit</p>
+                            <p className="text-xs text-muted-foreground">ABC123</p>
+                          </div>
+                          <Badge variant="outline" className="text-blue-600 border-blue-200 text-xs animate-pulse">●</Badge>
+                        </div>
+
+                        <div className="flex items-center space-x-2 opacity-60">
+                          <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
+                            <Truck className="h-3 w-3 text-gray-500" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-xs font-medium text-muted-foreground">Delivery</p>
+                            <p className="text-xs text-muted-foreground">Pending</p>
+                          </div>
+                          <Badge variant="outline" className="text-gray-400 border-gray-200 text-xs">⏳</Badge>
+                        </div>
+                      </div>
+
+                      {/* Progress Bar - Compact */}
+                      <div className="mt-4">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                          <span>Progress</span>
+                          <span className="animate-counter-text">60%</span>
+                        </div>
+                        <div className="w-full bg-muted rounded-full h-1.5">
+                          <div className="bg-gradient-to-r from-green-500 via-blue-500 to-gray-300 h-1.5 rounded-full animate-progress-wow" style={{width: '60%'}}></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Quick Actions - Compact */}
+                    <div className="grid grid-cols-2 gap-3 animate-slide-up" style={{animationDelay: '2s'}}>
+                      <Button className="h-8 bg-primary hover:bg-primary/90 text-primary-foreground text-xs animate-button-glow">
+                        <Plus className="h-3 w-3 mr-1" />
+                        New
+                      </Button>
+                      <Button variant="outline" className="h-8 text-xs animate-button-float">
+                        <Search className="h-3 w-3 mr-1" />
+                        Join
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Floating Elements */}
+                <div className="absolute -top-4 -right-4 w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center animate-float">
+                  <Shield className="h-4 w-4 text-green-600" />
+                </div>
+                <div className="absolute -bottom-4 -left-4 w-6 h-6 bg-blue-500/20 rounded-full flex items-center justify-center animate-float" style={{animationDelay: '1s'}}>
+                  <Lock className="h-3 w-3 text-blue-600" />
+                </div>
+              </div>
+            </div>
+
+            {/* Right - Content */}
+            <div className="flex flex-col justify-center h-full space-y-4">
+              <div className="space-y-4">
+                <div className="inline-block bg-primary/10 px-4 py-2 rounded-lg border border-primary/20">
+                  <span className="text-sm font-medium text-primary">Live Dashboard Demo</span>
+                </div>
+                
+                <h2 className="text-4xl font-bold text-foreground leading-tight">
+                  See Your Transactions 
+                  <span className="text-primary block">In Real-Time</span>
+                </h2>
+                
+                <p className="text-lg text-muted-foreground leading-relaxed">
+                  Experience the actual Tranzio dashboard with live transaction tracking, 
+                  real-time updates, and comprehensive security monitoring.
+                </p>
+              </div>
+
+              {/* Features List - Compact */}
+              <div className="space-y-4">
+                <div className="flex items-start space-x-4 p-4 rounded-xl bg-white/50 border border-gray-200/30">
+                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <TrendingUp className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">Real-Time Tracking</h3>
+                    <p className="text-sm text-muted-foreground">Live updates and progress indicators</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4 p-4 rounded-xl bg-white/50 border border-gray-200/30">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Shield className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">Secure Dashboard</h3>
+                    <p className="text-sm text-muted-foreground">Bank-level security & encryption</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4 p-4 rounded-xl bg-white/50 border border-gray-200/30">
+                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Clock className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">Instant Notifications</h3>
+                    <p className="text-sm text-muted-foreground">Immediate status updates</p>
+                  </div>
+                </div>
+
+              </div>
+
+              <div className="pt-4">
+                <Button size="lg" className="bg-primary hover:bg-primary/90 text-white px-8 py-4 h-auto transition-all duration-200 hover:scale-105 shadow-lg" asChild>
+                  <Link to="/signup">Start Trading Now <ArrowRight className="ml-2 h-5 w-5" /></Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="py-24 bg-gradient-to-br from-blue-50/30 via-background to-blue-50/20">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left Content */}
+            <div className="space-y-6">
+              <div className="space-y-6">
+                <div className="inline-block bg-primary/10 px-4 py-2 rounded-lg border border-primary/20">
+                  <span className="text-sm font-medium text-primary">How It Works</span>
+                </div>
+                
+                <h2 className="text-4xl font-bold text-foreground leading-tight">
+                  Simple & Secure
+                  <span className="text-primary block">Transaction Process</span>
+                </h2>
+                
+                <p className="text-lg text-muted-foreground leading-relaxed">
+                  Tranzio simplifies transactions by securely holding the buyer's payment in the 
+                  Tranzio Vault until the order is fulfilled and inspected. 
+                  Once both parties are satisfied, the funds are released, ensuring a 
+                  smooth and worry-free process.
+                </p>
+              </div>
+            </div>
+
+            {/* Right - Animated Transaction Flow Dashboard */}
+            <div className="relative">
+              {/* Dashboard Container */}
+              <div className="relative w-full max-w-xs mx-auto">
+                {/* Dashboard Frame */}
+                <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-3 relative overflow-hidden">
+                  {/* Dashboard Header */}
+                  <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-200/50">
+                    <div className="flex items-center space-x-1.5">
+                      <div className="w-5 h-5 bg-gradient-to-br from-primary to-primary/80 rounded-md flex items-center justify-center">
+                        <Shield className="h-2.5 w-2.5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900 text-xs">Dashboard</h3>
+                        <p className="text-xs text-gray-500">#TXN-001</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <div className="w-1 h-1 bg-green-400 rounded-full animate-pulse"></div>
+                      <span className="text-xs text-gray-600">Active</span>
+                    </div>
+                  </div>
+
+                  {/* Transaction Flow Steps */}
+                  <div className="space-y-2">
+                    {/* Step 1: Payment Initiated */}
+                    <div className="flex items-center space-x-2 p-1.5 rounded-md bg-gradient-to-r from-blue-50 to-blue-100/50 border border-blue-200/30 animate-slide-in-left" style={{animationDelay: '0.2s'}}>
+                      <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center shadow-sm">
+                        <DollarSign className="h-3 w-3 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium text-gray-900 text-xs">Payment</h4>
+                          <span className="text-xs text-green-600 font-medium">✓</span>
+                        </div>
+                        <p className="text-xs text-gray-600">Secured</p>
+                      </div>
+                    </div>
+
+                    {/* Step 2: Order Confirmed */}
+                    <div className="flex items-center space-x-2 p-1.5 rounded-md bg-gradient-to-r from-purple-50 to-purple-100/50 border border-purple-200/30 animate-slide-in-left" style={{animationDelay: '0.6s'}}>
+                      <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center shadow-sm">
+                        <Package className="h-3 w-3 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium text-gray-900 text-xs">Order</h4>
+                          <span className="text-xs text-green-600 font-medium">✓</span>
+                        </div>
+                        <p className="text-xs text-gray-600">Confirmed</p>
+                      </div>
+                    </div>
+
+                    {/* Step 3: In Transit (Current Active Step) */}
+                    <div className="flex items-center space-x-2 p-1.5 rounded-md bg-gradient-to-r from-orange-50 to-orange-100/50 border border-orange-200/30 animate-slide-in-left animate-pulse" style={{animationDelay: '1s'}}>
+                      <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center shadow-sm relative">
+                        <Truck className="h-3 w-3 text-white" />
+                        <div className="absolute -inset-0.5 bg-orange-500/30 rounded-full animate-ping"></div>
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium text-gray-900 text-xs">Transit</h4>
+                          <span className="text-xs text-orange-600 font-medium animate-pulse">●</span>
+                        </div>
+                        <p className="text-xs text-gray-600">In Progress</p>
+                      </div>
+                    </div>
+
+                    {/* Step 4: Delivery Pending */}
+                    <div className="flex items-center space-x-2 p-1.5 rounded-md bg-gray-50 border border-gray-200/30 opacity-60 animate-slide-in-left" style={{animationDelay: '1.4s'}}>
+                      <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
+                        <Search className="h-3 w-3 text-gray-500" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium text-gray-500 text-xs">Delivery</h4>
+                          <span className="text-xs text-gray-400 font-medium">⏳</span>
+                        </div>
+                        <p className="text-xs text-gray-400">Pending</p>
+                      </div>
+                    </div>
+
+                    {/* Step 5: Funds Release */}
+                    <div className="flex items-center space-x-2 p-1.5 rounded-md bg-gray-50 border border-gray-200/30 opacity-60 animate-slide-in-left" style={{animationDelay: '1.8s'}}>
+                      <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
+                        <CheckCircle2 className="h-3 w-3 text-gray-500" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium text-gray-500 text-xs">Release</h4>
+                          <span className="text-xs text-gray-400 font-medium">⏳</span>
+                        </div>
+                        <p className="text-xs text-gray-400">Funds</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="mt-3">
+                    <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+                      <span>Progress</span>
+                      <span>60%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-1">
+                      <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-orange-500 h-1 rounded-full animate-progress" style={{width: '60%'}}></div>
+                    </div>
+                  </div>
+
+                  {/* Floating Elements */}
+                  <div className="absolute top-2 right-2 w-1.5 h-1.5 bg-blue-400/30 rounded-full animate-float"></div>
+                  <div className="absolute bottom-2 left-2 w-1 h-1 bg-purple-400/30 rounded-full animate-float" style={{animationDelay: '1s'}}></div>
+                  <div className="absolute top-1/2 right-1 w-0.5 h-0.5 bg-orange-400/30 rounded-full animate-float" style={{animationDelay: '2s'}}></div>
+                </div>
+
+                {/* Connection Lines Animation */}
+                <div className="absolute inset-0 pointer-events-none">
+                  {/* Animated connection lines between steps */}
+                  <svg className="w-full h-full" viewBox="0 0 200 150">
+                    <defs>
+                      <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="rgb(59, 130, 246)" stopOpacity="0.4" />
+                        <stop offset="50%" stopColor="rgb(147, 51, 234)" stopOpacity="0.4" />
+                        <stop offset="100%" stopColor="rgb(249, 115, 22)" stopOpacity="0.4" />
+                      </linearGradient>
+                    </defs>
+                    <path
+                      d="M 30 45 Q 100 30 170 45"
+                      stroke="url(#lineGradient)"
+                      strokeWidth="1"
+                      fill="none"
+                      strokeDasharray="2,2"
+                      className="animate-dash"
+                    />
+                    <circle cx="30" cy="45" r="1.5" fill="rgb(59, 130, 246)" className="animate-pulse" />
+                    <circle cx="100" cy="30" r="1.5" fill="rgb(147, 51, 234)" className="animate-pulse" style={{animationDelay: '0.5s'}} />
+                    <circle cx="170" cy="45" r="1.5" fill="rgb(249, 115, 22)" className="animate-pulse" style={{animationDelay: '1s'}} />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Process & Partners Section */}
+      <section className="py-24 bg-muted/30">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="grid md:grid-cols-3 gap-8 mb-12">
+            <Card className="border-border/50 hover:border-primary/30 transition-all duration-200 shadow-sm hover:shadow-md group hover:-translate-y-1">
+              <CardContent className="p-8 text-center space-y-4">
+                <CheckCircle className="h-12 w-12 text-primary mx-auto group-hover:scale-110 transition-transform duration-200" />
+                <h3 className="text-xl font-semibold text-foreground">Agree terms</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Once the buyer and seller have negotiated the price, we automatically create the transaction.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border/50 hover:border-primary/30 transition-all duration-200 shadow-sm hover:shadow-md group hover:-translate-y-1">
+              <CardContent className="p-8 text-center space-y-4">
+                <CreditCard className="h-12 w-12 text-primary mx-auto group-hover:scale-110 transition-transform duration-200" />
+                <h3 className="text-xl font-semibold text-foreground">Payment acceptance</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  We process the payment from the buyer via a client-customised payment page and the funds enter the Tranzio Vault.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border/50 hover:border-primary/30 transition-all duration-200 shadow-sm hover:shadow-md group hover:-translate-y-1">
+              <CardContent className="p-8 text-center space-y-4">
+                <Package className="h-12 w-12 text-primary mx-auto group-hover:scale-110 transition-transform duration-200" />
+                <h3 className="text-xl font-semibold text-foreground">Shipping & Fulfilment</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  We track the fulfilment of every order from the seller to the buyer. This can be via courier/post or by a multitude of other flexible confirmation mechanisms.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="text-center">
+            <Button variant="link" className="text-primary hover:text-primary/80 text-lg transition-colors duration-200">
+              Learn more <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Wallet System Section */}
+      <section className="py-24 bg-gradient-to-br from-green-50/30 via-background to-blue-50/20">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            {/* Left - Creative Bank Cards Animation */}
+            <div className="relative">
+              <div className="w-96 h-80 mx-auto relative">
+                {/* Background Glow Effects */}
+                <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 via-blue-500/10 to-purple-500/10 rounded-3xl blur-2xl"></div>
+                
+                {/* First Bank Card - Access Bank */}
+                <div className="absolute top-8 left-4 w-72 h-44 bg-gradient-to-br from-green-600 via-green-700 to-green-800 rounded-2xl shadow-2xl transform rotate-3 hover:rotate-6 transition-all duration-700 hover:scale-105 group animate-card-float">
+                  {/* Card Glow */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-green-400/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  
+                  {/* Card Content */}
+                  <div className="absolute inset-4 text-white">
+                    {/* Bank Logo */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                        <Shield className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="text-xs font-semibold">ACCESS BANK</div>
+                    </div>
+                    
+                    {/* Card Number */}
+                    <div className="mb-4">
+                      <div className="text-lg font-mono tracking-wider">1234 5678 9012 3456</div>
+                      <div className="text-xs text-white/80 mt-1">Tranzio Virtual Account</div>
+                    </div>
+                    
+                    {/* Account Details */}
+                    <div className="flex justify-between items-end">
+                      <div>
+                        <div className="text-xs text-white/80">Account Name</div>
+                        <div className="text-sm font-semibold">John Doe</div>
+                      </div>
+                      <div className="text-xs text-white/80">Valid 12/28</div>
+                    </div>
+                  </div>
+                  
+                  {/* Floating Elements */}
+                  <div className="absolute -top-2 -right-2 w-4 h-4 bg-green-400 rounded-full animate-pulse"></div>
+                  <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-white/60 rounded-full animate-ping"></div>
+                </div>
+
+                {/* Second Bank Card - GTBank */}
+                <div className="absolute bottom-8 right-4 w-72 h-44 bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 rounded-2xl shadow-2xl transform -rotate-2 hover:-rotate-4 transition-all duration-700 hover:scale-105 group animate-card-float" style={{animationDelay: '1s'}}>
+                  {/* Card Glow */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-orange-400/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  
+                  {/* Card Content */}
+                  <div className="absolute inset-4 text-white">
+                    {/* Bank Logo */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                        <Shield className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="text-xs font-semibold">GTBANK</div>
+                    </div>
+                    
+                    {/* Card Number */}
+                    <div className="mb-4">
+                      <div className="text-lg font-mono tracking-wider">9876 5432 1098 7654</div>
+                      <div className="text-xs text-white/80 mt-1">Tranzio Virtual Account</div>
+                    </div>
+                    
+                    {/* Account Details */}
+                    <div className="flex justify-between items-end">
+                      <div>
+                        <div className="text-xs text-white/80">Account Name</div>
+                        <div className="text-sm font-semibold">Sarah Johnson</div>
+                      </div>
+                      <div className="text-xs text-white/80">Valid 12/28</div>
+                    </div>
+                  </div>
+                  
+                  {/* Floating Elements */}
+                  <div className="absolute -top-2 -right-2 w-4 h-4 bg-orange-400 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                  <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-white/60 rounded-full animate-ping" style={{animationDelay: '1s'}}></div>
+                </div>
+
+                {/* Connection Lines */}
+                <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                  <path
+                    d="M100 120 Q200 80 300 200"
+                    fill="none"
+                    stroke="url(#connectionGradient)"
+                    strokeWidth="2"
+                    strokeDasharray="5,5"
+                    className="animate-dash-flow"
+                  />
+                  <defs>
+                    <linearGradient id="connectionGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#10b981" />
+                      <stop offset="50%" stopColor="#3b82f6" />
+                      <stop offset="100%" stopColor="#f59e0b" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+
+                {/* Floating Icons */}
+                <div className="absolute top-4 right-8 w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center animate-float">
+                  <CreditCard className="h-4 w-4 text-blue-600" />
+                </div>
+                <div className="absolute bottom-4 left-8 w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center animate-float" style={{animationDelay: '1s'}}>
+                  <Shield className="h-3 w-3 text-green-600" />
+                </div>
+                <div className="absolute top-1/2 left-2 w-5 h-5 bg-purple-500/20 rounded-full flex items-center justify-center animate-float" style={{animationDelay: '2s'}}>
+                  <CheckCircle className="h-2.5 w-2.5 text-purple-600" />
+                </div>
+              </div>
+            </div>
+
+            {/* Right Content */}
+            <div className="space-y-6">
+              <div className="space-y-6">
+                <div className="inline-block bg-primary/10 px-4 py-2 rounded-lg border border-primary/20">
+                  <span className="text-sm font-medium text-primary">Virtual Wallet System</span>
+                </div>
+                
+                <h2 className="text-4xl font-bold text-foreground leading-tight">
+                  Unique Account Numbers
+                  <span className="text-primary block">For Every User</span>
+                </h2>
+                
+                <p className="text-lg text-muted-foreground leading-relaxed">
+                  Get your own unique Nigerian bank account numbers upon verification. 
+                  Receive payments, make transactions, and manage your funds with complete 
+                  security and flexibility. Withdraw anytime or top up your account instantly.
+                </p>
+              </div>
+
+              {/* Features List */}
+              <div className="space-y-4">
+                <div className="flex items-start space-x-4 p-4 rounded-xl bg-white/50 border border-gray-200/30">
+                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <CreditCard className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">Instant Account Generation</h3>
+                    <p className="text-sm text-muted-foreground">Get unique Nigerian bank account numbers immediately after verification</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4 p-4 rounded-xl bg-white/50 border border-gray-200/30">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Shield className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">Secure Transactions</h3>
+                    <p className="text-sm text-muted-foreground">All transactions are protected with bank-level security and encryption</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4 p-4 rounded-xl bg-white/50 border border-gray-200/30">
+                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <CheckCircle className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">Flexible Fund Management</h3>
+                    <p className="text-sm text-muted-foreground">Withdraw funds anytime or top up your account instantly</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4">
+                <Button size="lg" className="bg-primary hover:bg-primary/90 text-white px-8 py-4 h-auto transition-all duration-200 hover:scale-105 shadow-lg" asChild>
+                  <Link to="/signup">Get Your Account <ArrowRight className="ml-2 h-5 w-5" /></Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white py-20">
+        <div className="max-w-5xl mx-auto px-6">
+          {/* Mobile Layout: Logo alone in first row, then 2x2 grid */}
+          <div className="md:hidden space-y-8">
+            {/* Logo - Full width on mobile */}
+            <div className="flex justify-center">
+              <div className="flex items-center space-x-3">
+                <div className="relative">
+                  {/* Main Logo Container */}
+                  <div className="w-10 h-10 bg-gradient-to-br from-white/20 via-white/10 to-white/5 rounded-xl flex items-center justify-center shadow-lg relative overflow-hidden border border-white/20">
+                    {/* Background Pattern */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+                    
+                    {/* Central Shield */}
+                    <div className="relative z-10">
+                      <Shield className="h-5 w-5 text-white drop-shadow-sm" />
+                    </div>
+                    
+                    {/* Security Ring */}
+                    <div className="absolute inset-1 border border-white/30 rounded-lg"></div>
+                    
+                    {/* Corner Accents */}
+                    <div className="absolute top-1 left-1 w-1.5 h-1.5 bg-white/40 rounded-sm"></div>
+                    <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-white/40 rounded-sm"></div>
+                    <div className="absolute bottom-1 left-1 w-1.5 h-1.5 bg-white/40 rounded-sm"></div>
+                    <div className="absolute bottom-1 right-1 w-1.5 h-1.5 bg-white/40 rounded-sm"></div>
+                  </div>
+                  
+                  {/* Floating Elements */}
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-white/20 rounded-full flex items-center justify-center animate-pulse">
+                    <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                  </div>
+                  <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 bg-green-400/60 rounded-full flex items-center justify-center animate-pulse" style={{animationDelay: '0.5s'}}>
+                    <CheckCircle className="h-1.5 w-1.5 text-white" />
+                  </div>
+                </div>
+                
+                {/* Logo Text */}
+                <div className="flex flex-col">
+                  <span className="text-2xl font-bold text-white leading-none">
+                    Tranzio
+                  </span>
+                  <span className="text-xs text-white/60 font-medium tracking-wider">
+                    SECURE ESCROW
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* First Row: Solutions & Partners */}
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Solutions</h3>
+                <ul className="space-y-3 text-sm text-white/80">
+                  <li>Marketplaces</li>
+                  <li>eCommerce</li>
+                  <li>Startups</li>
+                  <li>Individual Transactions</li>
+                  <li>Motors</li>
+                  <li>Domains</li>
+                </ul>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Partners</h3>
+                <ul className="space-y-3 text-sm text-white/80">
+                  <li>Partner With Us</li>
+                  <li>Referral Programme</li>
+                  <li>Case Studies</li>
+                  <li>Partnership Media Kit</li>
+                  <li>FAQ</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Second Row: Developers & Company */}
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Developers</h3>
+                <ul className="space-y-3 text-sm text-white/80">
+                  <li>Documentation</li>
+                  <li>Hello Tranzio</li>
+                  <li>API Reference</li>
+                  <li>API Status</li>
+                </ul>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Company</h3>
+                <ul className="space-y-3 text-sm text-white/80">
+                  <li>What is Tranzio?</li>
+                  <li>Resources</li>
+                  <li>About Us</li>
+                  <li>Careers</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop Layout: 5 columns */}
+          <div className="hidden md:grid md:grid-cols-5 gap-12">
+            {/* Logo */}
+            <div className="space-y-6">
+              <div className="flex items-center space-x-3">
+                <div className="relative">
+                  {/* Main Logo Container */}
+                  <div className="w-10 h-10 bg-gradient-to-br from-white/20 via-white/10 to-white/5 rounded-xl flex items-center justify-center shadow-lg relative overflow-hidden border border-white/20">
+                    {/* Background Pattern */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+                    
+                    {/* Central Shield */}
+                    <div className="relative z-10">
+                      <Shield className="h-5 w-5 text-white drop-shadow-sm" />
+                    </div>
+                    
+                    {/* Security Ring */}
+                    <div className="absolute inset-1 border border-white/30 rounded-lg"></div>
+                    
+                    {/* Corner Accents */}
+                    <div className="absolute top-1 left-1 w-1.5 h-1.5 bg-white/40 rounded-sm"></div>
+                    <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-white/40 rounded-sm"></div>
+                    <div className="absolute bottom-1 left-1 w-1.5 h-1.5 bg-white/40 rounded-sm"></div>
+                    <div className="absolute bottom-1 right-1 w-1.5 h-1.5 bg-white/40 rounded-sm"></div>
+                  </div>
+                  
+                  {/* Floating Elements */}
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-white/20 rounded-full flex items-center justify-center animate-pulse">
+                    <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                  </div>
+                  <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 bg-green-400/60 rounded-full flex items-center justify-center animate-pulse" style={{animationDelay: '0.5s'}}>
+                    <CheckCircle className="h-1.5 w-1.5 text-white" />
+                  </div>
+                </div>
+                
+                {/* Logo Text */}
+                <div className="flex flex-col">
+                  <span className="text-2xl font-bold text-white leading-none">
+                    Tranzio
+                  </span>
+                  <span className="text-xs text-white/60 font-medium tracking-wider">
+                    SECURE ESCROW
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Solutions */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-lg">Solutions</h3>
+              <ul className="space-y-3 text-sm text-white/80">
+                <li>Marketplaces</li>
+                <li>eCommerce</li>
+                <li>Startups</li>
+                <li>Individual Transactions</li>
+                <li>Motors</li>
+                <li>Domains</li>
+              </ul>
+            </div>
+
+            {/* Partners */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-lg">Partners</h3>
+              <ul className="space-y-3 text-sm text-white/80">
+                <li>Partner With Us</li>
+                <li>Referral Programme</li>
+                <li>Case Studies</li>
+                <li>Partnership Media Kit</li>
+                <li>FAQ</li>
+              </ul>
+            </div>
+
+            {/* Developers */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-lg">Developers</h3>
+              <ul className="space-y-3 text-sm text-white/80">
+                <li>Documentation</li>
+                <li>Hello Tranzio</li>
+                <li>API Reference</li>
+                <li>API Status</li>
+              </ul>
+            </div>
+
+            {/* Company */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-lg">Company</h3>
+              <ul className="space-y-3 text-sm text-white/80">
+                <li>What is Tranzio?</li>
+                <li>Resources</li>
+                <li>About Us</li>
+                <li>Careers</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Bottom Section */}
+          <div className="border-t border-white/20 mt-16 pt-8">
+            <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
+              <div className="flex space-x-8 text-sm text-white/80">
+                <span>Privacy</span>
+                <span>Terms</span>
+                <span>Cookies</span>
+              </div>
+              <div className="text-sm text-white/80 text-center md:text-right">
+                Tranzio Ltd is a company registered in Nigeria. VAT Number: 3507080FH. 
+                Registered number: 614918.
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      {/* Custom CSS for animations */}
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        
+        @keyframes fade-in-out {
+          0%, 100% { 
+            opacity: 0; 
+            transform: scale(0.8) translateY(10px); 
+          }
+          20%, 80% { 
+            opacity: 1; 
+            transform: scale(1) translateY(0px); 
+          }
+        }
+        
+        @keyframes slide-in-left {
+          0% {
+            opacity: 0;
+            transform: translateX(-30px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        
+        @keyframes dash {
+          0% {
+            stroke-dashoffset: 0;
+          }
+          100% {
+            stroke-dashoffset: 20;
+          }
+        }
+        
+        @keyframes progress {
+          0% {
+            width: 0%;
+          }
+          100% {
+            width: 60%;
+          }
+        }
+        
+        @keyframes pulse-glow {
+          0%, 100% {
+            box-shadow: 0 0 5px rgba(59, 130, 246, 0.3);
+          }
+          50% {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.6), 0 0 30px rgba(59, 130, 246, 0.4);
+          }
+        }
+        
+        @keyframes grid-move {
+          0% {
+            background-position: 0 0;
+          }
+          100% {
+            background-position: 50px 50px;
+          }
+        }
+        
+        @keyframes wave {
+          0%, 100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-10px);
+          }
+        }
+        
+        @keyframes spin-slow {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+        
+        @keyframes bounce-slow {
+          0%, 100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-20px);
+          }
+        }
+        
+        @keyframes progress-demo {
+          0% {
+            width: 0%;
+          }
+          100% {
+            width: 80%;
+          }
+        }
+        
+        @keyframes counter {
+          0% {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes dashboard-entrance {
+          0% {
+            opacity: 0;
+            transform: scale(0.8) rotateY(-15deg);
+          }
+          50% {
+            opacity: 0.8;
+            transform: scale(1.05) rotateY(5deg);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) rotateY(0deg);
+          }
+        }
+        
+        @keyframes bounce-in {
+          0% {
+            opacity: 0;
+            transform: scale(0.3) translateY(-50px);
+          }
+          50% {
+            opacity: 0.8;
+            transform: scale(1.1) translateY(10px);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+        
+        @keyframes wiggle {
+          0%, 100% {
+            transform: rotate(0deg);
+          }
+          25% {
+            transform: rotate(5deg);
+          }
+          75% {
+            transform: rotate(-5deg);
+          }
+        }
+        
+        @keyframes count-up {
+          0% {
+            transform: scale(0.5);
+            opacity: 0;
+          }
+          50% {
+            transform: scale(1.2);
+          }
+          100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+        
+        @keyframes pulse-number {
+          0%, 100% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.1);
+          }
+        }
+        
+        @keyframes slide-up {
+          0% {
+            opacity: 0;
+            transform: translateY(30px) rotateX(15deg);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0) rotateX(0deg);
+          }
+        }
+        
+        @keyframes pulse-badge {
+          0%, 100% {
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+          }
+          50% {
+            transform: scale(1.05);
+            box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+          }
+        }
+        
+        @keyframes money-glow {
+          0%, 100% {
+            text-shadow: 0 0 5px rgba(34, 197, 94, 0.5);
+            transform: scale(1);
+          }
+          50% {
+            text-shadow: 0 0 15px rgba(34, 197, 94, 0.8);
+            transform: scale(1.05);
+          }
+        }
+        
+        @keyframes success-pulse {
+          0%, 100% {
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+          }
+          50% {
+            transform: scale(1.1);
+            box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
+          }
+        }
+        
+        @keyframes current-step {
+          0%, 100% {
+            transform: scale(1) rotate(0deg);
+            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+          }
+          25% {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3);
+          }
+          50% {
+            transform: scale(1.2) rotate(0deg);
+            box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.2);
+          }
+          75% {
+            transform: scale(1.1) rotate(-5deg);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3);
+          }
+        }
+        
+        @keyframes counter-text {
+          0% {
+            opacity: 0;
+            transform: translateX(-10px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        
+        @keyframes progress-wow {
+          0% {
+            width: 0%;
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+          }
+          50% {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+          }
+          100% {
+            width: 60%;
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.3);
+          }
+        }
+        
+        @keyframes button-glow {
+          0%, 100% {
+            box-shadow: 0 0 5px rgba(59, 130, 246, 0.3);
+            transform: scale(1);
+          }
+          50% {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+            transform: scale(1.02);
+          }
+        }
+        
+        @keyframes button-float {
+          0%, 100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-2px);
+          }
+        }
+        
+        @keyframes handshake-left {
+          0%, 100% {
+            transform: translateX(0px) rotate(0deg);
+          }
+          25% {
+            transform: translateX(10px) rotate(5deg);
+          }
+          50% {
+            transform: translateX(20px) rotate(10deg);
+          }
+          75% {
+            transform: translateX(15px) rotate(7deg);
+          }
+        }
+        
+        @keyframes handshake-right {
+          0%, 100% {
+            transform: translateX(0px) rotate(0deg);
+          }
+          25% {
+            transform: translateX(-10px) rotate(-5deg);
+          }
+          50% {
+            transform: translateX(-20px) rotate(-10deg);
+          }
+          75% {
+            transform: translateX(-15px) rotate(-7deg);
+          }
+        }
+        
+        @keyframes draw-line {
+          0% {
+            stroke-dasharray: 0 1000;
+          }
+          100% {
+            stroke-dasharray: 1000 0;
+          }
+        }
+        
+        @keyframes dash-flow {
+          0% {
+            stroke-dashoffset: 0;
+          }
+          100% {
+            stroke-dashoffset: 20;
+          }
+        }
+        
+        @keyframes sparkle {
+          0%, 100% {
+            opacity: 0;
+            transform: scale(0.5);
+          }
+          50% {
+            opacity: 1;
+            transform: scale(1.2);
+          }
+        }
+        
+        @keyframes connection-lines {
+          0% {
+            opacity: 0;
+          }
+          50% {
+            opacity: 1;
+          }
+          100% {
+            opacity: 0.7;
+          }
+        }
+        
+        @keyframes card-float {
+          0%, 100% {
+            transform: translateY(0px) rotate(3deg);
+          }
+          50% {
+            transform: translateY(-10px) rotate(6deg);
+          }
+        }
+        
+        .animate-float {
+          animation: float 3s ease-in-out infinite;
+        }
+        
+        .animate-fade-in-out {
+          animation: fade-in-out 4s ease-in-out infinite;
+        }
+        
+        .animate-slide-in-left {
+          animation: slide-in-left 0.8s ease-out forwards;
+          opacity: 0;
+        }
+        
+        .animate-dash {
+          animation: dash 2s linear infinite;
+        }
+        
+        .animate-progress {
+          animation: progress 2s ease-out forwards;
+        }
+        
+        .animate-pulse-glow {
+          animation: pulse-glow 2s ease-in-out infinite;
+        }
+        
+        .animate-grid-move {
+          animation: grid-move 20s linear infinite;
+        }
+        
+        .animate-wave {
+          animation: wave 4s ease-in-out infinite;
+        }
+        
+        .animate-spin-slow {
+          animation: spin-slow 8s linear infinite;
+        }
+        
+        .animate-bounce-slow {
+          animation: bounce-slow 3s ease-in-out infinite;
+        }
+        
+        .animate-progress-demo {
+          animation: progress-demo 5s ease-out forwards;
+        }
+        
+        .animate-counter {
+          animation: counter 1s ease-out forwards;
+        }
+        
+        .animate-dashboard-entrance {
+          animation: dashboard-entrance 1.5s ease-out forwards;
+        }
+        
+        .animate-bounce-in {
+          animation: bounce-in 0.8s ease-out forwards;
+        }
+        
+        .animate-wiggle {
+          animation: wiggle 2s ease-in-out infinite;
+        }
+        
+        .animate-count-up {
+          animation: count-up 1s ease-out forwards;
+        }
+        
+        .animate-pulse-number {
+          animation: pulse-number 2s ease-in-out infinite;
+        }
+        
+        .animate-slide-up {
+          animation: slide-up 0.8s ease-out forwards;
+        }
+        
+        .animate-pulse-badge {
+          animation: pulse-badge 2s ease-in-out infinite;
+        }
+        
+        .animate-money-glow {
+          animation: money-glow 3s ease-in-out infinite;
+        }
+        
+        .animate-success-pulse {
+          animation: success-pulse 2s ease-in-out infinite;
+        }
+        
+        .animate-current-step {
+          animation: current-step 3s ease-in-out infinite;
+        }
+        
+        .animate-counter-text {
+          animation: counter-text 1s ease-out forwards;
+        }
+        
+        .animate-progress-wow {
+          animation: progress-wow 3s ease-out forwards;
+        }
+        
+        .animate-button-glow {
+          animation: button-glow 2s ease-in-out infinite;
+        }
+        
+        .animate-button-float {
+          animation: button-float 3s ease-in-out infinite;
+        }
+        
+        .animate-handshake-left {
+          animation: handshake-left 4s ease-in-out infinite;
+        }
+        
+        .animate-handshake-right {
+          animation: handshake-right 4s ease-in-out infinite;
+        }
+        
+        .animate-draw-line {
+          animation: draw-line 2s ease-out forwards;
+        }
+        
+        .animate-dash-flow {
+          animation: dash-flow 2s linear infinite;
+        }
+        
+        .animate-sparkle {
+          animation: sparkle 2s ease-in-out infinite;
+        }
+        
+        .animate-connection-lines {
+          animation: connection-lines 3s ease-in-out infinite;
+        }
+        
+        .animate-card-float {
+          animation: card-float 4s ease-in-out infinite;
+        }
+        
+        .perspective-1000 {
+          perspective: 1000px;
+        }
+        
+        /* Mobile responsive adjustments */
+        @media (max-width: 768px) {
+          .animate-slide-in-left {
+            animation-duration: 0.6s;
+          }
+        }
+      `}</style>
+    </div>
+  );
+}

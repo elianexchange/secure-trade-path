@@ -1,0 +1,343 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// User Management
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  password    String
+  firstName   String
+  lastName    String
+  role        String   @default("BUYER") // BUYER, VENDOR, ADMIN
+  status      String   @default("ACTIVE") // ACTIVE, INACTIVE, SUSPENDED
+  nin         String?  @unique // National Identification Number
+  bvn         String?  @unique // Bank Verification Number
+  isVerified  Boolean  @default(false) // KYC verification status
+  verificationLevel String @default("BASIC") // BASIC, ENHANCED, PREMIUM
+  trustScore  Float    @default(0.0) // 0-100 trust score
+  lastSeen    DateTime? // Track when user was last active
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  createdTransactions    EscrowTransaction[] @relation("TransactionCreator")
+  joinedTransactions     EscrowTransaction[] @relation("TransactionParticipant")
+  notifications          Notification[]
+  messages              Message[]
+  wallet                Wallet?
+  bankAccounts          BankAccount[]
+  identityDocuments     IdentityDocument[]
+  verificationHistory   VerificationHistory[]
+  disputesRaised        Dispute[] @relation("DisputeRaiser")
+  disputesAgainst       Dispute[] @relation("DisputeAccused")
+  disputeEvidence       DisputeEvidence[]
+  disputeMessages       DisputeMessage[]
+
+  @@map("users")
+}
+
+// Identity Document Management
+model IdentityDocument {
+  id              String   @id @default(cuid())
+  userId          String
+  documentType    String   // NIN, BVN, DRIVERS_LICENSE, PASSPORT, UTILITY_BILL
+  documentNumber  String
+  documentImage   String?  // Base64 or file path
+  isVerified      Boolean  @default(false)
+  verifiedAt      DateTime?
+  verifiedBy      String?  // Admin or system
+  rejectionReason String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("identity_documents")
+}
+
+// Verification History
+model VerificationHistory {
+  id              String   @id @default(cuid())
+  userId          String
+  verificationType String   // NIN_VERIFICATION, BVN_VERIFICATION, DOCUMENT_VERIFICATION
+  status          String   // PENDING, APPROVED, REJECTED
+  details         String?  // JSON string with verification details
+  verifiedBy      String?  // Admin or system
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("verification_history")
+}
+
+// Escrow Transaction Management
+model EscrowTransaction {
+  id              String   @id @default(cuid())
+  description     String
+  currency        String   @default("NGN") // NGN, USD, EUR, GBP
+  price           Float
+  fee             Float
+  total           Float
+  useCourier      Boolean  @default(false)
+  status          String   @default("PENDING") // PENDING, ACTIVE, WAITING_FOR_DELIVERY_DETAILS, DELIVERY_DETAILS_IMPORTED, WAITING_FOR_PAYMENT, PAYMENT_MADE, WAITING_FOR_SHIPMENT, SHIPMENT_CONFIRMED, WAITING_FOR_BUYER_CONFIRMATION, COMPLETED, CANCELLED
+  creatorId       String
+  creatorRole     String   // BUYER or SELLER
+  counterpartyId  String?
+  counterpartyRole String? // BUYER or SELLER
+  counterpartyName String?
+  shippingDetails String?  // JSON string for shipping information
+  deliveryDetails String?  // JSON string for delivery information
+  paymentCompleted Boolean  @default(false)
+  paymentMethod   String?  // WALLET, BANK_TRANSFER, CARD
+  paymentReference String? // Payment reference number
+  expectedDeliveryTime String? // Expected delivery time in days
+  actualDeliveryTime String? // Actual delivery time
+  autoReleaseEnabled Boolean @default(false) // Enable automatic payment release
+  autoReleaseConditions String? // JSON string for release conditions
+  autoReleaseDate DateTime? // Scheduled release date
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  paidAt          DateTime?
+  shippedAt       DateTime?
+  deliveredAt     DateTime?
+  completedAt     DateTime?
+
+  // Relations
+  creator         User     @relation("TransactionCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  counterparty    User?    @relation("TransactionParticipant", fields: [counterpartyId], references: [id], onDelete: SetNull)
+  invitations     TransactionInvitation[]
+  notifications   Notification[]
+  messages        Message[]
+  walletTransactions WalletTransaction[]
+  paymentConditions PaymentCondition[]
+  disputes        Dispute[]
+
+  @@map("escrow_transactions")
+}
+
+// Payment Release Conditions
+model PaymentCondition {
+  id              String   @id @default(cuid())
+  transactionId   String
+  conditionType   String   // TIME_BASED, DELIVERY_CONFIRMED, MANUAL_APPROVAL, DISPUTE_RESOLVED
+  conditionValue  String?  // JSON string with condition details
+  isMet           Boolean  @default(false)
+  metAt           DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  transaction     EscrowTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@map("payment_conditions")
+}
+
+// Dispute Resolution System
+model Dispute {
+  id              String   @id @default(cuid())
+  transactionId   String
+  raisedBy        String   // User ID who raised the dispute
+  raisedAgainst   String   // User ID the dispute is against
+  disputeType     String   // PAYMENT, DELIVERY, QUALITY, FRAUD, OTHER
+  reason          String
+  description     String
+  status          String   @default("OPEN") // OPEN, IN_REVIEW, RESOLVED, CLOSED
+  priority        String   @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  resolution      String?  // REFUND_FULL, REFUND_PARTIAL, RELEASE_PAYMENT, NO_ACTION
+  resolutionNotes String?
+  resolvedBy      String?  // Admin or system
+  resolvedAt      DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  transaction     EscrowTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  raiser          User              @relation("DisputeRaiser", fields: [raisedBy], references: [id], onDelete: Cascade)
+  accused         User              @relation("DisputeAccused", fields: [raisedAgainst], references: [id], onDelete: Cascade)
+  evidence        DisputeEvidence[]
+  messages        DisputeMessage[]
+  resolutions     DisputeResolution[]
+
+  @@map("disputes")
+}
+
+// Dispute Evidence
+model DisputeEvidence {
+  id          String   @id @default(cuid())
+  disputeId   String
+  uploadedBy  String   // User ID
+  fileName    String
+  fileType    String   // IMAGE, DOCUMENT, VIDEO, AUDIO
+  fileUrl     String
+  description String?
+  isVerified  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  // Relations
+  dispute     Dispute  @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  uploader    User     @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
+
+  @@map("dispute_evidence")
+}
+
+// Dispute Messages
+model DisputeMessage {
+  id        String   @id @default(cuid())
+  disputeId String
+  senderId  String
+  content   String
+  isInternal Boolean @default(false) // Internal admin messages
+  createdAt DateTime @default(now())
+
+  // Relations
+  dispute   Dispute  @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@map("dispute_messages")
+}
+
+// Dispute Resolution Attempts
+model DisputeResolution {
+  id              String   @id @default(cuid())
+  disputeId       String
+  resolutionType  String   // AUTOMATIC, MEDIATION, ARBITRATION, ADMIN_DECISION
+  proposedBy      String   // User ID or 'SYSTEM' or 'ADMIN'
+  resolution      String   // REFUND_FULL, REFUND_PARTIAL, RELEASE_PAYMENT, NO_ACTION
+  amount          Float?   // For partial refunds
+  reason          String
+  status          String   @default("PENDING") // PENDING, ACCEPTED, REJECTED, EXPIRED
+  acceptedBy      String?  // User ID who accepted
+  rejectedBy      String?  // User ID who rejected
+  expiresAt       DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  dispute         Dispute  @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+
+  @@map("dispute_resolutions")
+}
+
+// Transaction Invitation System
+model TransactionInvitation {
+  id              String   @id @default(cuid())
+  transactionId   String
+  inviteCode      String   @unique // Short, unique code like "ABC123"
+  status          String   @default("ACTIVE") // ACTIVE, EXPIRED, USED
+  expiresAt       DateTime
+  usedAt          DateTime?
+  usedBy          String?  // User ID who used the invitation
+  createdAt       DateTime @default(now())
+
+  // Relations
+  transaction     EscrowTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@map("transaction_invitations")
+}
+
+// Notification System
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  transactionId String?
+  type      String   // TRANSACTION_UPDATE, PAYMENT, SHIPPING, DELIVERY, DISPUTE, SYSTEM
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  priority  String   @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  createdAt DateTime @default(now())
+
+  // Relations
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transaction EscrowTransaction? @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+// Messaging System
+model Message {
+  id            String   @id @default(cuid())
+  transactionId String
+  senderId      String
+  content       String
+  isRead        Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  // Relations
+  transaction   EscrowTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  sender        User              @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+// Wallet System
+model Wallet {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  accountNumber   String   @unique // Unique wallet account number
+  balance         Float    @default(0.0)
+  currency        String   @default("NGN")
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions    WalletTransaction[]
+
+  @@map("wallets")
+}
+
+// Wallet Transactions
+model WalletTransaction {
+  id              String   @id @default(cuid())
+  walletId        String
+  transactionId   String?  // Reference to escrow transaction if applicable
+  type            String   // DEPOSIT, WITHDRAWAL, ESCROW_HOLD, ESCROW_RELEASE, PAYMENT, REFUND, FEE
+  amount          Float
+  balance         Float    // Balance after transaction
+  description     String
+  reference       String?  // External reference number
+  status          String   @default("PENDING") // PENDING, COMPLETED, FAILED, CANCELLED
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  wallet          Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  escrowTransaction EscrowTransaction? @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+
+  @@map("wallet_transactions")
+}
+
+// Bank Account Management
+model BankAccount {
+  id              String   @id @default(cuid())
+  userId          String
+  bankName        String
+  accountNumber   String
+  accountName     String
+  bankCode        String
+  isDefault       Boolean  @default(false)
+  isVerified      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("bank_accounts")
+}
+

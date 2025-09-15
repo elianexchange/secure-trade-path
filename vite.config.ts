@@ -8,6 +8,18 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    proxy: {
+      '/api': {
+        target: process.env.VITE_API_BASE_URL || 'http://localhost:4000',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/socket.io': {
+        target: process.env.VITE_WS_URL || 'http://localhost:4000',
+        changeOrigin: true,
+        ws: true,
+      },
+    },
   },
   plugins: [
     react(),

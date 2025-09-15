@@ -1,323 +1,453 @@
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Progress } from '@/components/ui/progress';
 import { 
-  CreditCard, 
   Shield, 
-  Lock,
-  CheckCircle,
+  Lock, 
+  CreditCard, 
+  CheckCircle, 
+  ArrowRight,
+  Info,
   AlertCircle,
-  Wallet,
-  DollarSign,
-  ArrowLeft,
-  ArrowRight
+  Clock,
+  FileText,
+  Truck,
+  Package
 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useWebSocket } from '@/contexts/WebSocketContext';
+import { toast } from 'sonner';
 
-const paymentMethods = [
-  {
-    id: 'card',
-    name: 'Credit/Debit Card',
-    icon: CreditCard,
-    description: 'Visa, Mastercard, American Express',
-    fees: 'No additional fees'
-  },
-  {
-    id: 'bank',
-    name: 'Bank Transfer',
-    icon: Wallet,
-    description: 'Direct bank account transfer',
-    fees: '1% processing fee'
-  }
-];
+interface Transaction {
+  id: string;
+  role: 'BUYER' | 'SELLER';
+  useCourier: boolean;
+  description: string;
+  currency: string;
+  price: number;
+  fee: number;
+  total: number;
+  status: 'PENDING' | 'ACTIVE' | 'SHIPPING' | 'PAYMENT' | 'COMPLETED' | 'CANCELLED';
+  createdAt: string;
+  creatorId?: string;
+  creatorRole: 'BUYER' | 'SELLER';
+  counterpartyId?: string;
+  counterpartyRole: 'BUYER' | 'SELLER';
+  counterpartyName?: string;
+  shippingDetails?: any;
+  paymentCompleted: boolean;
+}
 
 export default function Payment() {
-  const [selectedMethod, setSelectedMethod] = useState('card');
-  const [processing, setProcessing] = useState(false);
-  const [cardData, setCardData] = useState({
-    number: '',
-    expiry: '',
-    cvv: '',
-    name: ''
-  });
+  const { transactionId } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { emitTransactionUpdate } = useWebSocket();
+  const [transaction, setTransaction] = useState<Transaction | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const orderTotal = 2548.98;
+  useEffect(() => {
+    if (transactionId) {
+      const storedTransactions = JSON.parse(localStorage.getItem('tranzio_transactions') || '[]');
+      const foundTransaction = storedTransactions.find((tx: Transaction) => tx.id === transactionId);
+      if (foundTransaction) {
+        setTransaction(foundTransaction);
+        setIsLoading(false);
+      } else {
+        setIsLoading(false);
+      }
+    }
+  }, [transactionId]);
 
   const handlePayment = async () => {
-    setProcessing(true);
+    if (!transaction) return;
+    
+    setIsProcessing(true);
+    
     // Simulate payment processing
     setTimeout(() => {
-      setProcessing(false);
-      // Redirect to success page or handle success
+      setIsProcessing(false);
+      setIsCompleted(true);
+      
+      // Update transaction status in localStorage
+      const storedTransactions = JSON.parse(localStorage.getItem('tranzio_transactions') || '[]');
+      const transactionIndex = storedTransactions.findIndex((tx: Transaction) => tx.id === transaction.id);
+      
+      if (transactionIndex !== -1) {
+        storedTransactions[transactionIndex] = {
+          ...storedTransactions[transactionIndex],
+          status: 'PAYMENT',
+          paymentCompleted: true,
+          updatedAt: new Date().toISOString()
+        };
+        
+        localStorage.setItem('tranzio_transactions', JSON.stringify(storedTransactions));
+        
+        // Emit WebSocket event for real-time update
+        emitTransactionUpdate(transaction.id, 'PAYMENT');
+        
+        // Dispatch custom event to notify other components
+        window.dispatchEvent(new CustomEvent('transactionUpdated', { 
+          detail: { transactionId: transaction.id, status: 'PAYMENT' } 
+        }));
+        
+        toast.success('Payment successful! Transaction is now active.');
+      }
     }, 3000);
   };
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Secure Payment</h1>
-          <p className="text-muted-foreground">Your payment is protected by our escrow service</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Shield className="h-5 w-5 text-success" />
-          <span className="text-sm font-medium text-success">SSL Encrypted</span>
+  const getCurrencySymbol = (currency: string) => {
+    const symbols: { [key: string]: string } = {
+      'NGN': '₦',
+      'USD': '$',
+      'EUR': '€',
+      'GBP': '£'
+    };
+    return symbols[currency] || '₦';
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading transaction...</p>
         </div>
       </div>
+    );
+  }
 
-      {/* Progress Indicator */}
-      <Card className="shadow-card">
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-sm font-medium text-foreground">Payment Progress</span>
-            <span className="text-sm text-muted-foreground">Step 2 of 3</span>
-          </div>
-          <Progress value={66} className="h-2" />
-          <div className="flex justify-between text-xs text-muted-foreground mt-2">
-            <span>Order Review</span>
-            <span className="font-medium text-primary">Payment</span>
-            <span>Confirmation</span>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Payment Form */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Payment Method Selection */}
-          <Card className="shadow-card">
-            <CardHeader>
-              <CardTitle className="text-foreground">Choose Payment Method</CardTitle>
-              <CardDescription>Select your preferred payment option</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {paymentMethods.map((method) => (
-                <div
-                  key={method.id}
-                  className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                    selectedMethod === method.id
-                      ? 'border-primary bg-primary-light/10'
-                      : 'border-border hover:bg-muted/50'
-                  }`}
-                  onClick={() => setSelectedMethod(method.id)}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${
-                      selectedMethod === method.id ? 'bg-primary text-primary-foreground' : 'bg-muted'
-                    }`}>
-                      <method.icon className="h-4 w-4" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-medium text-foreground">{method.name}</h3>
-                        <div className={`w-4 h-4 rounded-full border-2 ${
-                          selectedMethod === method.id
-                            ? 'border-primary bg-primary'
-                            : 'border-muted-foreground'
-                        }`}>
-                          {selectedMethod === method.id && (
-                            <div className="w-full h-full rounded-full bg-white scale-50" />
-                          )}
-                        </div>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{method.description}</p>
-                      <p className="text-xs text-success">{method.fees}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* Payment Details Form */}
-          {selectedMethod === 'card' && (
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle className="text-foreground flex items-center gap-2">
-                  <CreditCard className="h-5 w-5" />
-                  Card Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="cardName">Cardholder Name</Label>
-                  <Input
-                    id="cardName"
-                    placeholder="John Doe"
-                    value={cardData.name}
-                    onChange={(e) => setCardData({ ...cardData, name: e.target.value })}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="cardNumber">Card Number</Label>
-                  <Input
-                    id="cardNumber"
-                    placeholder="1234 5678 9012 3456"
-                    value={cardData.number}
-                    onChange={(e) => setCardData({ ...cardData, number: e.target.value })}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="expiry">Expiry Date</Label>
-                    <Input
-                      id="expiry"
-                      placeholder="MM/YY"
-                      value={cardData.expiry}
-                      onChange={(e) => setCardData({ ...cardData, expiry: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="cvv">CVV</Label>
-                    <Input
-                      id="cvv"
-                      placeholder="123"
-                      value={cardData.cvv}
-                      onChange={(e) => setCardData({ ...cardData, cvv: e.target.value })}
-                    />
-                  </div>
-                </div>
-
-                <div className="bg-muted/50 p-3 rounded-lg">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Lock className="h-3 w-3 text-success" />
-                    <span className="text-muted-foreground">
-                      Your card information is encrypted and secure
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {selectedMethod === 'bank' && (
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle className="text-foreground flex items-center gap-2">
-                  <Wallet className="h-5 w-5" />
-                  Bank Transfer Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-info-light/10 p-4 rounded-lg">
-                  <div className="flex items-start gap-2">
-                    <AlertCircle className="h-4 w-4 text-info mt-0.5" />
-                    <div className="text-sm">
-                      <p className="font-medium text-foreground mb-1">Bank Transfer Instructions</p>
-                      <p className="text-muted-foreground">
-                        After clicking "Complete Payment", you'll receive detailed bank transfer instructions via email. 
-                        The transaction will begin once we receive your payment.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+  if (!transaction) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h1 className="text-xl font-semibold mb-2">Transaction Not Found</h1>
+          <p className="text-muted-foreground mb-4">This transaction may have been deleted or doesn't exist.</p>
         </div>
+      </div>
+    );
+  }
 
-        {/* Order Summary */}
-        <div className="space-y-6">
-          <Card className="shadow-card">
+  const currencySymbol = getCurrencySymbol(transaction.currency);
+
+  if (isCompleted) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="max-w-4xl mx-auto px-6 py-12">
+          {/* Success Header */}
+          <div className="text-center mb-12">
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="h-10 w-10 text-green-600" />
+            </div>
+            <h1 className="text-3xl font-bold text-foreground mb-4">
+              Payment Successful!
+            </h1>
+            <p className="text-lg text-muted-foreground">
+              Your payment has been secured in the Tranzio Vault. The transaction is now active.
+            </p>
+          </div>
+
+          {/* Transaction Details */}
+          <Card className="mb-8">
             <CardHeader>
-              <CardTitle className="text-foreground flex items-center gap-2">
-                <DollarSign className="h-5 w-5" />
-                Order Summary
+              <CardTitle className="flex items-center space-x-2">
+                <FileText className="h-5 w-5" />
+                <span>Transaction Details</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="font-medium text-foreground">MacBook Pro 16" M3</p>
-                  <p className="text-sm text-muted-foreground">TechVendor Pro</p>
+                  <span className="text-sm text-muted-foreground">Transaction ID:</span>
+                  <p className="font-mono text-sm">{transaction.id}</p>
                 </div>
-                <Separator />
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Item Price</span>
-                    <span className="text-foreground">$2,499.00</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Escrow Fee (2%)</span>
-                    <span className="text-foreground">$49.98</span>
-                  </div>
-                  {selectedMethod === 'bank' && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Processing Fee (1%)</span>
-                      <span className="text-foreground">$25.49</span>
-                    </div>
-                  )}
+                <div>
+                  <span className="text-sm text-muted-foreground">Your Role:</span>
+                  <Badge variant={transaction.role === 'BUYER' ? 'default' : 'secondary'}>
+                    {transaction.role}
+                  </Badge>
                 </div>
-                <Separator />
-                <div className="flex justify-between text-lg font-semibold">
-                  <span className="text-foreground">Total</span>
-                  <span className="text-foreground">
-                    ${selectedMethod === 'bank' ? (orderTotal + 25.49).toFixed(2) : orderTotal.toFixed(2)}
-                  </span>
+                <div>
+                  <span className="text-sm text-muted-foreground">Description:</span>
+                  <p className="text-sm">{transaction.description}</p>
+                </div>
+                <div>
+                  <span className="text-sm text-muted-foreground">Courier Service:</span>
+                  <Badge variant={transaction.useCourier ? 'default' : 'outline'}>
+                    {transaction.useCourier ? 'Yes' : 'No'}
+                  </Badge>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Security Features */}
-          <Card className="shadow-card bg-success-light/10">
+          {/* Next Steps */}
+          <Card>
             <CardHeader>
-              <CardTitle className="text-foreground flex items-center gap-2">
-                <Shield className="h-5 w-5 text-success" />
-                Payment Protection
-              </CardTitle>
+              <CardTitle>What Happens Next?</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-3 w-3 text-success" />
-                  <span>256-bit SSL encryption</span>
+              <div className="space-y-4">
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-xs text-primary-foreground font-bold">1</span>
+                  </div>
+                  <div>
+                    <p className="font-medium">Transaction Active</p>
+                    <p className="text-sm text-muted-foreground">
+                      Your transaction is now active and funds are securely held in escrow.
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-3 w-3 text-success" />
-                  <span>PCI DSS compliant</span>
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-xs text-primary-foreground font-bold">2</span>
+                  </div>
+                  <div>
+                    <p className="font-medium">Order Fulfillment</p>
+                    <p className="text-sm text-muted-foreground">
+                      The seller will process and ship your order. You'll receive tracking updates.
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-3 w-3 text-success" />
-                  <span>Fraud detection enabled</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-3 w-3 text-success" />
-                  <span>Escrow guarantee</span>
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-xs text-primary-foreground font-bold">3</span>
+                  </div>
+                  <div>
+                    <p className="font-medium">Funds Released</p>
+                    <p className="text-sm text-muted-foreground">
+                      Once you confirm receipt, funds are automatically released to the seller.
+                    </p>
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Action Buttons */}
-          <div className="space-y-3">
-            <Button
-              onClick={handlePayment}
-              disabled={processing}
-              className="w-full gap-2"
-              size="lg"
-            >
-              {processing ? (
-                <>Processing...</>
-              ) : (
-                <>
-                  Complete Payment
-                  <ArrowRight className="h-4 w-4" />
-                </>
-              )}
+          <div className="flex justify-center mt-8">
+            <Button onClick={() => navigate('/app/transactions')}>
+              View My Transactions
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-            
-            <Button variant="outline" className="w-full gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Back to Order Review
-            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="max-w-4xl mx-auto px-6 py-12">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-3xl font-bold text-foreground mb-4">
+            Secure Payment
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            Complete your payment to create the transaction. Your funds will be securely held in the Tranzio Vault.
+          </p>
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Left Column - Transaction Summary */}
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <FileText className="h-5 w-5" />
+                  <span>Transaction Summary</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Your Role:</span>
+                    <Badge variant={transaction.role === 'BUYER' ? 'default' : 'secondary'}>
+                      {transaction.role}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Description:</span>
+                    <span className="text-sm text-right max-w-[200px]">{transaction.description}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Courier Service:</span>
+                    <Badge variant={transaction.useCourier ? 'default' : 'outline'}>
+                      {transaction.useCourier ? 'Yes' : 'No'}
+                    </Badge>
+                  </div>
+                  {transaction.shippingDetails && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Shipping Details:</span>
+                      <Badge variant="default">
+                        <Package className="h-3 w-3 mr-1" />
+                        Completed
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+                
+                <Separator />
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Item Price:</span>
+                    <span className="font-medium">
+                      {currencySymbol}{transaction.price.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Transaction Fee (2.5%):</span>
+                    <span className="font-medium">
+                      {currencySymbol}{transaction.fee.toFixed(2)}
+                    </span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between text-lg font-bold">
+                    <span>Total Amount:</span>
+                    <span className="text-primary">
+                      {currencySymbol}{transaction.total.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Security Features */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Shield className="h-5 w-5" />
+                  <span>Security Features</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Lock className="h-4 w-4 text-green-600" />
+                  <span className="text-sm">Bank-grade encryption</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Shield className="h-4 w-4 text-green-600" />
+                  <span className="text-sm">Escrow protection</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Clock className="h-4 w-4 text-green-600" />
+                  <span className="text-sm">Funds held securely</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column - Payment & Escrow Info */}
+          <div className="space-y-6">
+            {/* Escrow Information */}
+            <Card className="border-primary/20 bg-primary/5">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2 text-primary">
+                  <Info className="h-5 w-5" />
+                  <span>How Tranzio Vault Protects You</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-start space-x-3">
+                    <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+                    <div>
+                      <p className="font-medium text-sm">Secure Escrow Service</p>
+                      <p className="text-xs text-muted-foreground">
+                        Your payment is held securely in our vault until the transaction is completed.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+                    <div>
+                      <p className="font-medium text-sm">Buyer Protection</p>
+                      <p className="text-xs text-muted-foreground">
+                        Funds are only released to the seller after you confirm receipt and satisfaction.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+                    <div>
+                      <p className="font-medium text-sm">Dispute Resolution</p>
+                      <p className="text-xs text-muted-foreground">
+                        If issues arise, our team will mediate and ensure fair resolution.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Payment Method */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <CreditCard className="h-5 w-5" />
+                  <span>Payment Method</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="p-4 border border-border rounded-lg bg-muted/30">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                        <CreditCard className="h-5 w-5 text-primary-foreground" />
+                      </div>
+                      <div>
+                        <p className="font-medium">Card Payment</p>
+                        <p className="text-sm text-muted-foreground">Secure payment via Stripe</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    onClick={handlePayment}
+                    disabled={isProcessing}
+                    className="w-full"
+                    size="lg"
+                  >
+                    {isProcessing ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                        Processing Payment...
+                      </>
+                    ) : (
+                                          <>
+                      Pay {currencySymbol}{transaction.total.toFixed(2)}
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Important Notice */}
+            <Card className="border-amber-200 bg-amber-50">
+              <CardContent className="pt-6">
+                <div className="flex items-start space-x-3">
+                  <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-amber-800">Important Notice</p>
+                    <p className="text-sm text-amber-700 mt-1">
+                      By proceeding with this payment, you agree to our terms of service. 
+                      Funds will be held securely until the transaction is completed or resolved.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

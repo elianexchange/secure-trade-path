@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useNotifications } from '@/contexts/NotificationContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Bell, 
   Package, 
@@ -14,67 +17,20 @@ import {
   AlertCircle,
   Settings,
   Trash2,
-  Mail
+  Mail,
+  ArrowLeft,
+  Info,
+  RefreshCw,
+  Eye,
+  EyeOff
 } from 'lucide-react';
-
-const notifications = [
-  {
-    id: 'NOT-001',
-    type: 'payment',
-    title: 'Payment Received in Escrow',
-    message: 'Your payment of $2,499.00 for MacBook Pro 16" M3 has been securely held in escrow.',
-    time: '2 minutes ago',
-    read: false,
-    priority: 'high',
-    orderId: 'ORD-001'
-  },
-  {
-    id: 'NOT-002',
-    type: 'order',
-    title: 'Vendor Confirmed Order',
-    message: 'TechVendor Pro has confirmed your order and will begin processing shortly.',
-    time: '15 minutes ago',
-    read: false,
-    priority: 'medium',
-    orderId: 'ORD-001'
-  },
-  {
-    id: 'NOT-003',
-    type: 'shipping',
-    title: 'Item Shipped',
-    message: 'Your iPhone 15 Pro has been shipped. Tracking number: TRK987654321',
-    time: '2 hours ago',
-    read: true,
-    priority: 'medium',
-    orderId: 'ORD-002'
-  },
-  {
-    id: 'NOT-004',
-    type: 'message',
-    title: 'New Message from Vendor',
-    message: 'Home Supplies Co. sent you a message regarding your office chair order.',
-    time: '1 day ago',
-    read: true,
-    priority: 'low',
-    orderId: 'ORD-003'
-  },
-  {
-    id: 'NOT-005',
-    type: 'delivery',
-    title: 'Delivery Completed',
-    message: 'Your iPhone 15 Pro has been delivered. Please confirm receipt to release payment.',
-    time: '2 days ago',
-    read: false,
-    priority: 'high',
-    orderId: 'ORD-002'
-  }
-];
+import { toast } from 'sonner';
 
 const notificationSettings = [
   {
-    id: 'order_updates',
-    label: 'Order Updates',
-    description: 'Get notified when your order status changes',
+    id: 'transaction_updates',
+    label: 'Transaction Updates',
+    description: 'Get notified when transaction status changes',
     enabled: true
   },
   {
@@ -84,262 +40,335 @@ const notificationSettings = [
     enabled: true
   },
   {
-    id: 'vendor_messages',
-    label: 'Vendor Messages',
-    description: 'New messages from vendors',
+    id: 'message_notifications',
+    label: 'Message Notifications',
+    description: 'New messages from transaction partners',
     enabled: true
   },
   {
-    id: 'delivery_updates',
-    label: 'Delivery Updates',
-    description: 'Shipping and delivery notifications',
+    id: 'shipping_updates',
+    label: 'Shipping Updates',
+    description: 'Delivery and shipping notifications',
     enabled: true
   },
   {
-    id: 'promotional',
-    label: 'Promotional',
-    description: 'Special offers and platform updates',
-    enabled: false
+    id: 'system_alerts',
+    label: 'System Alerts',
+    description: 'Important system notifications',
+    enabled: true
   }
 ];
 
+export default function Notifications() {
+  const navigate = useNavigate();
+  
+  // Safely get notifications with fallback
+  let notifications: any[] = [];
+  let unreadCount = 0;
+  let isLoading = false;
+  let markAsRead: ((id: string) => Promise<void>) | null = null;
+  let markAllAsRead: (() => Promise<void>) | null = null;
+  let deleteNotification: ((id: string) => Promise<void>) | null = null;
+  let clearAllNotifications: (() => Promise<void>) | null = null;
+  let refreshNotifications: (() => Promise<void>) | null = null;
+  
+  try {
+    const notificationContext = useNotifications();
+    notifications = notificationContext.notifications;
+    unreadCount = notificationContext.unreadCount;
+    isLoading = notificationContext.isLoading;
+    markAsRead = notificationContext.markAsRead;
+    markAllAsRead = notificationContext.markAllAsRead;
+    deleteNotification = notificationContext.deleteNotification;
+    clearAllNotifications = notificationContext.clearAllNotifications;
+    refreshNotifications = notificationContext.refreshNotifications;
+  } catch (error) {
+    console.warn('NotificationProvider not available in Notifications page');
+  }
+  
+  const [settings, setSettings] = useState(notificationSettings);
+  const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
+
+  useEffect(() => {
+    // Refresh notifications when component mounts
+    if (refreshNotifications) {
+      refreshNotifications();
+    }
+  }, [refreshNotifications]);
+
+  useEffect(() => {
+    // Mark all notifications as read when user visits the page
+    if (unreadCount > 0 && markAllAsRead) {
+      markAllAsRead();
+    }
+  }, [unreadCount, markAllAsRead]);
+
 const getNotificationIcon = (type: string) => {
   switch (type) {
-    case 'payment':
-      return DollarSign;
-    case 'order':
-      return Package;
-    case 'shipping':
-      return Package;
-    case 'message':
-      return MessageCircle;
-    case 'delivery':
-      return CheckCircle;
+      case 'TRANSACTION_UPDATE':
+        return <Package className="h-4 w-4 text-blue-600" />;
+      case 'PAYMENT':
+        return <DollarSign className="h-4 w-4 text-green-600" />;
+      case 'SHIPPING':
+        return <Package className="h-4 w-4 text-purple-600" />;
+      case 'DELIVERY':
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case 'MESSAGE':
+        return <MessageCircle className="h-4 w-4 text-orange-600" />;
+      case 'DISPUTE':
+        return <AlertCircle className="h-4 w-4 text-red-600" />;
+      case 'SYSTEM':
+        return <Bell className="h-4 w-4 text-gray-600" />;
     default:
-      return Bell;
+        return <Bell className="h-4 w-4 text-gray-600" />;
   }
 };
 
 const getPriorityColor = (priority: string) => {
   switch (priority) {
-    case 'high':
-      return 'bg-destructive text-destructive-foreground';
-    case 'medium':
-      return 'bg-warning text-warning-foreground';
-    case 'low':
-      return 'bg-info text-info-foreground';
+      case 'URGENT':
+        return 'bg-red-100 text-red-800 border-red-200';
+      case 'HIGH':
+        return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'MEDIUM':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'LOW':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     default:
-      return 'bg-muted text-muted-foreground';
-  }
-};
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
 
-export default function Notifications() {
-  const [activeTab, setActiveTab] = useState('all');
-  const [settings, setSettings] = useState(notificationSettings);
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
+    
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+    
+    return date.toLocaleDateString('en-NG', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
-
-  const toggleSetting = (id: string) => {
-    setSettings(settings.map(setting => 
-      setting.id === id ? { ...setting, enabled: !setting.enabled } : setting
-    ));
+  const getActionButtonText = (nextAction: string) => {
+    switch (nextAction) {
+      case 'proceed_to_fill_shipping_details':
+        return 'Fill Shipping Details';
+      case 'proceed_with_payment':
+        return 'Proceed with Payment';
+      case 'proceed_to_ship_goods':
+        return 'Ship Goods';
+      case 'confirm_receipt':
+        return 'Confirm Receipt';
+      case 'view_transaction':
+        return 'View Transaction';
+      default:
+        return 'Take Action';
+    }
   };
 
   const filteredNotifications = notifications.filter(notification => {
-    if (activeTab === 'unread') return !notification.read;
-    if (activeTab === 'payment') return notification.type === 'payment';
-    if (activeTab === 'orders') return ['order', 'shipping', 'delivery'].includes(notification.type);
+    switch (filter) {
+      case 'unread':
+        return !notification.isRead;
+      case 'read':
+        return notification.isRead;
+      default:
     return true;
+    }
   });
 
+  const handleMarkAsRead = async (notificationId: string) => {
+    if (markAsRead) {
+      await markAsRead(notificationId);
+      toast.success('Notification marked as read');
+    } else {
+      toast.error('Notification system not available');
+    }
+  };
+
+  const handleDeleteNotification = async (notificationId: string) => {
+    if (deleteNotification) {
+      await deleteNotification(notificationId);
+      toast.success('Notification deleted');
+    } else {
+      toast.error('Notification system not available');
+    }
+  };
+
+  const handleClearAll = async () => {
+    if (clearAllNotifications) {
+      await clearAllNotifications();
+      toast.success('All notifications cleared');
+    } else {
+      toast.error('Notification system not available');
+    }
+  };
+
+  const handleRefresh = async () => {
+    if (refreshNotifications) {
+      await refreshNotifications();
+      toast.success('Notifications refreshed');
+    } else {
+      toast.error('Notification system not available');
+    }
+  };
+
+  const handleSettingChange = (settingId: string, enabled: boolean) => {
+    setSettings(prev => 
+      prev.map(setting => 
+        setting.id === settingId ? { ...setting, enabled } : setting
+      )
+    );
+    toast.success(`Notification setting updated`);
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-background">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-            Notifications
-            {unreadCount > 0 && (
-              <Badge className="bg-destructive text-destructive-foreground">
-                {unreadCount} new
-              </Badge>
-            )}
-          </h1>
-          <p className="text-muted-foreground">Stay updated on your orders and transactions</p>
-        </div>
-        <Button variant="outline" className="gap-2">
-          <Settings className="h-4 w-4" />
-          Settings
-        </Button>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-4">
-        {/* Notifications List */}
-        <div className="lg:col-span-3 space-y-6">
-          {/* Filter Tabs */}
-          <Card className="shadow-card">
-            <CardContent className="pt-6">
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { id: 'all', label: 'All', count: notifications.length },
-                  { id: 'unread', label: 'Unread', count: unreadCount },
-                  { id: 'payment', label: 'Payments', count: notifications.filter(n => n.type === 'payment').length },
-                  { id: 'orders', label: 'Orders', count: notifications.filter(n => ['order', 'shipping', 'delivery'].includes(n.type)).length }
-                ].map((tab) => (
-                  <Button
-                    key={tab.id}
-                    variant={activeTab === tab.id ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setActiveTab(tab.id)}
-                    className="gap-2"
-                  >
-                    {tab.label}
-                    <Badge variant="secondary" className="text-xs">
-                      {tab.count}
-                    </Badge>
-                  </Button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Notifications */}
-          <div className="space-y-4">
-            {filteredNotifications.map((notification) => {
-              const IconComponent = getNotificationIcon(notification.type);
-              
-              return (
-                <Card 
-                  key={notification.id} 
-                  className={`shadow-card transition-colors ${
-                    !notification.read ? 'border-l-4 border-l-primary bg-primary-light/5' : ''
-                  }`}
-                >
-                  <CardContent className="pt-6">
-                    <div className="flex items-start gap-4">
-                      <div className={`p-2 rounded-lg ${
-                        !notification.read ? 'bg-primary text-primary-foreground' : 'bg-muted'
-                      }`}>
-                        <IconComponent className="h-4 w-4" />
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className={`font-medium ${
-                                !notification.read ? 'text-foreground' : 'text-muted-foreground'
-                              }`}>
-                                {notification.title}
-                              </h3>
-                              {!notification.read && (
-                                <div className="w-2 h-2 bg-primary rounded-full" />
-                              )}
-                            </div>
-                            
-                            <p className="text-sm text-muted-foreground mb-2">
-                              {notification.message}
-                            </p>
-                            
-                            <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                              <span className="flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                {notification.time}
-                              </span>
-                              <Badge variant="outline" className="text-xs">
-                                {notification.orderId}
-                              </Badge>
-                              <Badge className={getPriorityColor(notification.priority)}>
-                                {notification.priority}
-                              </Badge>
-                            </div>
-                          </div>
-                          
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm" className="gap-1">
-                              <Mail className="h-3 w-3" />
-                            </Button>
-                            <Button variant="outline" size="sm" className="gap-1 text-destructive hover:text-destructive">
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-xl font-semibold text-foreground">Notifications</h1>
+            <p className="text-sm text-muted-foreground">
+              {unreadCount > 0 ? `${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}` : 'All caught up!'}
+            </p>
           </div>
+          
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefresh}
+              disabled={isLoading}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
+        </div>
 
-          {filteredNotifications.length === 0 && (
-            <Card className="shadow-card">
-              <CardContent className="pt-6 text-center py-12">
-                <Bell className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="font-medium text-foreground mb-2">No notifications found</h3>
-                <p className="text-muted-foreground">
-                  {activeTab === 'unread' 
-                    ? "You're all caught up! No unread notifications."
-                    : "No notifications match your current filter."}
-                </p>
+
+        {/* Main Content */}
+        <Tabs defaultValue="notifications" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
+          </TabsList>
+
+          {/* Notifications Tab */}
+          <TabsContent value="notifications" className="space-y-4">
+            {/* Filter Buttons */}
+            <div className="flex items-center space-x-2">
+              <Button
+                variant={filter === 'all' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilter('all')}
+              >
+                All ({notifications.length})
+              </Button>
+              <Button
+                variant={filter === 'unread' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilter('unread')}
+              >
+                Unread ({unreadCount})
+              </Button>
+              <Button
+                variant={filter === 'read' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilter('read')}
+              >
+                Read ({notifications.filter(n => n.isRead).length})
+              </Button>
+            </div>
+
+            {/* Notifications List */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Your Notifications</span>
+                  {unreadCount > 0 && markAllAsRead && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={markAllAsRead}
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      Mark All Read
+                    </Button>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+                    <span className="ml-2 text-muted-foreground">Loading notifications...</span>
+                  </div>
+                ) : filteredNotifications.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Bell className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-foreground mb-2">No notifications</h3>
+                    <p className="text-muted-foreground">
+                      {filter === 'all' 
+                        ? "You're all caught up! New notifications will appear here."
+                        : `No ${filter} notifications found.`
+                      }
+                    </p>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Bell className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-foreground mb-2">Notifications hidden</h3>
+                    <p className="text-muted-foreground">
+                      Notification cards have been removed from this page.
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
-          )}
-        </div>
+          </TabsContent>
 
-        {/* Settings Sidebar */}
-        <div className="space-y-6">
-          <Card className="shadow-card">
+          {/* Settings Tab */}
+          <TabsContent value="settings" className="space-y-4">
+            <Card>
             <CardHeader>
-              <CardTitle className="text-foreground">Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full justify-start gap-2">
-                <CheckCircle className="h-4 w-4" />
-                Mark All as Read
-              </Button>
-              <Button variant="outline" className="w-full justify-start gap-2">
-                <Trash2 className="h-4 w-4" />
-                Clear All Read
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-card">
-            <CardHeader>
-              <CardTitle className="text-foreground">Notification Settings</CardTitle>
-              <CardDescription>Customize what notifications you receive</CardDescription>
+                <CardTitle className="flex items-center space-x-2">
+                  <Settings className="h-5 w-5" />
+                  <span>Notification Preferences</span>
+                </CardTitle>
+                <CardDescription>
+                  Choose which notifications you want to receive
+                </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {settings.map((setting) => (
                 <div key={setting.id} className="flex items-center justify-between">
-                  <div className="space-y-0.5">
+                    <div className="space-y-1">
                     <Label className="text-sm font-medium">{setting.label}</Label>
-                    <p className="text-xs text-muted-foreground">{setting.description}</p>
+                      <p className="text-sm text-muted-foreground">{setting.description}</p>
                   </div>
                   <Switch
                     checked={setting.enabled}
-                    onCheckedChange={() => toggleSetting(setting.id)}
+                      onCheckedChange={(enabled) => handleSettingChange(setting.id, enabled)}
                   />
                 </div>
               ))}
             </CardContent>
           </Card>
-
-          <Card className="shadow-card bg-info-light/10">
-            <CardHeader>
-              <CardTitle className="text-foreground flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 text-info" />
-                Stay Informed
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Enable notifications to stay updated on important order changes, payments, and messages from vendors.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
