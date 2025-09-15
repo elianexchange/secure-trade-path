@@ -195,6 +195,32 @@ DEFAULT_CURRENCY=NGN
 SUPPORTED_CURRENCIES=NGN,GHS,KES,ZAR,USD,EUR
 ```
 
+## 🚀 Backend Hosting Alternatives (Since Heroku Free Tier Discontinued)
+
+### **1. Railway (Recommended)**
+- ✅ **Free tier:** $5 credit monthly
+- ✅ **PostgreSQL included**
+- ✅ **Easy GitHub deployment**
+- ✅ **Zero configuration**
+
+**Deploy:** Connect GitHub → Select `tranzio-backend` folder → Deploy
+
+### **2. Render (Free Option)**
+- ✅ **Free tier:** 750 hours/month
+- ✅ **PostgreSQL included**
+- ✅ **Easy setup**
+
+**Deploy:** Create Web Service → Connect GitHub → Deploy
+
+### **3. Fly.io (High Performance)**
+- ✅ **Free tier:** 3 VMs
+- ✅ **Global deployment**
+- ✅ **Docker-based**
+
+**Deploy:** `fly launch` → `fly deploy`
+
+See `BACKEND_HOSTING_COMPARISON.md` for detailed comparison.
+
 ## 🚀 Quick Deploy Commands
 
 ### Frontend Only
@@ -204,15 +230,18 @@ npm run build:prod
 netlify deploy --prod --dir=dist
 ```
 
-### Full Stack
+### Full Stack (Railway + Netlify)
 ```bash
-# Deploy backend to Heroku
-cd tranzio-backend
-git push heroku main
+# Deploy backend to Railway
+# 1. Go to railway.app
+# 2. Connect GitHub repo
+# 3. Select tranzio-backend folder
+# 4. Add PostgreSQL database
+# 5. Set environment variables
 
 # Deploy frontend to Netlify
-cd ..
-npm run deploy:netlify
+npm run build:prod
+netlify deploy --prod --dir=dist
 ```
 
 ## 🔍 Troubleshooting
