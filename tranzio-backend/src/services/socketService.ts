@@ -15,6 +15,7 @@ export const initializeSocket = (server: HTTPServer) => {
   io = new SocketIOServer(server, {
     cors: {
       origin: [
+        process.env.CORS_ORIGIN || 'http://localhost:8080',
         'http://localhost:3000',
         'http://localhost:3001',
         'http://localhost:8080',

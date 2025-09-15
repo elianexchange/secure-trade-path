@@ -52,7 +52,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
         return `http://localhost:4000`;
       }
       // In production, use the backend URL directly
-      return process.env.REACT_APP_WS_URL || 'http://localhost:4000';
+      return import.meta.env.VITE_WS_URL || 'http://localhost:4000';
     };
 
     const wsUrl = getWebSocketUrl();
