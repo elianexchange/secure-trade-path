@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import WaitlistModal from '@/components/WaitlistModal';
 import { 
   Shield, 
   CheckCircle, 
@@ -44,6 +45,7 @@ export default function Landing() {
   const [isVisible, setIsVisible] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [currentUserType, setCurrentUserType] = useState(0);
+  const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const userTypes = [
@@ -121,7 +123,7 @@ export default function Landing() {
     <div className="min-h-screen bg-background">
       {/* Header Navigation */}
       <header className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 transition-all duration-300">
-        <div className="max-w-5xl mx-auto px-6 py-4">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
             {/* Logo */}
             <div className="flex items-center space-x-3">
@@ -305,7 +307,7 @@ export default function Landing() {
           <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-primary/5 to-transparent animate-wave"></div>
         </div>
         
-        <div className="max-w-5xl mx-auto px-6 relative z-10">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 relative z-10">
           <div className="grid lg:grid-cols-2 gap-24 items-center">
             {/* Left Content */}
             <div className={`space-y-8 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
@@ -346,13 +348,11 @@ export default function Landing() {
               <div className="relative group">
                 <Button 
                   size="lg" 
+                  onClick={() => setIsWaitlistModalOpen(true)}
                   className="relative bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white text-base px-6 py-3 h-auto transition-all duration-300 hover:scale-105 hover:shadow-xl border-0 font-medium" 
-                  asChild
                 >
-                  <Link to="/signup" className="flex items-center space-x-2">
-                    <span>Get Started</span>
-                    <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                  </Link>
+                  <span>Join Waitlist</span>
+                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 ml-2" />
                 </Button>
               </div>
             </div>
@@ -538,9 +538,10 @@ export default function Landing() {
         </div>
       </section>
 
+
       {/* Transaction Calculator Section */}
       <section className="py-16 bg-muted/20">
-        <div className="max-w-4xl mx-auto px-6">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6">
           <div className="bg-background rounded-2xl shadow-lg p-8 border border-border/20">
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-foreground mb-2">Transaction Calculator</h2>
@@ -572,7 +573,7 @@ export default function Landing() {
 
       {/* Overview of Achievements */}
       <section className="py-20 bg-background">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center space-y-3 group hover:scale-105 transition-transform duration-200">
               <div className="text-5xl font-bold text-foreground group-hover:text-primary transition-colors">₦10M+</div>
@@ -594,7 +595,7 @@ export default function Landing() {
 
       {/* Zero Worries Section */}
       <section className="py-12 bg-muted/20">
-        <div className="max-w-4xl mx-auto px-6">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6">
           <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 rounded-2xl shadow-lg p-6 border border-blue-500/20 relative overflow-hidden">
             {/* Creative Background Elements */}
             <div className="absolute inset-0">
@@ -689,7 +690,7 @@ export default function Landing() {
 
       {/* Live Dashboard Demo Section */}
       <section className="py-24 bg-gradient-to-br from-muted/20 via-background to-muted/10">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left - Real Dashboard UI Demo */}
             <div className="relative">
@@ -904,8 +905,12 @@ export default function Landing() {
               </div>
 
               <div className="pt-4">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-white px-8 py-4 h-auto transition-all duration-200 hover:scale-105 shadow-lg" asChild>
-                  <Link to="/signup">Start Trading Now <ArrowRight className="ml-2 h-5 w-5" /></Link>
+                <Button 
+                  size="lg" 
+                  onClick={() => setIsWaitlistModalOpen(true)}
+                  className="bg-primary hover:bg-primary/90 text-white px-8 py-4 h-auto transition-all duration-200 hover:scale-105 shadow-lg"
+                >
+                  Join Waitlist <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </div>
             </div>
@@ -915,7 +920,7 @@ export default function Landing() {
 
       {/* How It Works Section */}
       <section className="py-24 bg-gradient-to-br from-blue-50/30 via-background to-blue-50/20">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div className="space-y-6">
@@ -1084,7 +1089,7 @@ export default function Landing() {
 
       {/* Process & Partners Section */}
       <section className="py-24 bg-muted/30">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <div className="grid md:grid-cols-3 gap-8 mb-12">
             <Card className="border-border/50 hover:border-primary/30 transition-all duration-200 shadow-sm hover:shadow-md group hover:-translate-y-1">
               <CardContent className="p-8 text-center space-y-4">
@@ -1127,7 +1132,7 @@ export default function Landing() {
 
       {/* Wallet System Section */}
       <section className="py-24 bg-gradient-to-br from-green-50/30 via-background to-blue-50/20">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Left - Creative Bank Cards Animation */}
             <div className="relative">
@@ -1292,8 +1297,12 @@ export default function Landing() {
               </div>
 
               <div className="pt-4">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-white px-8 py-4 h-auto transition-all duration-200 hover:scale-105 shadow-lg" asChild>
-                  <Link to="/signup">Get Your Account <ArrowRight className="ml-2 h-5 w-5" /></Link>
+                <Button 
+                  size="lg" 
+                  onClick={() => setIsWaitlistModalOpen(true)}
+                  className="bg-primary hover:bg-primary/90 text-white px-8 py-4 h-auto transition-all duration-200 hover:scale-105 shadow-lg"
+                >
+                  Join Waitlist <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </div>
             </div>
@@ -1303,7 +1312,7 @@ export default function Landing() {
 
       {/* Footer */}
       <footer className="bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white py-20">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
           {/* Mobile Layout: Logo alone in first row, then 2x2 grid */}
           <div className="md:hidden space-y-8">
             {/* Logo - Full width on mobile */}
@@ -2022,6 +2031,16 @@ export default function Landing() {
           }
         }
       `}</style>
+      
+      {/* Waitlist Modal */}
+      <WaitlistModal 
+        isOpen={isWaitlistModalOpen}
+        onClose={() => setIsWaitlistModalOpen(false)}
+        onSuccess={() => {
+          // Optional: Add any success handling here
+          console.log('User joined waitlist successfully!');
+        }}
+      />
     </div>
   );
 }
