@@ -132,9 +132,11 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Mobile padding wrapper */}
+      <div className="px-8 sm:px-12 lg:px-0 mobile-padding-wrapper">
       {/* Header Navigation */}
       <header className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 transition-all duration-300">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4">
+        <div className="max-w-5xl mx-auto py-4">
           <div className="flex items-center justify-between">
             {/* Logo */}
             <div className="flex items-center space-x-3">
@@ -262,7 +264,8 @@ export default function Landing() {
       </header>
 
       {/* Hero Section */}
-      <section className="py-24 bg-gradient-to-br from-background via-muted/10 to-muted/20 relative overflow-hidden">
+      <section className="py-8 sm:py-16 lg:py-24 bg-gradient-to-br from-background via-muted/10 to-muted/20 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent"></div>
         {/* Enhanced Animated Background */}
         <div className="absolute inset-0">
           {/* Large Glowing Orbs */}
@@ -318,16 +321,16 @@ export default function Landing() {
           <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-primary/5 to-transparent animate-wave"></div>
         </div>
         
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-24 items-center">
+        <div className="max-w-5xl mx-auto px-6 sm:px-8 lg:px-6 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
             {/* Left Content */}
-            <div className={`space-y-8 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-              <div className="space-y-6">
+            <div className={`space-y-6 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+              <div className="space-y-4">
                 <div className="inline-block bg-primary/10 px-4 py-2 rounded-lg border border-primary/20">
                   <span className="text-sm font-medium text-primary">Secure Escrow Platform</span>
                 </div>
                 
-                <h1 className="text-5xl lg:text-6xl font-bold text-foreground leading-tight">
+                <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-foreground leading-tight">
                   Trust in every
                   <span className="text-primary block">transaction</span>
                 </h1>
@@ -349,7 +352,7 @@ export default function Landing() {
                   </span>
                 </p>
                 
-                <p className="text-lg text-muted-foreground leading-relaxed max-w-lg">
+                <p className="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-lg">
                   An end-to-end transaction solution that seamlessly integrates payments, 
                   fulfilment and support into your marketplace or ecommerce store.
                 </p>
@@ -379,7 +382,7 @@ export default function Landing() {
             </div>
 
             {/* Enhanced Right Graphic - Advanced 3D Card System with Transaction Flow */}
-            <div className={`relative transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <div className={`relative transition-all duration-1000 delay-300 mt-8 lg:mt-0 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
               {/* Enhanced Background Effects */}
               <div className="absolute inset-0 pointer-events-none">
                 {/* Animated Background Particles */}
@@ -461,7 +464,7 @@ export default function Landing() {
                 </div>
 
                 {/* Main Credit Card - Enhanced 3D */}
-                <div className="w-80 h-48 mx-auto bg-gradient-to-br from-foreground via-muted-foreground to-foreground rounded-2xl shadow-2xl transform rotate-3 relative hover:rotate-6 transition-all duration-700 hover:scale-105 group">
+                <div className="w-72 sm:w-80 h-40 sm:h-48 mx-auto bg-gradient-to-br from-foreground via-muted-foreground to-foreground rounded-2xl shadow-2xl transform rotate-3 relative hover:rotate-6 transition-all duration-700 hover:scale-105 group">
                   {/* Card Glow Effect */}
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-secondary/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   
@@ -562,7 +565,7 @@ export default function Landing() {
 
       {/* Transaction Calculator Section */}
       <section className="py-16 bg-muted/20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6">
+        <div className="max-w-4xl mx-auto">
           <div className="bg-background rounded-2xl shadow-lg p-8 border border-border/20">
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-foreground mb-2">Transaction Calculator</h2>
@@ -594,7 +597,7 @@ export default function Landing() {
 
       {/* Overview of Achievements */}
       <section className="py-20 bg-background">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto">
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center space-y-3 group hover:scale-105 transition-transform duration-200">
               <div className="text-5xl font-bold text-foreground group-hover:text-primary transition-colors">₦10M+</div>
@@ -616,7 +619,7 @@ export default function Landing() {
 
       {/* Zero Worries Section */}
       <section className="py-12 bg-muted/20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6">
+        <div className="max-w-4xl mx-auto">
           <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 rounded-2xl shadow-lg p-6 border border-blue-500/20 relative overflow-hidden">
             {/* Creative Background Elements */}
             <div className="absolute inset-0">
@@ -711,7 +714,7 @@ export default function Landing() {
 
       {/* Live Dashboard Demo Section */}
       <section className="py-24 bg-gradient-to-br from-muted/20 via-background to-muted/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left - Real Dashboard UI Demo */}
             <div className="relative">
@@ -951,7 +954,7 @@ export default function Landing() {
 
       {/* How It Works Section */}
       <section className="py-24 bg-gradient-to-br from-blue-50/30 via-background to-blue-50/20">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div className="space-y-6">
@@ -1120,7 +1123,7 @@ export default function Landing() {
 
       {/* Process & Partners Section */}
       <section className="py-24 bg-muted/30">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto">
           <div className="grid md:grid-cols-3 gap-8 mb-12">
             <Card className="border-border/50 hover:border-primary/30 transition-all duration-200 shadow-sm hover:shadow-md group hover:-translate-y-1">
               <CardContent className="p-8 text-center space-y-4">
@@ -1163,7 +1166,7 @@ export default function Landing() {
 
       {/* Wallet System Section */}
       <section className="py-24 bg-gradient-to-br from-green-50/30 via-background to-blue-50/20">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Left - Creative Bank Cards Animation */}
             <div className="relative">
@@ -1353,7 +1356,7 @@ export default function Landing() {
 
       {/* Footer */}
       <footer className="bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white py-20">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto">
           {/* Mobile Layout: Logo alone in first row, then 2x2 grid */}
           <div className="md:hidden space-y-8">
             {/* Logo - Full width on mobile */}
@@ -2070,7 +2073,21 @@ export default function Landing() {
           .animate-slide-in-left {
             animation-duration: 0.6s;
           }
+          
+          /* Force mobile padding */
+          .mobile-padding-wrapper {
+            padding-left: 2rem !important;
+            padding-right: 2rem !important;
+          }
         }
+        
+        @media (max-width: 480px) {
+          .mobile-padding-wrapper {
+            padding-left: 1.5rem !important;
+            padding-right: 1.5rem !important;
+          }
+        }
+        
       `}</style>
       
       {/* Waitlist Modal */}
@@ -2083,6 +2100,7 @@ export default function Landing() {
         }}
         isLoading={isWaitlistLoading}
       />
+      </div>
     </div>
   );
 }
