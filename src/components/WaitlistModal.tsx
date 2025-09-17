@@ -3,6 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
+import { FORMSPREE_URL } from '@/config/waitlist';
+import { EMAILJS_CONFIG, EMAIL_TEMPLATE_VARS } from '@/config/email';
+import emailjs from '@emailjs/browser';
 import { 
   CheckCircle, 
   ArrowRight, 
@@ -124,8 +127,68 @@ export default function WaitlistModal({ isOpen, onClose, onSuccess, isLoading = 
     };
   }, [isOpen]);
 
+  // Handle escape key to close modal
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        handleClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen]);
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const sendWelcomeEmail = async (formData: any) => {
+    try {
+      console.log('Attempting to send welcome email...');
+      console.log('EmailJS Config:', EMAILJS_CONFIG);
+      
+      // Only send email if EmailJS is configured
+      if (EMAILJS_CONFIG.PUBLIC_KEY === 'YOUR_PUBLIC_KEY') {
+        console.log('EmailJS not configured, skipping welcome email');
+        return;
+      }
+
+      const templateParams = {
+        to_name: `${formData.firstName} ${formData.lastName}`,
+        to_email: formData.email,
+        from_name: 'Tranzio Team',
+        company_name: 'Tranzio',
+        website_url: window.location.origin,
+        social_x: 'https://x.com/tranzio_escrow',
+        launch_date: 'Q4 2025'
+      };
+
+      console.log('Template params:', templateParams);
+
+      const response = await emailjs.send(
+        EMAILJS_CONFIG.SERVICE_ID,
+        EMAILJS_CONFIG.TEMPLATE_ID,
+        templateParams,
+        EMAILJS_CONFIG.PUBLIC_KEY
+      );
+
+      console.log('EmailJS response:', response);
+      console.log('Welcome email sent successfully!');
+    } catch (error) {
+      console.error('Failed to send welcome email:', error);
+      console.error('Error details:', {
+        message: error.message,
+        status: error.status,
+        text: error.text
+      });
+      // Don't show error to user, just log it
+    }
   };
 
   const handleNext = () => {
@@ -144,12 +207,69 @@ export default function WaitlistModal({ isOpen, onClose, onSuccess, isLoading = 
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    onSuccess?.();
+    try {
+      console.log('Submitting form data:', formData);
+      console.log('Sending to URL:', FORMSPREE_URL);
+      
+      // Create a form and submit it to Formspree in a hidden iframe
+      const iframe = document.createElement('iframe');
+      iframe.name = 'formspree-submit';
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+      
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = FORMSPREE_URL;
+      form.target = 'formspree-submit'; // Submit to the hidden iframe
+      form.style.display = 'none';
+      
+      // Add form fields
+      const fields = {
+        email: formData.email,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phone: formData.phone || '',
+        interest: formData.interest,
+        _subject: 'New Tranzio Waitlist Signup'
+      };
+      
+      Object.entries(fields).forEach(([key, value]) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = value;
+        form.appendChild(input);
+      });
+      
+      // Add form to page and submit
+      document.body.appendChild(form);
+      form.submit();
+      
+      // Clean up after a short delay
+      setTimeout(() => {
+        document.body.removeChild(form);
+        document.body.removeChild(iframe);
+      }, 2000);
+      
+      // Show success immediately
+      console.log('Successfully submitted to waitlist!', formData);
+      setIsSubmitted(true);
+      onSuccess?.();
+      
+      // Send welcome email
+      sendWelcomeEmail(formData);
+      
+    } catch (error) {
+      console.error('Error submitting waitlist:', error);
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        formData: formData,
+        url: FORMSPREE_URL
+      });
+      alert(`Failed to submit. Please try again.\n\nError: ${error.message}`);
+      setIsSubmitting(false);
+    }
   };
 
   const isStepValid = (step: number) => {
@@ -164,9 +284,11 @@ export default function WaitlistModal({ isOpen, onClose, onSuccess, isLoading = 
   };
 
   const handleClose = () => {
-    if (!isSubmitting) {
-      onClose();
+    // Always allow closing, but reset submitting state if needed
+    if (isSubmitting) {
+      setIsSubmitting(false);
     }
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -196,8 +318,8 @@ export default function WaitlistModal({ isOpen, onClose, onSuccess, isLoading = 
                 variant="ghost"
                 size="sm"
                 onClick={handleClose}
-                disabled={isSubmitting}
-                className="h-8 w-8 p-0 hover:bg-muted/50"
+                className="h-8 w-8 p-0 hover:bg-muted/50 transition-colors"
+                title="Close modal"
               >
                 <X className="h-4 w-4" />
               </Button>
