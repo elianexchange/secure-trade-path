@@ -14,16 +14,18 @@ import {
   Star,
   Users,
   Zap,
-  X
+  X,
+  Loader2
 } from 'lucide-react';
 
 interface WaitlistModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  isLoading?: boolean;
 }
 
-export default function WaitlistModal({ isOpen, onClose, onSuccess }: WaitlistModalProps) {
+export default function WaitlistModal({ isOpen, onClose, onSuccess, isLoading = false }: WaitlistModalProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     email: '',
@@ -86,16 +88,39 @@ export default function WaitlistModal({ isOpen, onClose, onSuccess }: WaitlistMo
     }
   }, [isOpen]);
 
-  // Prevent body scroll when modal is open
+  // Prevent body scroll and fix mobile zoom issues when modal is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.height = '100%';
+      // Prevent zoom on mobile
+      const viewport = document.querySelector('meta[name="viewport"]');
+      if (viewport) {
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+      }
     } else {
       document.body.style.overflow = 'unset';
+      document.body.style.position = 'unset';
+      document.body.style.width = 'unset';
+      document.body.style.height = 'unset';
+      // Restore normal viewport
+      const viewport = document.querySelector('meta[name="viewport"]');
+      if (viewport) {
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0');
+      }
     }
     
     return () => {
       document.body.style.overflow = 'unset';
+      document.body.style.position = 'unset';
+      document.body.style.width = 'unset';
+      document.body.style.height = 'unset';
+      const viewport = document.querySelector('meta[name="viewport"]');
+      if (viewport) {
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0');
+      }
     };
   }, [isOpen]);
 
@@ -147,7 +172,7 @@ export default function WaitlistModal({ isOpen, onClose, onSuccess }: WaitlistMo
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -155,7 +180,7 @@ export default function WaitlistModal({ isOpen, onClose, onSuccess }: WaitlistMo
       />
       
       {/* Modal */}
-      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full max-w-lg sm:max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
         <Card className="border-2 border-primary/20 bg-gradient-to-br from-background to-muted/20 shadow-2xl">
           <CardContent className="p-4 sm:p-6">
             {/* Header */}
@@ -179,27 +204,27 @@ export default function WaitlistModal({ isOpen, onClose, onSuccess }: WaitlistMo
             </div>
 
             {isSubmitted ? (
-              <div className="text-center py-8">
-                <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
-                  <CheckCircle className="h-10 w-10 text-white" />
+              <div className="text-center py-6">
+                <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+                  <CheckCircle className="h-8 w-8 text-white" />
                 </div>
                 
-                <h3 className="text-2xl font-bold text-foreground mb-4">
+                <h3 className="text-xl font-bold text-foreground mb-3">
                   Welcome to the Tranzio Waitlist! 🎉
                 </h3>
                 
-                <p className="text-lg text-muted-foreground mb-6">
+                <p className="text-sm text-muted-foreground mb-4">
                   Thank you for joining us! We'll notify you as soon as Tranzio is ready to launch.
                 </p>
                 
-                <div className="bg-muted/50 rounded-lg p-4 mb-6">
-                  <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
-                    <Clock className="h-4 w-4" />
+                <div className="bg-muted/50 rounded-lg p-3 mb-4">
+                  <div className="flex items-center justify-center space-x-2 text-xs text-muted-foreground">
+                    <Clock className="h-3 w-3" />
                     <span>Expected launch: Q2 2024</span>
                   </div>
                 </div>
                 
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <div className="flex flex-col gap-2">
                   <Button 
                     variant="outline" 
                     onClick={() => {
@@ -213,13 +238,13 @@ export default function WaitlistModal({ isOpen, onClose, onSuccess }: WaitlistMo
                         interest: 'individual'
                       });
                     }}
-                    className="border-green-300 text-green-700 hover:bg-green-50"
+                    className="border-green-300 text-green-700 hover:bg-green-50 h-9 text-sm"
                   >
                     Join Another Person
                   </Button>
                   <Button 
-                    onClick={() => window.open('https://twitter.com/tranzio', '_blank')}
-                    className="bg-green-600 hover:bg-green-700 text-white"
+                    onClick={() => window.open('https://x.com/tranzio_escrow', '_blank')}
+                    className="bg-green-600 hover:bg-green-700 text-white h-9 text-sm"
                   >
                     Follow Us for Updates
                   </Button>
@@ -279,103 +304,105 @@ export default function WaitlistModal({ isOpen, onClose, onSuccess }: WaitlistMo
                 {/* Step Content */}
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {currentStep === 1 && (
-                    <div className="space-y-4">
-                      <div className="text-center mb-4">
-                        <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">
+                    <div className="space-y-3">
+                      <div className="text-center mb-3">
+                        <h3 className="text-lg font-semibold text-foreground mb-1">
                           Let's get to know you
                         </h3>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           We'll use this information to personalize your experience
                         </p>
                       </div>
                       
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="firstName" className="text-foreground font-medium">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label htmlFor="firstName" className="text-xs font-medium text-foreground">
                             First Name *
                           </Label>
                           <div className="relative">
-                            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <User className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
                             <Input
                               id="firstName"
                               type="text"
-                              placeholder="Enter your first name"
+                              placeholder="First name"
                               value={formData.firstName}
                               onChange={(e) => handleInputChange('firstName', e.target.value)}
-                              className="pl-10 h-11"
+                              className="pl-8 h-9 text-sm"
                               required
                             />
                           </div>
                         </div>
                         
-                        <div className="space-y-2">
-                          <Label htmlFor="lastName" className="text-foreground font-medium">
+                        <div className="space-y-1">
+                          <Label htmlFor="lastName" className="text-xs font-medium text-foreground">
                             Last Name *
                           </Label>
                           <div className="relative">
-                            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <User className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
                             <Input
                               id="lastName"
                               type="text"
-                              placeholder="Enter your last name"
+                              placeholder="Last name"
                               value={formData.lastName}
                               onChange={(e) => handleInputChange('lastName', e.target.value)}
-                              className="pl-10 h-11"
+                              className="pl-8 h-9 text-sm"
                               required
                             />
                           </div>
                         </div>
                       </div>
                       
-                      <div className="space-y-2">
-                        <Label htmlFor="email" className="text-foreground font-medium">
-                          Email Address *
-                        </Label>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            id="email"
-                            type="email"
-                            placeholder="Enter your email address"
-                            value={formData.email}
-                            onChange={(e) => handleInputChange('email', e.target.value)}
-                            className="pl-10 h-11"
-                            required
-                          />
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label htmlFor="email" className="text-xs font-medium text-foreground">
+                            Email *
+                          </Label>
+                          <div className="relative">
+                            <Mail className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                            <Input
+                              id="email"
+                              type="email"
+                              placeholder="Email address"
+                              value={formData.email}
+                              onChange={(e) => handleInputChange('email', e.target.value)}
+                              className="pl-8 h-9 text-sm"
+                              required
+                            />
+                          </div>
                         </div>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="phone" className="text-foreground font-medium">
-                          Phone Number (Optional)
-                        </Label>
-                        <div className="relative">
-                          <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            id="phone"
-                            type="tel"
-                            placeholder="Enter your phone number"
-                            value={formData.phone}
-                            onChange={(e) => handleInputChange('phone', e.target.value)}
-                            className="pl-10 h-11"
-                          />
+                        
+                        <div className="space-y-1">
+                          <Label htmlFor="phone" className="text-xs font-medium text-foreground">
+                            Phone (Optional)
+                          </Label>
+                          <div className="relative">
+                            <Phone className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                            <Input
+                              id="phone"
+                              type="tel"
+                              placeholder="Phone number"
+                              value={formData.phone}
+                              onChange={(e) => handleInputChange('phone', e.target.value)}
+                              className="pl-8 h-9 text-sm"
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
                   )}
 
                   {currentStep === 2 && (
-                    <div className="space-y-4">
-                      <div className="text-center mb-4">
-                        <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">
+                    <div className="space-y-3">
+                      <div className="text-center mb-3">
+                        <h3 className="text-lg font-semibold text-foreground mb-1">
                           What brings you to Tranzio?
                         </h3>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           Help us understand how you plan to use our platform
                         </p>
                       </div>
                       
-                      <div className="grid gap-3">
+                      <div className="grid gap-2">
                         {interestOptions.map((option) => {
                           const Icon = option.icon;
                           const isSelected = formData.interest === option.value;
@@ -385,32 +412,32 @@ export default function WaitlistModal({ isOpen, onClose, onSuccess }: WaitlistMo
                               key={option.value}
                               onClick={() => handleInputChange('interest', option.value)}
                               className={`
-                                p-3 sm:p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-105
+                                p-2 rounded-lg border-2 cursor-pointer transition-all duration-200
                                 ${isSelected 
                                   ? `${option.bgColor} ${option.borderColor} border-2` 
                                   : 'border-muted-foreground/30 hover:border-muted-foreground/50'
                                 }
                               `}
                             >
-                              <div className="flex items-start space-x-3">
+                              <div className="flex items-center space-x-2">
                                 <div className={`
-                                  w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center
+                                  w-8 h-8 rounded-lg flex items-center justify-center
                                   ${isSelected ? option.bgColor : 'bg-muted'}
                                 `}>
-                                  <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${isSelected ? option.color : 'text-muted-foreground'}`} />
+                                  <Icon className={`h-4 w-4 ${isSelected ? option.color : 'text-muted-foreground'}`} />
                                 </div>
                                 
                                 <div className="flex-1">
-                                  <h4 className={`font-semibold text-sm sm:text-base ${isSelected ? option.color : 'text-foreground'}`}>
+                                  <h4 className={`font-semibold text-sm ${isSelected ? option.color : 'text-foreground'}`}>
                                     {option.label}
                                   </h4>
-                                  <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                                  <p className="text-xs text-muted-foreground">
                                     {option.description}
                                   </p>
                                 </div>
                                 
                                 {isSelected && (
-                                  <CheckCircle className={`h-4 w-4 sm:h-5 sm:w-5 ${option.color}`} />
+                                  <CheckCircle className={`h-4 w-4 ${option.color}`} />
                                 )}
                               </div>
                             </div>
@@ -421,48 +448,48 @@ export default function WaitlistModal({ isOpen, onClose, onSuccess }: WaitlistMo
                   )}
 
                   {currentStep === 3 && (
-                    <div className="space-y-4">
-                      <div className="text-center mb-4">
-                        <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">
+                    <div className="space-y-3">
+                      <div className="text-center mb-3">
+                        <h3 className="text-lg font-semibold text-foreground mb-1">
                           Review Your Information
                         </h3>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           Please confirm your details before joining the waitlist
                         </p>
                       </div>
                       
-                      <div className="bg-muted/50 rounded-lg p-4 space-y-3">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+                        <div className="grid grid-cols-2 gap-2">
                           <div>
                             <Label className="text-xs font-medium text-muted-foreground">Name</Label>
-                            <p className="text-sm sm:text-base text-foreground font-medium">
+                            <p className="text-sm text-foreground font-medium">
                               {formData.firstName} {formData.lastName}
                             </p>
                           </div>
                           <div>
                             <Label className="text-xs font-medium text-muted-foreground">Email</Label>
-                            <p className="text-sm sm:text-base text-foreground font-medium">{formData.email}</p>
+                            <p className="text-sm text-foreground font-medium">{formData.email}</p>
                           </div>
                           {formData.phone && (
                             <div>
                               <Label className="text-xs font-medium text-muted-foreground">Phone</Label>
-                              <p className="text-sm sm:text-base text-foreground font-medium">{formData.phone}</p>
+                              <p className="text-sm text-foreground font-medium">{formData.phone}</p>
                             </div>
                           )}
                           <div>
                             <Label className="text-xs font-medium text-muted-foreground">Interest</Label>
-                            <p className="text-sm sm:text-base text-foreground font-medium">
+                            <p className="text-sm text-foreground font-medium">
                               {interestOptions.find(opt => opt.value === formData.interest)?.label}
                             </p>
                           </div>
                         </div>
                       </div>
                       
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
                         <div className="flex items-start space-x-2">
-                          <Shield className="h-4 w-4 text-blue-600 mt-0.5" />
+                          <Shield className="h-3 w-3 text-blue-600 mt-0.5" />
                           <div>
-                            <h4 className="font-medium text-blue-900 text-sm mb-1">Your data is secure</h4>
+                            <h4 className="font-medium text-blue-900 text-xs mb-1">Your data is secure</h4>
                             <p className="text-xs text-blue-700">
                               We'll only use your information to notify you about Tranzio updates. 
                               No spam, no sharing with third parties.
@@ -474,13 +501,13 @@ export default function WaitlistModal({ isOpen, onClose, onSuccess }: WaitlistMo
                   )}
 
                   {/* Navigation Buttons */}
-                  <div className="flex justify-between pt-4">
+                  <div className="flex justify-between pt-3">
                     <Button
                       type="button"
                       variant="outline"
                       onClick={handlePrevious}
                       disabled={currentStep === 1}
-                      className="px-4 sm:px-6"
+                      className="px-3 h-8 text-sm"
                     >
                       Previous
                     </Button>
@@ -490,26 +517,26 @@ export default function WaitlistModal({ isOpen, onClose, onSuccess }: WaitlistMo
                         type="button"
                         onClick={handleNext}
                         disabled={!isStepValid(currentStep)}
-                        className="px-4 sm:px-6"
+                        className="px-3 h-8 text-sm"
                       >
                         Next
-                        <ArrowRight className="ml-2 h-4 w-4" />
+                        <ArrowRight className="ml-1 h-3 w-3" />
                       </Button>
                     ) : (
                       <Button
                         type="submit"
                         disabled={isSubmitting}
-                        className="px-4 sm:px-6 bg-primary hover:bg-primary/90"
+                        className="px-3 h-8 text-sm bg-primary hover:bg-primary/90"
                       >
                         {isSubmitting ? (
                           <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                            <Loader2 className="animate-spin h-3 w-3 mr-1" />
                             Joining...
                           </>
                         ) : (
                           <>
                             Join Waitlist
-                            <CheckCircle className="ml-2 h-4 w-4" />
+                            <CheckCircle className="ml-1 h-3 w-3" />
                           </>
                         )}
                       </Button>

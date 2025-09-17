@@ -35,7 +35,8 @@ import {
   CheckCircle2,
   UserCheck,
   Plus,
-  BarChart3
+  BarChart3,
+  Loader2
 } from 'lucide-react';
 
 export default function Landing() {
@@ -46,6 +47,7 @@ export default function Landing() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [currentUserType, setCurrentUserType] = useState(0);
   const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
+  const [isWaitlistLoading, setIsWaitlistLoading] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const userTypes = [
@@ -117,6 +119,15 @@ export default function Landing() {
       { x: 60, y: 35 }    // Middle area - visible
     ];
     return positions[index % positions.length];
+  };
+
+  const handleWaitlistClick = () => {
+    setIsWaitlistLoading(true);
+    // Simulate a small delay for better UX
+    setTimeout(() => {
+      setIsWaitlistModalOpen(true);
+      setIsWaitlistLoading(false);
+    }, 150);
   };
 
   return (
@@ -348,11 +359,21 @@ export default function Landing() {
               <div className="relative group">
                 <Button 
                   size="lg" 
-                  onClick={() => setIsWaitlistModalOpen(true)}
-                  className="relative bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white text-base px-6 py-3 h-auto transition-all duration-300 hover:scale-105 hover:shadow-xl border-0 font-medium" 
+                  onClick={handleWaitlistClick}
+                  disabled={isWaitlistLoading}
+                  className="relative bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white text-base px-6 py-3 h-auto transition-all duration-300 hover:scale-105 hover:shadow-xl border-0 font-medium disabled:opacity-70 disabled:cursor-not-allowed" 
                 >
-                  <span>Join Waitlist</span>
-                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 ml-2" />
+                  {isWaitlistLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      <span>Opening...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Join Waitlist</span>
+                      <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 ml-2" />
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
@@ -907,10 +928,20 @@ export default function Landing() {
               <div className="pt-4">
                 <Button 
                   size="lg" 
-                  onClick={() => setIsWaitlistModalOpen(true)}
-                  className="bg-primary hover:bg-primary/90 text-white px-8 py-4 h-auto transition-all duration-200 hover:scale-105 shadow-lg"
+                  onClick={handleWaitlistClick}
+                  disabled={isWaitlistLoading}
+                  className="bg-primary hover:bg-primary/90 text-white px-8 py-4 h-auto transition-all duration-200 hover:scale-105 shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  Join Waitlist <ArrowRight className="ml-2 h-5 w-5" />
+                  {isWaitlistLoading ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                      Opening...
+                    </>
+                  ) : (
+                    <>
+                      Join Waitlist <ArrowRight className="ml-2 h-5 w-5" />
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
@@ -1299,10 +1330,20 @@ export default function Landing() {
               <div className="pt-4">
                 <Button 
                   size="lg" 
-                  onClick={() => setIsWaitlistModalOpen(true)}
-                  className="bg-primary hover:bg-primary/90 text-white px-8 py-4 h-auto transition-all duration-200 hover:scale-105 shadow-lg"
+                  onClick={handleWaitlistClick}
+                  disabled={isWaitlistLoading}
+                  className="bg-primary hover:bg-primary/90 text-white px-8 py-4 h-auto transition-all duration-200 hover:scale-105 shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  Join Waitlist <ArrowRight className="ml-2 h-5 w-5" />
+                  {isWaitlistLoading ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                      Opening...
+                    </>
+                  ) : (
+                    <>
+                      Join Waitlist <ArrowRight className="ml-2 h-5 w-5" />
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
@@ -2040,6 +2081,7 @@ export default function Landing() {
           // Optional: Add any success handling here
           console.log('User joined waitlist successfully!');
         }}
+        isLoading={isWaitlistLoading}
       />
     </div>
   );
