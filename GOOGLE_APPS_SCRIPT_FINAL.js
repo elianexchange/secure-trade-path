@@ -11,10 +11,11 @@ function doPost(e) {
     const lastName = data.lastName || '';
     const email = data.email || '';
     const phone = data.phone || '';
+    const interest = data.interest || '';
     const timestamp = new Date();
     
     // Add data to the sheet
-    sheet.appendRow([timestamp, firstName, lastName, email, phone]);
+    sheet.appendRow([timestamp, firstName, lastName, email, phone, interest]);
     
     // Return success response
     return ContentService

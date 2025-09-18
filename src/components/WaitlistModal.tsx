@@ -344,7 +344,7 @@ export default function WaitlistModal({ isOpen, onClose, onSuccess, isLoading = 
                 <div className="bg-muted/50 rounded-lg p-3 mb-4">
                   <div className="flex items-center justify-center space-x-2 text-xs text-muted-foreground">
                     <Clock className="h-3 w-3" />
-                    <span>Expected launch: Q2 2024</span>
+                    <span>Expected launch: Q4 2025</span>
                   </div>
                 </div>
                 
