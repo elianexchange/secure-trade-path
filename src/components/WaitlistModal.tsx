@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 // Google Sheets configuration
-const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyw-25iKNEYzLB3BdFyUUk3FeqZL1-e3YGUXKZFoiaUswW3495qB7-PFtCgMRrIJ6djPQ/exec';
+const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwNlTXejcynLoJcBZcz9cS8m4xkuIk9q_OCew1uW0b-ay3fPHT9YgYiZ4S2Av1aWuVIqg/exec';
 import { EMAILJS_CONFIG, EMAIL_TEMPLATE_VARS } from '@/config/email';
 import emailjs from '@emailjs/browser';
 import { 
