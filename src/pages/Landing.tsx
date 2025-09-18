@@ -1556,68 +1556,67 @@ export default function Landing() {
       </div>
       
       {/* Footer - Outside padding wrapper */}
-      <footer className="bg-muted/30 border-t border-border/40">
-        <div className="max-w-5xl mx-auto py-12 px-4 sm:px-6 lg:px-0">
+      <footer className="bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white py-20">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="md:col-span-1">
-              <div className="flex flex-col items-center md:items-start space-y-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-primary via-primary/90 to-primary/80 rounded-lg flex items-center justify-center">
-                    <Shield className="h-4 w-4 text-white" />
-                  </div>
-                  <span className="text-xl font-bold">Tranzio</span>
+            {/* Company Info */}
+            <div className="md:col-span-2 text-center md:text-left">
+              <div className="flex items-center justify-center md:justify-start space-x-3 mb-4">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-lg">T</span>
                 </div>
-                <p className="text-sm text-muted-foreground text-center md:text-left">
-                  The future of secure trading. Buy with zero worries, sell with assurance.
-                </p>
-                <div className="flex space-x-4">
-                  <a href="https://x.com/tranzio_escrow" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                    </svg>
-                  </a>
-                </div>
+                <span className="text-xl font-bold">Tranzio</span>
+              </div>
+              <p className="text-gray-300 mb-6 max-w-md mx-auto md:mx-0">
+                The future of secure trading. Buy with zero worries, sell with assurance.
+              </p>
+              <div className="flex space-x-4 justify-center md:justify-start">
+                <a href="https://x.com/tranzio_escrow" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  </svg>
+                </a>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z"/>
+                  </svg>
+                </a>
               </div>
             </div>
             
-            <div className="md:col-span-1">
-              <h3 className="font-semibold text-foreground mb-4">Quick Links</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition-colors">How It Works</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Security</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Support</a></li>
-              </ul>
-            </div>
-            
-            <div className="md:col-span-1">
-              <h3 className="font-semibold text-foreground mb-4">Legal</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Cookie Policy</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Compliance</a></li>
-              </ul>
-            </div>
-            
-            <div className="md:col-span-1">
-              <h3 className="font-semibold text-foreground mb-4">Contact</h3>
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <p>support@tranzio.com</p>
-                <p>+234 800 000 0000</p>
-                <p>Lagos, Nigeria</p>
+            {/* Quick Links and Legal - Two columns on mobile */}
+            <div className="grid grid-cols-2 md:grid-cols-2 gap-8 md:col-span-2">
+              {/* Quick Links */}
+              <div className="text-center md:text-left">
+                <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
+                <ul className="space-y-2">
+                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors">How it Works</a></li>
+                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Security</a></li>
+                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Pricing</a></li>
+                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Support</a></li>
+                </ul>
+              </div>
+              
+              {/* Legal */}
+              <div className="text-center md:text-left">
+                <h3 className="text-lg font-semibold mb-4">Legal</h3>
+                <ul className="space-y-2">
+                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Privacy Policy</a></li>
+                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Terms of Service</a></li>
+                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Cookie Policy</a></li>
+                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Compliance</a></li>
+                </ul>
               </div>
             </div>
           </div>
           
-          <div className="border-t border-border/40 mt-8 pt-8 text-center">
-            <p className="text-sm text-muted-foreground">
-              © 2024 Tranzio. All rights reserved.
-            </p>
-            <p className="text-xs text-muted-foreground mt-2">
+          <div className="border-t border-gray-800 mt-12 pt-8">
+            <div className="flex flex-col md:flex-row justify-between items-center">
+              <div className="text-sm text-white/80 text-center md:text-right">
                 Tranzio Ltd is a company registered in Nigeria. VAT Number: 3507080FH. 
                 Registered number: 614918.
-              </p>
+              </div>
+            </div>
           </div>
         </div>
       </footer>
