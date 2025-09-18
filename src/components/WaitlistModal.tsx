@@ -77,6 +77,14 @@ export default function WaitlistModal({ isOpen, onClose, onSuccess, isLoading = 
     }
   ];
 
+  // Initialize EmailJS when component mounts
+  useEffect(() => {
+    if (EMAILJS_CONFIG.PUBLIC_KEY !== 'YOUR_PUBLIC_KEY') {
+      emailjs.init(EMAILJS_CONFIG.PUBLIC_KEY);
+      console.log('EmailJS initialized with public key:', EMAILJS_CONFIG.PUBLIC_KEY);
+    }
+  }, []);
+
   // Reset form when modal opens/closes
   useEffect(() => {
     if (isOpen) {
