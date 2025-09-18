@@ -217,8 +217,10 @@ export default function WaitlistModal({ isOpen, onClose, onSuccess, isLoading = 
     setIsSubmitting(true);
     
     try {
+      console.log('=== FORM SUBMISSION START ===');
       console.log('Submitting form data to Google Sheets:', formData);
-      console.log('Sending to URL:', GOOGLE_SHEETS_URL);
+      console.log('Google Sheets URL:', GOOGLE_SHEETS_URL);
+      console.log('Current timestamp:', new Date().toISOString());
       
       // Prepare data for Google Sheets
       const data = {
@@ -229,7 +231,10 @@ export default function WaitlistModal({ isOpen, onClose, onSuccess, isLoading = 
         interest: formData.interest
       };
       
+      console.log('Prepared data for Google Sheets:', data);
+      
       // Submit to Google Sheets
+      console.log('Sending fetch request to Google Sheets...');
       const response = await fetch(GOOGLE_SHEETS_URL, {
         method: 'POST',
         mode: 'no-cors', // Required for Google Apps Script
@@ -239,23 +244,31 @@ export default function WaitlistModal({ isOpen, onClose, onSuccess, isLoading = 
         body: JSON.stringify(data)
       });
       
+      console.log('Fetch response received:', response);
+      console.log('Response status:', response.status);
+      console.log('Response type:', response.type);
+      
       // Since we're using no-cors mode, we can't check the response
       // But if no error is thrown, assume success
-      console.log('Successfully submitted to Google Sheets!', formData);
+      console.log('✅ Successfully submitted to Google Sheets!', formData);
+      console.log('=== FORM SUBMISSION SUCCESS ===');
+      
       setIsSubmitted(true);
       onSuccess?.();
       
       // Send welcome email
+      console.log('Sending welcome email...');
       sendWelcomeEmail(formData);
       
     } catch (error) {
-      console.error('Error submitting to Google Sheets:', error);
+      console.error('❌ Error submitting to Google Sheets:', error);
       console.error('Error details:', {
         message: error.message,
         stack: error.stack,
         formData: formData,
         url: GOOGLE_SHEETS_URL
       });
+      console.log('=== FORM SUBMISSION FAILED ===');
       alert(`Failed to submit. Please try again.\n\nError: ${error.message}`);
       setIsSubmitting(false);
     }
