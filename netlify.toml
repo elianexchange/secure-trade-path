@@ -15,53 +15,7 @@
   # Build environment
   NODE_ENV = "production"
 
-# Redirect rules for SPA routing
-# Exclude static assets from SPA redirect
-[[redirects]]
-  from = "/*.png"
-  to = "/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/*.jpg"
-  to = "/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/*.jpeg"
-  to = "/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/*.gif"
-  to = "/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/*.svg"
-  to = "/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/*.ico"
-  to = "/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/*.css"
-  to = "/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/*.js"
-  to = "/:splat"
-  status = 200
-
-# Catch-all redirect for SPA routing (must be last)
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# Redirect rules are handled by _redirects file
 
 # Headers for security and performance
 [[headers]]
