@@ -20,5 +20,5 @@ export const EMAIL_TEMPLATE_VARS = {
   company_name: '{{company_name}}', // Tranzio
   website_url: '{{website_url}}',   // Your website URL
   social_x: '{{social_x}}',         // X/Twitter URL
-  launch_date: '{{launch_date}}'    // Expected launch date
+  launch_date: '{{launch_date}}'    // Expected launch date (Q4 2025)
 };
