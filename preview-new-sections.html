@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Sections Preview - Tranzio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        @keyframes slideInUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes fadeInScale {
+          from {
+            opacity: 0;
+            transform: scale(0.9);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        @keyframes floatUp {
+          0% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-10px);
+          }
+          100% {
+            transform: translateY(0px);
+          }
+        }
+
+        .animate-slide-in-up {
+          animation: slideInUp 0.8s ease-out;
+        }
+
+        .animate-fade-in-scale {
+          animation: fadeInScale 0.6s ease-out;
+        }
+
+        .animate-float-up {
+          animation: floatUp 3s ease-in-out infinite;
+        }
+
+        .step-card:nth-child(1) { animation-delay: 0.1s; }
+        .step-card:nth-child(2) { animation-delay: 0.2s; }
+        .step-card:nth-child(3) { animation-delay: 0.3s; }
+        .step-card:nth-child(4) { animation-delay: 0.4s; }
+
+        .benefit-card:nth-child(1) { animation-delay: 0.1s; }
+        .benefit-card:nth-child(2) { animation-delay: 0.2s; }
+        .benefit-card:nth-child(3) { animation-delay: 0.3s; }
+        .benefit-card:nth-child(4) { animation-delay: 0.4s; }
+        .benefit-card:nth-child(5) { animation-delay: 0.5s; }
+        .benefit-card:nth-child(6) { animation-delay: 0.6s; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- How It Works Section -->
+    <section class="py-20 bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <div class="inline-flex items-center px-4 py-2 rounded-full bg-blue-100 border border-blue-200 mb-6">
+                    <i data-lucide="shield" class="h-4 w-4 text-blue-600 mr-2"></i>
+                    <span class="text-sm font-medium text-blue-700">How It Works</span>
+                </div>
+                <h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                    4 Easy Steps to 
+                    <span class="text-blue-600 block">Secure Trading</span>
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Experience the most secure and transparent trading process designed for modern commerce
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Step 1: Agree -->
+                <div class="group relative step-card animate-slide-in-up">
+                    <div class="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+                        <div class="absolute -top-4 -left-4 w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            1
+                        </div>
+                        <div class="mt-4 mb-6">
+                            <div class="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center mb-4 group-hover:rotate-12 transition-transform duration-300">
+                                <i data-lucide="handshake" class="h-8 w-8 text-blue-600"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-3">Agree</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                Everyone <span class="font-semibold text-blue-600">AGREES</span> to the terms. Buyer, seller and agent agree to the terms of the transaction.
+                            </p>
+                        </div>
+                        <div class="flex items-center text-blue-600 text-sm font-medium">
+                            <i data-lucide="check-circle" class="h-4 w-4 mr-2"></i>
+                            Terms Secured
+                        </div>
+                    </div>
+                    <!-- Connection Line -->
+                    <div class="hidden lg:block absolute top-1/2 -right-4 w-8 h-0.5 bg-gradient-to-r from-blue-500 to-green-500 transform -translate-y-1/2"></div>
+                </div>
+
+                <!-- Step 2: Secure -->
+                <div class="group relative step-card animate-slide-in-up">
+                    <div class="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+                        <div class="absolute -top-4 -left-4 w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            2
+                        </div>
+                        <div class="mt-4 mb-6">
+                            <div class="w-16 h-16 bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center mb-4 group-hover:rotate-12 transition-transform duration-300">
+                                <i data-lucide="lock" class="h-8 w-8 text-green-600"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-3">Secure</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                Money is <span class="font-semibold text-green-600">SECURED</span> in Trust. Verified buyers commit to a transaction by paying money into our secured escrow account.
+                            </p>
+                        </div>
+                        <div class="flex items-center text-green-600 text-sm font-medium">
+                            <i data-lucide="shield" class="h-4 w-4 mr-2"></i>
+                            Funds Protected
+                        </div>
+                    </div>
+                    <!-- Connection Line -->
+                    <div class="hidden lg:block absolute top-1/2 -right-4 w-8 h-0.5 bg-gradient-to-r from-green-500 to-orange-500 transform -translate-y-1/2"></div>
+                </div>
+
+                <!-- Step 3: Deliver -->
+                <div class="group relative step-card animate-slide-in-up">
+                    <div class="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+                        <div class="absolute -top-4 -left-4 w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            3
+                        </div>
+                        <div class="mt-4 mb-6">
+                            <div class="w-16 h-16 bg-gradient-to-br from-orange-100 to-orange-200 rounded-2xl flex items-center justify-center mb-4 group-hover:rotate-12 transition-transform duration-300">
+                                <i data-lucide="truck" class="h-8 w-8 text-orange-600"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-3">Deliver</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                Seller <span class="font-semibold text-orange-600">DELIVERS</span> to Buyer. Verified seller arranges delivery of the products or services, as agreed with all the parties.
+                            </p>
+                        </div>
+                        <div class="flex items-center text-orange-600 text-sm font-medium">
+                            <i data-lucide="package" class="h-4 w-4 mr-2"></i>
+                            Delivery Tracked
+                        </div>
+                    </div>
+                    <!-- Connection Line -->
+                    <div class="hidden lg:block absolute top-1/2 -right-4 w-8 h-0.5 bg-gradient-to-r from-orange-500 to-purple-500 transform -translate-y-1/2"></div>
+                </div>
+
+                <!-- Step 4: Pay -->
+                <div class="group relative step-card animate-slide-in-up">
+                    <div class="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+                        <div class="absolute -top-4 -left-4 w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            4
+                        </div>
+                        <div class="mt-4 mb-6">
+                            <div class="w-16 h-16 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl flex items-center justify-center mb-4 group-hover:rotate-12 transition-transform duration-300">
+                                <i data-lucide="dollar-sign" class="h-8 w-8 text-purple-600"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-3">Pay</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                <span class="font-semibold text-purple-600">WHEN APPROVED</span>, Money is PAID to Seller. Tranzio releases money to the seller and/or agent once approved by the buyer.
+                            </p>
+                        </div>
+                        <div class="flex items-center text-purple-600 text-sm font-medium">
+                            <i data-lucide="check-circle-2" class="h-4 w-4 mr-2"></i>
+                            Payment Released
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom CTA -->
+            <div class="text-center mt-16">
+                <div class="inline-flex items-center px-6 py-3 rounded-full bg-blue-100 border border-blue-200">
+                    <i data-lucide="clock" class="h-5 w-5 text-blue-600 mr-2"></i>
+                    <span class="text-sm font-medium text-blue-700">Average completion time: 24-48 hours</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Use Tranzio Escrow Section -->
+    <section class="py-20 bg-gradient-to-br from-indigo-50/50 via-purple-50/30 to-pink-50/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <div class="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 border border-purple-200 mb-6">
+                    <i data-lucide="star" class="h-4 w-4 text-purple-600 mr-2"></i>
+                    <span class="text-sm font-medium text-purple-700">Why Choose Tranzio</span>
+                </div>
+                <h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                    Why Use 
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 block">Tranzio Escrow?</span>
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Experience the next generation of secure trading with our comprehensive protection system
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Scam Protection -->
+                <div class="group relative benefit-card animate-fade-in-scale">
+                    <div class="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-red-100/50 to-orange-100/50 rounded-full -translate-y-16 translate-x-16 group-hover:scale-110 transition-transform duration-500"></div>
+                        <div class="relative z-10">
+                            <div class="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center mb-6 group-hover:rotate-12 transition-transform duration-300">
+                                <i data-lucide="shield" class="h-8 w-8 text-white"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-4">Scam Protection</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed mb-4">
+                                Advanced fraud detection and verification systems protect you from fraudulent transactions and ensure every trade is legitimate.
+                            </p>
+                            <div class="flex items-center text-red-600 text-sm font-medium">
+                                <i data-lucide="check-circle" class="h-4 w-4 mr-2"></i>
+                                99.9% Fraud Prevention
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- On Time Payments -->
+                <div class="group relative benefit-card animate-fade-in-scale">
+                    <div class="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-100/50 to-emerald-100/50 rounded-full -translate-y-16 translate-x-16 group-hover:scale-110 transition-transform duration-500"></div>
+                        <div class="relative z-10">
+                            <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mb-6 group-hover:rotate-12 transition-transform duration-300">
+                                <i data-lucide="clock" class="h-8 w-8 text-white"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-4">On Time Payments</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed mb-4">
+                                Automated payment processing ensures sellers receive their money exactly when they should, eliminating payment delays and disputes.
+                            </p>
+                            <div class="flex items-center text-green-600 text-sm font-medium">
+                                <i data-lucide="zap" class="h-4 w-4 mr-2"></i>
+                                Instant Processing
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reduced Admin -->
+                <div class="group relative benefit-card animate-fade-in-scale">
+                    <div class="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-100/50 to-cyan-100/50 rounded-full -translate-y-16 translate-x-16 group-hover:scale-110 transition-transform duration-500"></div>
+                        <div class="relative z-10">
+                            <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6 group-hover:rotate-12 transition-transform duration-300">
+                                <i data-lucide="bar-chart-3" class="h-8 w-8 text-white"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-4">Reduced Admin</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed mb-4">
+                                Streamlined processes and automated workflows reduce administrative overhead, letting you focus on what matters most.
+                            </p>
+                            <div class="flex items-center text-blue-600 text-sm font-medium">
+                                <i data-lucide="trending-up" class="h-4 w-4 mr-2"></i>
+                                80% Less Paperwork
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timely Delivery -->
+                <div class="group relative benefit-card animate-fade-in-scale">
+                    <div class="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-100/50 to-yellow-100/50 rounded-full -translate-y-16 translate-x-16 group-hover:scale-110 transition-transform duration-500"></div>
+                        <div class="relative z-10">
+                            <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mb-6 group-hover:rotate-12 transition-transform duration-300">
+                                <i data-lucide="truck" class="h-8 w-8 text-white"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-4">Timely Delivery</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed mb-4">
+                                Real-time tracking and delivery confirmation ensure goods arrive on time and in perfect condition, every time.
+                            </p>
+                            <div class="flex items-center text-orange-600 text-sm font-medium">
+                                <i data-lucide="package" class="h-4 w-4 mr-2"></i>
+                                Live Tracking
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prevent Fraud -->
+                <div class="group relative benefit-card animate-fade-in-scale">
+                    <div class="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-100/50 to-pink-100/50 rounded-full -translate-y-16 translate-x-16 group-hover:scale-110 transition-transform duration-500"></div>
+                        <div class="relative z-10">
+                            <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:rotate-12 transition-transform duration-300">
+                                <i data-lucide="lock" class="h-8 w-8 text-white"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-4">Prevent Fraud</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed mb-4">
+                                Multi-layer security protocols and identity verification prevent fraudulent activities before they can cause harm.
+                            </p>
+                            <div class="flex items-center text-purple-600 text-sm font-medium">
+                                <i data-lucide="award" class="h-4 w-4 mr-2"></i>
+                                Bank-Grade Security
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Benefits Card -->
+                <div class="group relative benefit-card animate-fade-in-scale md:col-span-2 lg:col-span-1">
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-8 shadow-lg border border-blue-200 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-100/50 to-blue-200/50 rounded-full -translate-y-16 translate-x-16 group-hover:scale-110 transition-transform duration-500"></div>
+                        <div class="relative z-10">
+                            <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6 group-hover:rotate-12 transition-transform duration-300">
+                                <i data-lucide="star" class="h-8 w-8 text-white"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-4">Complete Peace of Mind</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed mb-4">
+                                From start to finish, Tranzio provides comprehensive protection and support for all your trading needs.
+                            </p>
+                            <div class="flex items-center text-blue-600 text-sm font-medium">
+                                <i data-lucide="users" class="h-4 w-4 mr-2"></i>
+                                24/7 Support
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom CTA -->
+            <div class="text-center mt-16">
+                <div class="inline-flex flex-col sm:flex-row items-center gap-4 px-8 py-6 rounded-2xl bg-gradient-to-r from-blue-100 to-purple-100 border border-blue-200">
+                    <div class="flex items-center">
+                        <i data-lucide="shield" class="h-6 w-6 text-blue-600 mr-3"></i>
+                        <span class="text-lg font-semibold text-gray-900">Ready to trade securely?</span>
+                    </div>
+                    <button class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                        Join Waitlist
+                        <i data-lucide="arrow-right" class="ml-2 h-4 w-4 inline"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

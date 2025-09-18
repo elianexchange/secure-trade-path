@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimalist Timeline Preview - Tranzio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes slideInLeft {
+          from {
+            opacity: 0;
+            transform: translateX(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        @keyframes iconPulse {
+          0%, 100% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.1);
+          }
+        }
+
+        /* Scroll-triggered animations */
+        .step-item {
+          opacity: 0;
+          transform: translateY(20px);
+          transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .step-item.animate {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        .step-item.animate .step-icon {
+          animation: iconPulse 0.6s ease-out;
+        }
+
+        .step-item.animate .step-card {
+          animation: slideInLeft 0.6s ease-out;
+        }
+
+        /* Hover effects */
+        .step-card {
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .step-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .step-icon {
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .step-icon:hover {
+          transform: scale(1.1);
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+          .step-item {
+            transform: translateY(15px);
+          }
+          
+          .step-card {
+            padding: 0.75rem;
+          }
+          
+          .step-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .step-item {
+            transform: translateY(10px);
+          }
+        }
+
+        /* Demo animation trigger */
+        .demo-trigger {
+          animation: fadeInUp 0.6s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- How It Works Section - Minimalist Timeline -->
+    <section class="py-12 bg-white">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <div class="inline-flex items-center px-3 py-1.5 rounded-full bg-blue-100 border border-blue-200 mb-4">
+                    <i data-lucide="shield" class="h-3 w-3 text-blue-600 mr-2"></i>
+                    <span class="text-xs font-medium text-blue-700">How It Works</span>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
+                    4 Simple Steps to 
+                    <span class="text-blue-600 block">Secure Trading</span>
+                </h2>
+                <p class="text-base text-gray-600 max-w-xl mx-auto">
+                    Experience the most secure and transparent trading process
+                </p>
+            </div>
+
+            <!-- Minimalist Timeline -->
+            <div class="space-y-6">
+                <!-- Step 1: Agree -->
+                <div class="group relative step-item demo-trigger">
+                    <div class="flex items-start space-x-4">
+                        <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300 step-icon">
+                            <i data-lucide="handshake" class="h-5 w-5 text-white"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="bg-gray-50 rounded-lg p-4 group-hover:bg-gray-100 transition-colors duration-300 step-card">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-2">Agree</h3>
+                                <p class="text-sm text-gray-600 leading-relaxed">
+                                    Everyone <span class="font-medium text-blue-600">AGREES</span> to the terms. Buyer, seller and agent agree to the transaction terms.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Secure -->
+                <div class="group relative step-item demo-trigger" style="animation-delay: 0.2s;">
+                    <div class="flex items-start space-x-4">
+                        <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300 step-icon">
+                            <i data-lucide="lock" class="h-5 w-5 text-white"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="bg-gray-50 rounded-lg p-4 group-hover:bg-gray-100 transition-colors duration-300 step-card">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-2">Secure</h3>
+                                <p class="text-sm text-gray-600 leading-relaxed">
+                                    Money is <span class="font-medium text-green-600">SECURED</span> in Trust. Verified buyers commit to the transaction by paying into our secured escrow account.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Deliver -->
+                <div class="group relative step-item demo-trigger" style="animation-delay: 0.4s;">
+                    <div class="flex items-start space-x-4">
+                        <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300 step-icon">
+                            <i data-lucide="truck" class="h-5 w-5 text-white"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="bg-gray-50 rounded-lg p-4 group-hover:bg-gray-100 transition-colors duration-300 step-card">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-2">Deliver</h3>
+                                <p class="text-sm text-gray-600 leading-relaxed">
+                                    Seller <span class="font-medium text-orange-600">DELIVERS</span> to Buyer. Verified seller arranges delivery of products or services as agreed.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4: Pay -->
+                <div class="group relative step-item demo-trigger" style="animation-delay: 0.6s;">
+                    <div class="flex items-start space-x-4">
+                        <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300 step-icon">
+                            <i data-lucide="dollar-sign" class="h-5 w-5 text-white"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="bg-gray-50 rounded-lg p-4 group-hover:bg-gray-100 transition-colors duration-300 step-card">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-2">Pay</h3>
+                                <p class="text-sm text-gray-600 leading-relaxed">
+                                    <span class="font-medium text-purple-600">WHEN APPROVED</span>, Money is PAID to Seller. Tranzio releases funds once approved by the buyer.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom CTA -->
+            <div class="text-center mt-12">
+                <div class="inline-flex items-center px-4 py-2 rounded-full bg-blue-100 border border-blue-200">
+                    <i data-lucide="clock" class="h-4 w-4 text-blue-600 mr-2"></i>
+                    <span class="text-xs font-medium text-blue-700">Average completion: 24-48 hours</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        lucide.createIcons();
+        
+        // Demo scroll-triggered animation
+        function triggerAnimations() {
+            const stepItems = document.querySelectorAll('.step-item');
+            stepItems.forEach((item, index) => {
+                setTimeout(() => {
+                    item.classList.add('animate');
+                }, index * 200);
+            });
+        }
+
+        // Trigger animations on page load for demo
+        setTimeout(triggerAnimations, 500);
+    </script>
+</body>
+</html>

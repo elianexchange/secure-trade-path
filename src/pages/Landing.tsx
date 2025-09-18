@@ -48,6 +48,7 @@ export default function Landing() {
   const [currentUserType, setCurrentUserType] = useState(0);
   const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
   const [isWaitlistLoading, setIsWaitlistLoading] = useState(false);
+  const [visibleSteps, setVisibleSteps] = useState<number[]>([]);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const userTypes = [
@@ -69,6 +70,39 @@ export default function Landing() {
 
   useEffect(() => {
     setIsVisible(true);
+  }, []);
+
+  // Scroll-triggered animation for timeline steps
+  useEffect(() => {
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const stepIndex = parseInt(entry.target.getAttribute('data-step') || '0');
+          setVisibleSteps(prev => {
+            if (!prev.includes(stepIndex)) {
+              return [...prev, stepIndex].sort();
+            }
+            return prev;
+          });
+        }
+      });
+    }, observerOptions);
+
+    // Observe all step items
+    const stepItems = document.querySelectorAll('.step-item');
+    stepItems.forEach((item, index) => {
+      item.setAttribute('data-step', index.toString());
+      observer.observe(item);
+    });
+
+    return () => {
+      stepItems.forEach(item => observer.unobserve(item));
+    };
   }, []);
 
   useEffect(() => {
@@ -1121,48 +1155,103 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Process & Partners Section */}
-      <section className="py-24 bg-muted/30">
-        <div className="max-w-5xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-8 mb-12">
-            <Card className="border-border/50 hover:border-primary/30 transition-all duration-200 shadow-sm hover:shadow-md group hover:-translate-y-1">
-              <CardContent className="p-8 text-center space-y-4">
-                <CheckCircle className="h-12 w-12 text-primary mx-auto group-hover:scale-110 transition-transform duration-200" />
-                <h3 className="text-xl font-semibold text-foreground">Agree terms</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Once the buyer and seller have negotiated the price, we automatically create the transaction.
-                </p>
-              </CardContent>
-            </Card>
+        {/* How It Works Section - Minimalist Timeline */}
+        <section className="py-12 bg-white">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-4">
+                <Shield className="h-3 w-3 text-primary mr-2" />
+                <span className="text-xs font-medium text-primary">How It Works</span>
+              </div>
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3">
+                4 Simple Steps to
+                <span className="text-primary block">Secure Trading</span>
+              </h2>
+              <p className="text-base text-muted-foreground max-w-xl mx-auto">
+                Experience the most secure and transparent trading process
+              </p>
+            </div>
 
-            <Card className="border-border/50 hover:border-primary/30 transition-all duration-200 shadow-sm hover:shadow-md group hover:-translate-y-1">
-              <CardContent className="p-8 text-center space-y-4">
-                <CreditCard className="h-12 w-12 text-primary mx-auto group-hover:scale-110 transition-transform duration-200" />
-                <h3 className="text-xl font-semibold text-foreground">Payment acceptance</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  We process the payment from the buyer via a client-customised payment page and the funds enter the Tranzio Vault.
-                </p>
-              </CardContent>
-            </Card>
+            {/* Minimalist Timeline */}
+            <div className="space-y-6">
+              {/* Step 1: Agree */}
+              <div className={`group relative step-item ${visibleSteps.includes(0) ? 'animate' : ''}`}>
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300 step-icon">
+                    <Handshake className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="bg-gray-50 rounded-lg p-4 group-hover:bg-gray-100 transition-colors duration-300 step-card">
+                      <h3 className="text-lg font-semibold text-foreground mb-2">Agree</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Everyone <span className="font-medium text-blue-600">AGREES</span> to the terms. Buyer, seller and agent agree to the transaction terms.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-            <Card className="border-border/50 hover:border-primary/30 transition-all duration-200 shadow-sm hover:shadow-md group hover:-translate-y-1">
-              <CardContent className="p-8 text-center space-y-4">
-                <Package className="h-12 w-12 text-primary mx-auto group-hover:scale-110 transition-transform duration-200" />
-                <h3 className="text-xl font-semibold text-foreground">Shipping & Fulfilment</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  We track the fulfilment of every order from the seller to the buyer. This can be via courier/post or by a multitude of other flexible confirmation mechanisms.
-                </p>
-              </CardContent>
-            </Card>
+              {/* Step 2: Secure */}
+              <div className={`group relative step-item ${visibleSteps.includes(1) ? 'animate' : ''}`}>
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300 step-icon">
+                    <Lock className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="bg-gray-50 rounded-lg p-4 group-hover:bg-gray-100 transition-colors duration-300 step-card">
+                      <h3 className="text-lg font-semibold text-foreground mb-2">Secure</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Money is <span className="font-medium text-green-600">SECURED</span> in Trust. Verified buyers commit to the transaction by paying into our secured escrow account.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 3: Deliver */}
+              <div className={`group relative step-item ${visibleSteps.includes(2) ? 'animate' : ''}`}>
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300 step-icon">
+                    <Truck className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="bg-gray-50 rounded-lg p-4 group-hover:bg-gray-100 transition-colors duration-300 step-card">
+                      <h3 className="text-lg font-semibold text-foreground mb-2">Deliver</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Seller <span className="font-medium text-orange-600">DELIVERS</span> to Buyer. Verified seller arranges delivery of products or services as agreed.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 4: Pay */}
+              <div className={`group relative step-item ${visibleSteps.includes(3) ? 'animate' : ''}`}>
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300 step-icon">
+                    <DollarSign className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="bg-gray-50 rounded-lg p-4 group-hover:bg-gray-100 transition-colors duration-300 step-card">
+                      <h3 className="text-lg font-semibold text-foreground mb-2">Pay</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        <span className="font-medium text-purple-600">WHEN APPROVED</span>, Money is PAID to Seller. Tranzio releases funds once approved by the buyer.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom CTA */}
+            <div className="text-center mt-12">
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
+                <Clock className="h-4 w-4 text-primary mr-2" />
+                <span className="text-xs font-medium text-primary">Average success rate: 99%</span>
+              </div>
+            </div>
           </div>
-          
-          <div className="text-center">
-            <Button variant="link" className="text-primary hover:text-primary/80 text-lg transition-colors duration-200">
-              Learn more <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-      </section>
+        </section>
 
       {/* Wallet System Section */}
       <section className="py-24 bg-gradient-to-br from-green-50/30 via-background to-blue-50/20">
@@ -1406,10 +1495,10 @@ export default function Landing() {
         
         @keyframes spin-slow {
           0% { 
-            transform: rotate(0deg); 
+            transform: rotate(0deg);
           }
           100% {
-            transform: rotate(360deg); 
+            transform: rotate(360deg);
           }
         }
         
@@ -1423,7 +1512,7 @@ export default function Landing() {
         }
         
         @keyframes wave {
-          0% { 
+          0% {
             transform: translateX(-100%); 
           }
           100% {
@@ -1538,6 +1627,180 @@ export default function Landing() {
           .mobile-padding-wrapper {
             padding-left: 0.75rem !important;
             padding-right: 0.75rem !important;
+          }
+        }
+
+        /* New section animations */
+        @keyframes slideInUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes fadeInScale {
+          from {
+            opacity: 0;
+            transform: scale(0.9);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        
+        @keyframes pulseGlow {
+          0%, 100% {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+          }
+          50% {
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.6);
+          }
+        }
+        
+        @keyframes floatUp {
+          0% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-10px);
+          }
+          100% {
+            transform: translateY(0px);
+          }
+        }
+
+        .animate-slide-in-up {
+          animation: slideInUp 0.8s ease-out;
+        }
+
+        .animate-fade-in-scale {
+          animation: fadeInScale 0.6s ease-out;
+        }
+        
+        .animate-pulse-glow {
+          animation: pulseGlow 2s ease-in-out infinite;
+        }
+
+        .animate-float-up {
+          animation: floatUp 3s ease-in-out infinite;
+        }
+
+        /* Staggered animations for grid items */
+        .step-card:nth-child(1) { animation-delay: 0.1s; }
+        .step-card:nth-child(2) { animation-delay: 0.2s; }
+        .step-card:nth-child(3) { animation-delay: 0.3s; }
+        .step-card:nth-child(4) { animation-delay: 0.4s; }
+
+        .benefit-card:nth-child(1) { animation-delay: 0.1s; }
+        .benefit-card:nth-child(2) { animation-delay: 0.2s; }
+        .benefit-card:nth-child(3) { animation-delay: 0.3s; }
+        .benefit-card:nth-child(4) { animation-delay: 0.4s; }
+        .benefit-card:nth-child(5) { animation-delay: 0.5s; }
+        .benefit-card:nth-child(6) { animation-delay: 0.6s; }
+
+        /* Minimalist Timeline Animations */
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes slideInLeft {
+          from {
+            opacity: 0;
+            transform: translateX(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        
+        @keyframes iconPulse {
+          0%, 100% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.1);
+          }
+        }
+
+        @keyframes cardGlow {
+          0%, 100% {
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          }
+          50% {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          }
+        }
+
+        /* Scroll-triggered animations */
+        .step-item {
+          opacity: 0;
+          transform: translateY(20px);
+          transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .step-item.animate {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        .step-item.animate .step-icon {
+          animation: iconPulse 0.6s ease-out;
+        }
+
+        .step-item.animate .step-card {
+          animation: slideInLeft 0.6s ease-out;
+        }
+
+        /* Hover effects */
+        .step-card {
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .step-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .step-icon {
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .step-icon:hover {
+          transform: scale(1.1);
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+          .step-item {
+            transform: translateY(15px);
+          }
+          
+          .step-card {
+            padding: 0.75rem;
+          }
+          
+          .step-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .step-item {
+            transform: translateY(10px);
           }
         }
         `
