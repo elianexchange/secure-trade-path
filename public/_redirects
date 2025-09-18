@@ -1,0 +1,12 @@
+# Static assets - serve directly
+/*.png /:splat 200!
+/*.jpg /:splat 200!
+/*.jpeg /:splat 200!
+/*.gif /:splat 200!
+/*.svg /:splat 200!
+/*.ico /:splat 200!
+/*.css /:splat 200!
+/*.js /:splat 200!
+
+# SPA fallback - must be last
+/* /index.html 200
