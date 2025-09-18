@@ -324,7 +324,7 @@ export default function Landing() {
         <div className="max-w-5xl mx-auto px-6 sm:px-8 lg:px-6 relative z-10">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
             {/* Left Content */}
-            <div className={`space-y-6 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <article className={`space-y-6 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
               <div className="space-y-4">
                 <div className="inline-block bg-primary/10 px-4 py-2 rounded-lg border border-primary/20">
                   <span className="text-sm font-medium text-primary">Secure Escrow Platform</span>
@@ -557,7 +557,7 @@ export default function Landing() {
                 <div className="absolute top-1/2 right-20 w-3 h-3 bg-secondary/40 rounded-full animate-pulse delay-500"></div>
                 <div className="absolute bottom-1/3 left-15 w-4 h-4 bg-primary/35 rounded-full animate-ping delay-1200"></div>
               </div>
-            </div>
+            </aside>
           </div>
         </div>
       </section>
@@ -1276,10 +1276,10 @@ export default function Landing() {
                   <CheckCircle className="h-2.5 w-2.5 text-purple-600" />
                 </div>
               </div>
-            </div>
+            </article>
 
             {/* Right Content */}
-            <div className="space-y-6">
+            <aside className="space-y-6">
               <div className="space-y-6">
                 <div className="inline-block bg-primary/10 px-4 py-2 rounded-lg border border-primary/20">
                   <span className="text-sm font-medium text-primary">Virtual Wallet System</span>
@@ -1353,7 +1353,7 @@ export default function Landing() {
           </div>
         </div>
       </section>
-      </div>
+                    </div>
 
       {/* Custom CSS for animations */}
       <style dangerouslySetInnerHTML={{
