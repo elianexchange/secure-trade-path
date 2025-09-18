@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { FORMSPREE_URL } from '@/config/waitlist';
+// Google Sheets configuration
+const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyw-25iKNEYzLB3BdFyUUk3FeqZL1-e3YGUXKZFoiaUswW3495qB7-PFtCgMRrIJ6djPQ/exec';
 import { EMAILJS_CONFIG, EMAIL_TEMPLATE_VARS } from '@/config/email';
 import emailjs from '@emailjs/browser';
 import { 
@@ -208,51 +209,31 @@ export default function WaitlistModal({ isOpen, onClose, onSuccess, isLoading = 
     setIsSubmitting(true);
     
     try {
-      console.log('Submitting form data:', formData);
-      console.log('Sending to URL:', FORMSPREE_URL);
+      console.log('Submitting form data to Google Sheets:', formData);
+      console.log('Sending to URL:', GOOGLE_SHEETS_URL);
       
-      // Create a form and submit it to Formspree in a hidden iframe
-      const iframe = document.createElement('iframe');
-      iframe.name = 'formspree-submit';
-      iframe.style.display = 'none';
-      document.body.appendChild(iframe);
-      
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = FORMSPREE_URL;
-      form.target = 'formspree-submit'; // Submit to the hidden iframe
-      form.style.display = 'none';
-      
-      // Add form fields
-      const fields = {
-        email: formData.email,
+      // Prepare data for Google Sheets
+      const data = {
         firstName: formData.firstName,
         lastName: formData.lastName,
+        email: formData.email,
         phone: formData.phone || '',
-        interest: formData.interest,
-        _subject: 'New Tranzio Waitlist Signup'
+        interest: formData.interest
       };
       
-      Object.entries(fields).forEach(([key, value]) => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = key;
-        input.value = value;
-        form.appendChild(input);
+      // Submit to Google Sheets
+      const response = await fetch(GOOGLE_SHEETS_URL, {
+        method: 'POST',
+        mode: 'no-cors', // Required for Google Apps Script
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
       });
       
-      // Add form to page and submit
-      document.body.appendChild(form);
-      form.submit();
-      
-      // Clean up after a short delay
-      setTimeout(() => {
-        document.body.removeChild(form);
-        document.body.removeChild(iframe);
-      }, 2000);
-      
-      // Show success immediately
-      console.log('Successfully submitted to waitlist!', formData);
+      // Since we're using no-cors mode, we can't check the response
+      // But if no error is thrown, assume success
+      console.log('Successfully submitted to Google Sheets!', formData);
       setIsSubmitted(true);
       onSuccess?.();
       
@@ -260,12 +241,12 @@ export default function WaitlistModal({ isOpen, onClose, onSuccess, isLoading = 
       sendWelcomeEmail(formData);
       
     } catch (error) {
-      console.error('Error submitting waitlist:', error);
+      console.error('Error submitting to Google Sheets:', error);
       console.error('Error details:', {
         message: error.message,
         stack: error.stack,
         formData: formData,
-        url: FORMSPREE_URL
+        url: GOOGLE_SHEETS_URL
       });
       alert(`Failed to submit. Please try again.\n\nError: ${error.message}`);
       setIsSubmitting(false);
