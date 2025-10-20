@@ -5,7 +5,7 @@
   "main": "dist/main-server.js",
   "scripts": {
     "dev": "nodemon main-server.ts",
-    "build": "tsc --noEmit false && prisma generate",
+    "build": "tsc && prisma generate",
     "start": "node dist/main-server.js",
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
@@ -30,7 +30,6 @@
   "license": "MIT",
   "dependencies": {
     "@prisma/client": "^5.7.0",
-    "@types/bcryptjs": "^3.0.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^4.17.21",
     "@types/express-session": "^1.18.2",

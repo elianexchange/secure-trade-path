@@ -5,7 +5,7 @@ import { authenticateToken } from '../middleware/auth';
 import { UserRole } from '../types';
 import { emailService } from '../services/emailService';
 
-const bcrypt = require('bcryptjs');
+import bcrypt from 'bcryptjs';
 
 const router = Router();
 
