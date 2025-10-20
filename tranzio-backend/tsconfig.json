@@ -52,7 +52,12 @@
     "simple-*.ts",
     "working-*.js",
     "real-*.js",
-    "deploy-*.sh"
+    "deploy-*.sh",
+    "src/routes/items.ts",
+    "src/routes/orders.ts",
+    "src/models/Conversation.ts",
+    "src/models/Message.ts",
+    "src/services/chatbotService.ts"
   ],
   "ts-node": {
     "esm": false,
