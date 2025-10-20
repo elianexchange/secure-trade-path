@@ -96,12 +96,7 @@ export default function Notifications() {
     }
   }, [refreshNotifications]);
 
-  useEffect(() => {
-    // Mark all notifications as read when user visits the page
-    if (unreadCount > 0 && markAllAsRead) {
-      markAllAsRead();
-    }
-  }, [unreadCount, markAllAsRead]);
+  // Remove automatic marking as read - let user explicitly mark as read
 
 const getNotificationIcon = (type: string) => {
   switch (type) {

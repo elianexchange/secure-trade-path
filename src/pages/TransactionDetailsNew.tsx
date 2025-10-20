@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 import { 
   ArrowLeft, 
   MessageCircle,
@@ -18,7 +19,6 @@ import {
   Download,
   Eye
 } from 'lucide-react';
-import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWebSocket } from '@/contexts/WebSocketContext';
 import { useNotifications } from '@/contexts/NotificationContext';
@@ -134,8 +134,14 @@ export default function TransactionDetailsNew() {
             setTransaction(data.transaction);
             console.log('TransactionDetailsNew: Transaction state updated from WebSocket:', data.transaction);
           } else {
-            // Fallback to refreshing from localStorage
+            // Fallback: refresh from API if no transaction data provided
+            console.log('TransactionDetailsNew: No transaction data in WebSocket message, refreshing from API...');
             refreshTransactionData(data.transactionId);
+          }
+          
+          // Show toast notification for status changes
+          if (data.message) {
+            toast.success(data.message);
           }
         }
       }
@@ -148,61 +154,94 @@ export default function TransactionDetailsNew() {
       console.log('TransactionDetailsNew: Removing transaction update listener');
       window.removeEventListener('transactionUpdated', handleTransactionUpdate as EventListener);
     };
-  }, [transaction?.id, refreshTransactionData]);
+  }, [transaction?.id]);
 
-  // Add periodic refresh to catch missed updates
+  // Single consolidated refresh mechanism
   useEffect(() => {
     if (!transaction?.id) return;
 
-    const interval = setInterval(() => {
-      // Refresh for all non-completed transactions to catch status changes
-      if (transaction.status !== 'COMPLETED' && transaction.status !== 'CANCELLED') {
-        console.log('Periodic refresh for transaction:', transaction.id, 'status:', transaction.status);
-        refreshTransactionData(transaction.id);
+    // Determine refresh interval based on transaction status
+    const getRefreshInterval = (status: string) => {
+      const criticalStatuses = ['ACTIVE', 'WAITING_FOR_PAYMENT', 'WAITING_FOR_SHIPMENT', 'WAITING_FOR_BUYER_CONFIRMATION'];
+      
+      if (criticalStatuses.includes(status)) {
+        return 5000; // 5 seconds for critical statuses
+      } else if (status === 'COMPLETED' || status === 'CANCELLED') {
+        return 0; // No refresh for completed transactions
+      } else {
+        return 10000; // 10 seconds for other statuses
       }
-    }, 3000); // Check every 3 seconds for more responsive updates
+    };
+
+    const intervalMs = getRefreshInterval(transaction.status);
+    
+    if (intervalMs === 0) {
+      return; // No refresh needed
+    }
+
+    const interval = setInterval(() => {
+      console.log('Periodic refresh for transaction:', transaction.id, 'status:', transaction.status);
+      refreshTransactionData(transaction.id);
+    }, intervalMs);
 
     return () => clearInterval(interval);
   }, [transaction?.id, transaction?.status, refreshTransactionData]);
 
-  // Add a more aggressive refresh mechanism for critical status changes
-  useEffect(() => {
-    if (!transaction?.id) return;
-
-    // For certain statuses, refresh more frequently
-    const criticalStatuses = ['ACTIVE', 'WAITING_FOR_PAYMENT', 'WAITING_FOR_SHIPMENT', 'WAITING_FOR_BUYER_CONFIRMATION'];
-    
-    if (criticalStatuses.includes(transaction.status)) {
-      const interval = setInterval(() => {
-        console.log('Critical status refresh for transaction:', transaction.id, 'status:', transaction.status);
-        refreshTransactionData(transaction.id);
-      }, 2000); // Check every 2 seconds for critical statuses
-
-      return () => clearInterval(interval);
-    }
-  }, [transaction?.id, transaction?.status, refreshTransactionData]);
-
   useEffect(() => {
     if (id) {
-      // Load transaction from localStorage
-      const loadTransaction = () => {
+      // Load transaction from localStorage first, then API if not found
+      const loadTransaction = async () => {
         try {
           if (!user?.id) {
             setIsLoading(false);
             return;
           }
 
+          // First try localStorage
           const storedTransactions = JSON.parse(localStorage.getItem('tranzio_transactions') || '[]');
           const foundTransaction = storedTransactions.find((tx: Transaction) => 
             tx.id === id && (tx.creatorId === user.id || tx.counterpartyId === user.id)
           );
           
           if (foundTransaction) {
+            console.log('TransactionDetailsNew: Found transaction in localStorage:', foundTransaction);
             setTransaction(foundTransaction);
-          } else {
-            // Transaction not found or doesn't belong to user
+            setIsLoading(false);
+            return;
+          }
+
+          // If not found in localStorage, try API
+          console.log('TransactionDetailsNew: Transaction not found in localStorage, trying API...');
+          try {
+            const response = await fetch(`http://localhost:4000/api/transactions/${id}`, {
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                'Content-Type': 'application/json'
+              }
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              if (data.success && data.transaction) {
+                console.log('TransactionDetailsNew: Found transaction via API:', data.transaction);
+                setTransaction(data.transaction);
+                
+                // Store in localStorage for future use
+                const updatedTransactions = [...storedTransactions.filter((tx: Transaction) => tx.id !== id), data.transaction];
+                localStorage.setItem('tranzio_transactions', JSON.stringify(updatedTransactions));
+              } else {
+                console.log('TransactionDetailsNew: Transaction not found via API');
+                setTransaction(null);
+              }
+            } else {
+              console.log('TransactionDetailsNew: API request failed:', response.status);
+              setTransaction(null);
+            }
+          } catch (apiError) {
+            console.error('TransactionDetailsNew: API request error:', apiError);
             setTransaction(null);
           }
+          
           setIsLoading(false);
         } catch (error) {
           console.error('Failed to load transaction:', error);
@@ -277,78 +316,68 @@ export default function TransactionDetailsNew() {
     
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('TransactionDetailsNew: Saving delivery details via API:', details);
       
-      // Update transaction status - after delivery details, move to payment
-      setTransaction(prev => prev ? {
-        ...prev,
-        status: 'WAITING_FOR_PAYMENT',
-        deliveryDetails: JSON.stringify(details),
-        updatedAt: new Date().toISOString()
-      } : null);
+      // Make real API call to save delivery details
+      const response = await fetch(`http://localhost:4000/api/transactions/${transaction.id}/delivery-details`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify({ deliveryDetails: details })
+      });
       
-      // Update localStorage for both parties
-      const storedTransactions = JSON.parse(localStorage.getItem('tranzio_transactions') || '[]');
-      const transactionIndex = storedTransactions.findIndex((tx: Transaction) => tx.id === transaction.id);
-      
-      console.log('TransactionDetailsNew: Updating localStorage for delivery details, transactionIndex:', transactionIndex);
-      
-      if (transactionIndex !== -1) {
-        const updatedTransaction = {
-          ...storedTransactions[transactionIndex],
-          status: 'WAITING_FOR_PAYMENT',
-          deliveryDetails: JSON.stringify(details),
-          updatedAt: new Date().toISOString()
-        };
-        storedTransactions[transactionIndex] = updatedTransaction;
-        localStorage.setItem('tranzio_transactions', JSON.stringify(storedTransactions));
-        console.log('TransactionDetailsNew: localStorage updated with new status:', updatedTransaction.status);
-        
-        // Emit WebSocket event for real-time update
-        console.log('Emitting WebSocket update for delivery details:', transaction.id, 'WAITING_FOR_PAYMENT');
-        emitTransactionUpdate(transaction.id, 'WAITING_FOR_PAYMENT');
-        
-        // Dispatch custom event to update all components
-        console.log('Dispatching custom event for delivery details:', transaction.id, 'WAITING_FOR_PAYMENT');
-        window.dispatchEvent(new CustomEvent('transactionUpdated', { 
-          detail: { 
-            transactionId: transaction.id, 
-            status: 'WAITING_FOR_PAYMENT',
-            deliveryDetails: JSON.stringify(details),
-            updatedAt: new Date().toISOString(),
-            // Include all transaction data for complete sync
-            transaction: updatedTransaction
-          }
-        }));
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save delivery details');
       }
       
-      // Add notification to counterparty (seller)
-      if (addNotification) {
-        const counterpartyId = transaction.creatorId === user?.id ? transaction.counterpartyId : transaction.creatorId;
-        if (counterpartyId) {
-          addNotification({
-            userId: counterpartyId,
-            transactionId: transaction.id,
-            type: 'TRANSACTION_UPDATE',
-            title: 'Delivery Details Provided',
-            message: `${user?.firstName} ${user?.lastName} has provided delivery details. You can now proceed with payment.`,
-            isRead: false,
-            priority: 'HIGH',
-            metadata: {
-              transactionStatus: 'WAITING_FOR_PAYMENT',
-              counterpartyName: `${user?.firstName} ${user?.lastName}`,
-              actionRequired: true,
-              nextAction: 'proceed_with_payment'
-            }
-          });
+      const result = await response.json();
+      console.log('TransactionDetailsNew: Delivery details saved successfully:', result);
+      
+      // Update local state with the response from server
+      if (result.success && result.transaction) {
+        setTransaction(result.transaction);
+        
+        // Update localStorage for both parties
+        const storedTransactions = JSON.parse(localStorage.getItem('tranzio_transactions') || '[]');
+        const transactionIndex = storedTransactions.findIndex((tx: Transaction) => tx.id === transaction.id);
+        
+        if (transactionIndex !== -1) {
+          storedTransactions[transactionIndex] = result.transaction;
+          localStorage.setItem('tranzio_transactions', JSON.stringify(storedTransactions));
+          console.log('TransactionDetailsNew: localStorage updated with server response');
+        }
+        
+        // Add notification to counterparty (seller)
+        if (addNotification) {
+          const counterpartyId = transaction.creatorId === user?.id ? transaction.counterpartyId : transaction.creatorId;
+          if (counterpartyId) {
+            addNotification({
+              userId: counterpartyId,
+              transactionId: transaction.id,
+              type: 'TRANSACTION_UPDATE',
+              title: 'Delivery Details Provided',
+              message: `${user?.firstName} ${user?.lastName} has provided delivery details. You can now proceed with payment.`,
+              isRead: false,
+              priority: 'HIGH',
+              metadata: {
+                transactionStatus: 'WAITING_FOR_PAYMENT',
+                counterpartyName: `${user?.firstName} ${user?.lastName}`,
+                actionRequired: true,
+                nextAction: 'proceed_with_payment'
+              }
+            });
+          }
         }
       }
       
       setShowDeliveryForm(false);
       toast.success('Delivery details saved successfully!');
     } catch (error) {
-      toast.error('Failed to save delivery details');
+      console.error('TransactionDetailsNew: Error saving delivery details:', error);
+      toast.error(`Failed to save delivery details: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -362,10 +391,13 @@ export default function TransactionDetailsNew() {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Update transaction status - after payment, move to waiting for shipment
+      // Determine next status based on whether transaction requires shipping
+      const nextStatus = transaction.useCourier ? 'WAITING_FOR_SHIPMENT' : 'PAYMENT_MADE';
+      
+      // Update transaction status - after payment, move to appropriate next status
       setTransaction(prev => prev ? {
         ...prev,
-        status: 'WAITING_FOR_SHIPMENT',
+        status: nextStatus,
         paymentCompleted: true,
         paymentMethod: payment.paymentMethod,
         paymentReference: payment.paymentReference,
@@ -382,7 +414,7 @@ export default function TransactionDetailsNew() {
       if (transactionIndex !== -1) {
         const updatedTransaction = {
           ...storedTransactions[transactionIndex],
-          status: 'WAITING_FOR_SHIPMENT',
+          status: nextStatus,
           paymentCompleted: true,
           paymentMethod: payment.paymentMethod,
           paymentReference: payment.paymentReference,
@@ -394,15 +426,15 @@ export default function TransactionDetailsNew() {
         console.log('TransactionDetailsNew: localStorage updated with new status:', updatedTransaction.status);
         
         // Emit WebSocket event for real-time update
-        console.log('Emitting WebSocket update for payment:', transaction.id, 'WAITING_FOR_SHIPMENT');
-        emitTransactionUpdate(transaction.id, 'WAITING_FOR_SHIPMENT');
+        console.log('Emitting WebSocket update for payment:', transaction.id, nextStatus);
+        emitTransactionUpdate(transaction.id, nextStatus);
         
         // Dispatch custom event
-        console.log('Dispatching custom event for payment:', transaction.id, 'WAITING_FOR_SHIPMENT');
+        console.log('Dispatching custom event for payment:', transaction.id, nextStatus);
         window.dispatchEvent(new CustomEvent('transactionUpdated', { 
           detail: { 
             transactionId: transaction.id, 
-            status: 'WAITING_FOR_SHIPMENT',
+            status: nextStatus,
             paymentCompleted: true,
             paymentMethod: payment.paymentMethod,
             paymentReference: payment.paymentReference,
@@ -996,6 +1028,92 @@ export default function TransactionDetailsNew() {
                   </div>
                 )}
 
+                {/* Delivery Details */}
+                {transaction.deliveryDetails && (
+                  <div className="mt-6 pt-6 border-t">
+                    <h3 className="font-medium text-foreground mb-4">Delivery Details</h3>
+                    <div className="space-y-4">
+                      {(() => {
+                        try {
+                          const details = typeof transaction.deliveryDetails === 'string' 
+                            ? JSON.parse(transaction.deliveryDetails) 
+                            : transaction.deliveryDetails;
+                          
+                          return (
+                            <div className="space-y-3">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <span className="text-sm font-medium text-muted-foreground">Full Name:</span>
+                                  <p className="text-sm mt-1 p-3 bg-muted/50 rounded-lg">
+                                    {details.fullName || 'Not provided'}
+                                  </p>
+                                </div>
+                                <div>
+                                  <span className="text-sm font-medium text-muted-foreground">Phone Number:</span>
+                                  <p className="text-sm mt-1 p-3 bg-muted/50 rounded-lg">
+                                    {details.phoneNumber || 'Not provided'}
+                                  </p>
+                                </div>
+                              </div>
+                              
+                              <div>
+                                <span className="text-sm font-medium text-muted-foreground">Address:</span>
+                                <p className="text-sm mt-1 p-3 bg-muted/50 rounded-lg">
+                                  {details.address || 'Not provided'}
+                                </p>
+                              </div>
+                              
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                  <span className="text-sm font-medium text-muted-foreground">City:</span>
+                                  <p className="text-sm mt-1 p-3 bg-muted/50 rounded-lg">
+                                    {details.city || 'Not provided'}
+                                  </p>
+                                </div>
+                                <div>
+                                  <span className="text-sm font-medium text-muted-foreground">State/Province:</span>
+                                  <p className="text-sm mt-1 p-3 bg-muted/50 rounded-lg">
+                                    {details.state || 'Not provided'}
+                                  </p>
+                                </div>
+                                <div>
+                                  <span className="text-sm font-medium text-muted-foreground">Postal Code:</span>
+                                  <p className="text-sm mt-1 p-3 bg-muted/50 rounded-lg">
+                                    {details.postalCode || 'Not provided'}
+                                  </p>
+                                </div>
+                              </div>
+                              
+                              <div>
+                                <span className="text-sm font-medium text-muted-foreground">Country:</span>
+                                <p className="text-sm mt-1 p-3 bg-muted/50 rounded-lg">
+                                  {details.country || 'Not provided'}
+                                </p>
+                              </div>
+                              
+                              {details.specialInstructions && (
+                                <div>
+                                  <span className="text-sm font-medium text-muted-foreground">Special Instructions:</span>
+                                  <p className="text-sm mt-1 p-3 bg-muted/50 rounded-lg">
+                                    {details.specialInstructions}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        } catch (error) {
+                          console.error('Error parsing delivery details:', error);
+                          return (
+                            <div className="text-sm text-muted-foreground p-3 bg-muted/50 rounded-lg">
+                              Delivery details are available but could not be parsed.
+                            </div>
+                          );
+                        }
+                      })()}
+                    </div>
+                  </div>
+                )}
+
                 {/* Special Instructions & Policies */}
                 {((transaction as any).specialInstructions || (transaction as any).returnPolicy) && (
                   <div className="mt-6 pt-6 border-t">
@@ -1040,6 +1158,33 @@ export default function TransactionDetailsNew() {
                   <MessageCircle className="h-4 w-4 mr-2" />
                   Chat with Counterparty
                 </Button>
+                
+                <Button
+                  onClick={() => navigate('/app/messages', { state: { transactionId: transaction.id } })}
+                  className="w-full"
+                  variant="outline"
+                >
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Go to Messages
+                </Button>
+                
+                {/* Quick Chat Preview */}
+                <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-700">Recent Messages</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowChatModal(true)}
+                      className="text-xs text-blue-600 hover:text-blue-800"
+                    >
+                      View All
+                    </Button>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Click "Chat with Counterparty" to start messaging
+                  </div>
+                </div>
                 
                 <Button
                   onClick={shareTransaction}
@@ -1291,12 +1436,27 @@ export default function TransactionDetailsNew() {
 
       {/* Chat Modal */}
       <Dialog open={showChatModal} onOpenChange={setShowChatModal}>
-        <DialogContent className="max-w-4xl h-[80vh]">
-          <DialogHeader>
-            <DialogTitle>Chat with Counterparty</DialogTitle>
-            <p className="text-sm text-muted-foreground">
-              Communicate securely with your transaction partner
-            </p>
+        <DialogContent className="max-w-5xl h-[85vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle className="flex items-center space-x-2">
+                  <MessageCircle className="h-5 w-5" />
+                  <span>Chat with Counterparty</span>
+                </DialogTitle>
+                <p className="text-sm text-muted-foreground">
+                  Communicate securely with your transaction partner
+                </p>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Badge variant="outline" className="text-xs">
+                  Transaction #{transaction.id.slice(-8)}
+                </Badge>
+                <Badge variant="secondary" className="text-xs">
+                  {transaction.creatorId === user?.id ? 'SELLER' : 'BUYER'}
+                </Badge>
+              </div>
+            </div>
           </DialogHeader>
           <div className="flex-1 overflow-hidden">
             <MessageThread 

@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../index';
 import { authenticateToken } from '../middleware/auth';
 import { UserRole } from '../types';
+import { emailService } from '../services/emailService';
 
 const bcrypt = require('bcryptjs');
 
@@ -433,19 +434,35 @@ router.post('/reset-password', async (req: Request, res: Response): Promise<void
       return;
     }
 
-    // Generate reset token (in a real app, this would be sent via email)
+    // Generate reset token
     const resetToken = jwt.sign(
       { userId: user.id, email: user.email, type: 'password_reset' },
       process.env.JWT_SECRET!,
       { expiresIn: '1h' }
     );
 
-    // In a real implementation, send email with reset link
-    // For now, we'll just return the token (this should be removed in production)
+    // Send password reset email
+    try {
+      const emailSent = await emailService.sendPasswordResetEmail(
+        user.email, 
+        resetToken, 
+        user.firstName
+      );
+      
+      if (!emailSent) {
+        console.error('Failed to send password reset email to:', user.email);
+        // Still return success to user for security (don't reveal email sending issues)
+      }
+    } catch (emailError) {
+      console.error('Error sending password reset email:', emailError);
+      // Still return success to user for security
+    }
+
     res.json({
       success: true,
       message: 'Password reset link sent to your email',
       data: {
+        // Only include reset token in development for testing
         resetToken: process.env.NODE_ENV === 'development' ? resetToken : undefined
       },
       timestamp: new Date().toISOString()

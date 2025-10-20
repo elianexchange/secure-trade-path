@@ -1,7 +1,15 @@
 import { Request, Response } from 'express';
 import { prisma } from '../index';
 import { uploadFile, deleteFile } from '../services/fileService';
-// WebSocket functionality temporarily disabled to fix circular dependency
+import WebSocketService from '../services/websocket';
+
+// WebSocket service instance - will be initialized by the main server
+let wsService: WebSocketService | null = null;
+
+// Function to set WebSocket service instance
+export const setWebSocketService = (service: WebSocketService) => {
+  wsService = service;
+};
 
 export class MessageController {
   // Get conversations for a user
@@ -134,7 +142,8 @@ export class MessageController {
               firstName: true,
               lastName: true,
             }
-          }
+          },
+          attachments: true
         },
         orderBy: { createdAt: 'asc' }
       });
@@ -177,6 +186,7 @@ export class MessageController {
           transactionId,
           senderId,
           content,
+          messageType: 'TEXT',
           isRead: false
         },
         include: {
@@ -186,7 +196,8 @@ export class MessageController {
               firstName: true,
               lastName: true,
             }
-          }
+          },
+          attachments: true
         }
       });
 
@@ -196,16 +207,45 @@ export class MessageController {
         data: { updatedAt: new Date() }
       });
 
-      // Emit to WebSocket (temporarily disabled)
-      // wsService.emitToTransactionParties(
-      //   transaction.creatorId,
-      //   transaction.counterpartyId,
-      //   'new_message',
-      //   {
-      //     message,
-      //     transactionId
-      //   }
-      // );
+      // Emit to WebSocket for real-time updates
+      if (wsService) {
+        try {
+          // Emit to both transaction parties
+          wsService.emitToTransactionParties(
+            transaction.creatorId,
+            transaction.counterpartyId,
+            'new_message',
+            {
+              message: {
+                ...message,
+                timestamp: message.createdAt,
+                messageType: 'TEXT'
+              },
+              transactionId,
+              conversation: {
+                id: `conv_${transactionId}`,
+                transactionId,
+                participants: [transaction.creatorId, transaction.counterpartyId].filter(Boolean),
+                lastMessage: message,
+                unreadCount: 1,
+                createdAt: transaction.createdAt,
+                updatedAt: new Date(),
+                participantDetails: [
+                  {
+                    userId: transaction.creatorId,
+                    name: `${message.sender.firstName} ${message.sender.lastName}`,
+                    email: '', // Will be populated by frontend
+                    role: transaction.creatorRole as 'BUYER' | 'SELLER'
+                  }
+                ]
+              }
+            }
+          );
+        } catch (wsError) {
+          console.error('WebSocket emission failed:', wsError);
+          // Don't fail the request if WebSocket fails
+        }
+      }
 
       return res.status(201).json(message);
     } catch (error) {
@@ -248,10 +288,32 @@ export class MessageController {
         }
       });
 
-      // Emit to WebSocket (temporarily disabled)
-      // wsService.broadcastToAll('message_read', {
-      //   messageId: message.id
-      // });
+      // Emit to WebSocket for real-time read status updates
+      if (wsService) {
+        try {
+          // Get transaction details for proper room targeting
+          const transaction = await prisma.escrowTransaction.findUnique({
+            where: { id: message.transactionId },
+            select: { creatorId: true, counterpartyId: true }
+          });
+
+          if (transaction) {
+            wsService.emitToTransactionParties(
+              transaction.creatorId,
+              transaction.counterpartyId,
+              'message_read',
+              {
+                messageId: message.id,
+                readBy: userId,
+                transactionId: message.transactionId
+              }
+            );
+          }
+        } catch (wsError) {
+          console.error('WebSocket emission failed for message read:', wsError);
+          // Don't fail the request if WebSocket fails
+        }
+      }
 
       return res.json({ success: true });
     } catch (error) {
@@ -387,6 +449,67 @@ export class MessageController {
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: 'Failed to get unread count' });
+    }
+  }
+
+  // Mark all messages in a conversation as read
+  static async markConversationAsRead(req: Request, res: Response) {
+    try {
+      const { transactionId } = req.params;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      // Verify user is participant in transaction
+      const transaction = await prisma.escrowTransaction.findFirst({
+        where: {
+          id: transactionId,
+          OR: [
+            { creatorId: userId },
+            { counterpartyId: userId }
+          ]
+        }
+      });
+
+      if (!transaction) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
+      // Mark all unread messages in this transaction as read
+      await prisma.message.updateMany({
+        where: {
+          transactionId,
+          isRead: false,
+          senderId: { not: userId } // Only mark messages from other users as read
+        },
+        data: {
+          isRead: true
+        }
+      });
+
+      // Emit to WebSocket for real-time read status updates
+      if (wsService) {
+        try {
+          wsService.emitToTransactionParties(
+            transaction.creatorId,
+            transaction.counterpartyId,
+            'conversation_read',
+            {
+              transactionId,
+              readBy: userId
+            }
+          );
+        } catch (wsError) {
+          console.error('WebSocket emission failed for conversation read:', wsError);
+        }
+      }
+
+      return res.json({ success: true });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: 'Failed to mark conversation as read' });
     }
   }
 

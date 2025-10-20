@@ -20,6 +20,9 @@ router.post('/', MessageController.sendMessage);
 // Mark message as read
 router.put('/:messageId/read', MessageController.markAsRead);
 
+// Mark all messages in a conversation as read
+router.put('/conversations/:transactionId/read', MessageController.markConversationAsRead);
+
 // Upload file attachment
 router.post('/upload', uploadSingle, MessageController.uploadFile);
 

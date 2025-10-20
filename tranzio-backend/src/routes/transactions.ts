@@ -791,19 +791,28 @@ router.put('/:id/confirm-payment', authenticateToken, async (req, res) => {
       });
     }
 
-    // Check if transaction is in the correct status
-    if (transaction.status !== 'WAITING_FOR_PAYMENT') {
+    // Check if transaction is in the correct status for payment
+    // For non-shipping transactions, they can be in 'ACTIVE' status
+    // For shipping transactions, they should be in 'WAITING_FOR_PAYMENT' status
+    const validPaymentStatuses = transaction.useCourier 
+      ? ['WAITING_FOR_PAYMENT'] 
+      : ['ACTIVE', 'WAITING_FOR_PAYMENT'];
+    
+    if (!validPaymentStatuses.includes(transaction.status)) {
       return res.status(400).json({
         success: false,
-        error: `Transaction is not in payment status. Current status: ${transaction.status}`
+        error: `Transaction is not in payment status. Current status: ${transaction.status}. Valid statuses for ${transaction.useCourier ? 'shipping' : 'non-shipping'} transactions: ${validPaymentStatuses.join(', ')}`
       });
     }
 
+    // Determine next status based on whether transaction requires shipping
+    const nextStatus = transaction.useCourier ? 'WAITING_FOR_SHIPMENT' : 'PAYMENT_MADE';
+    
     // Update transaction with payment confirmation
     const updatedTransaction = await prisma.escrowTransaction.update({
       where: { id },
       data: {
-        status: 'WAITING_FOR_SHIPMENT',
+        status: nextStatus,
         paymentCompleted: true,
         paymentMethod: paymentMethod || 'WALLET',
         paymentReference: paymentReference || `PAY_${id}_${Date.now()}`,
@@ -837,7 +846,7 @@ router.put('/:id/confirm-payment', authenticateToken, async (req, res) => {
       // Notify both parties about payment confirmation
       sendToUser(transaction.creatorId, 'transaction:updated', {
         transactionId: transaction.id,
-        status: 'WAITING_FOR_SHIPMENT',
+        status: nextStatus,
         paymentCompleted: true,
         message: 'Payment confirmed successfully',
         transaction: updatedTransaction
@@ -846,7 +855,7 @@ router.put('/:id/confirm-payment', authenticateToken, async (req, res) => {
       if (transaction.counterpartyId) {
         sendToUser(transaction.counterpartyId, 'transaction:updated', {
           transactionId: transaction.id,
-          status: 'WAITING_FOR_SHIPMENT',
+          status: nextStatus,
           paymentCompleted: true,
           message: 'Payment confirmed successfully',
           transaction: updatedTransaction
@@ -856,7 +865,7 @@ router.put('/:id/confirm-payment', authenticateToken, async (req, res) => {
       // Broadcast to transaction room
       sendToTransaction(transaction.id, 'transaction:updated', {
         transactionId: transaction.id,
-        status: 'WAITING_FOR_SHIPMENT',
+        status: nextStatus,
         paymentCompleted: true,
         message: 'Payment confirmed successfully',
         transaction: updatedTransaction

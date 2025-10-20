@@ -23,11 +23,13 @@ interface MessageContextType {
   loadConversation: (transactionId: string) => Promise<void>;
   markAsRead: (messageId: string) => Promise<void>;
   markConversationAsRead: (transactionId: string) => Promise<void>;
-  loadMessages: (transactionId: string) => Promise<void>;
+  loadMessages: (transactionId: string, page?: number, reset?: boolean) => Promise<void>;
   loadMoreMessages: (transactionId: string, beforeMessageId?: string) => Promise<void>;
   searchMessages: (query: string, transactionId?: string) => Promise<MessageSearchResult[]>;
   deleteMessage: (messageId: string) => Promise<void>;
   isLoading: boolean;
+  isLoadingMore: boolean;
+  hasMoreMessages: boolean;
   uploadProgress: FileUploadProgress[];
   refreshConversations: () => Promise<void>;
   recalculateUnreadCount: () => void;
@@ -35,6 +37,8 @@ interface MessageContextType {
   stopTyping: (transactionId: string) => void;
   isUserTyping: (transactionId: string, userId: string) => boolean;
   typingUsers: Set<string>;
+  isOffline: boolean;
+  messageQueue: Message[];
 }
 
 const MessageContext = createContext<MessageContextType | undefined>(undefined);
@@ -71,9 +75,59 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<FileUploadProgress[]>([]);
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [offlineMessages, setOfflineMessages] = useState<Message[]>([]);
+  const [messageQueue, setMessageQueue] = useState<Message[]>([]);
+  const [hasMoreMessages, setHasMoreMessages] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [messagePage, setMessagePage] = useState(1);
+  const MESSAGES_PER_PAGE = 50;
   
   // Use ref to track current conversation without causing dependency issues
   const currentConversationRef = useRef<Conversation | null>(null);
+
+  // Offline support
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOffline(false);
+      // Process queued messages when coming back online
+      processMessageQueue();
+    };
+
+    const handleOffline = () => {
+      setIsOffline(true);
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Process queued messages when back online
+  const processMessageQueue = async () => {
+    if (messageQueue.length === 0) return;
+
+    console.log('Processing queued messages:', messageQueue.length);
+    
+    for (const message of messageQueue) {
+      try {
+        await messageAPI.sendMessage({
+          transactionId: message.transactionId,
+          content: message.content
+        });
+        
+        // Remove from queue on success
+        setMessageQueue(prev => prev.filter(m => m.id !== message.id));
+      } catch (error) {
+        console.error('Failed to send queued message:', error);
+        // Keep in queue for retry
+      }
+    }
+  };
 
   // Load conversations from backend
   const loadConversationsFromAPI = async () => {
@@ -159,17 +213,24 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
     }
   }, [user]);
 
-  // Update ref when currentConversation changes
+  // Update refs when state changes
+  const conversationsRef = useRef<Conversation[]>([]);
+  const messagesRef = useRef<Message[]>([]);
+  
   useEffect(() => {
     currentConversationRef.current = currentConversation;
-  }, [currentConversation]);
+    conversationsRef.current = conversations;
+    messagesRef.current = messages;
+  }, [currentConversation, conversations, messages]);
 
   // WebSocket message handling
   useEffect(() => {
-    if (!socket || !isConnected) {
-      console.log('WebSocket not connected, skipping message handlers');
+    if (!socket || !isConnected || !user) {
+      console.log('WebSocket not connected or no user, skipping message handlers');
       return;
     }
+
+    console.log('Setting up WebSocket message handlers for user:', user.id);
 
     const handleNewMessage = (data: { message: Message; conversation?: Conversation; transactionId?: string }) => {
       try {
@@ -188,13 +249,46 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
         // Process all messages but handle notifications differently for sender vs receiver
         const isOwnMessage = message.senderId === user?.id;
 
+        // Enhanced deduplication: Check for existing message by ID, content, and timestamp
+        const messageExists = messagesRef.current.some(existingMsg => 
+          existingMsg.id === message.id || 
+          existingMsg.apiId === message.id ||
+          (existingMsg.content === message.content && 
+           existingMsg.senderId === message.senderId && 
+           Math.abs(new Date(existingMsg.timestamp).getTime() - new Date(message.timestamp).getTime()) < 1000)
+        );
+        
+        if (messageExists) {
+          console.log('Duplicate message detected, skipping:', message.id);
+          return;
+        }
+
+        setMessages(prev => {
+          
+          // Add new message with proper timestamp handling and all fields
+          const messageWithProperTimestamp = {
+            ...message,
+            timestamp: message.timestamp instanceof Date ? message.timestamp : new Date(message.timestamp),
+            isSynced: true,
+            messageType: message.messageType || 'TEXT',
+            isEdited: message.isEdited || false,
+            editedAt: message.editedAt ? new Date(message.editedAt) : undefined,
+            replyToId: message.replyToId,
+            metadata: message.metadata,
+            attachments: message.attachments || [],
+            sender: message.sender
+          };
+          
+          return [...prev, messageWithProperTimestamp];
+        });
+
         // Handle case where we receive transactionId instead of conversation
         if (transactionId && !conversation) {
           console.log('Looking for conversation with transactionId:', transactionId);
-          console.log('Available conversations:', conversations);
+          console.log('Available conversations:', conversationsRef.current);
           
           // Find existing conversation for this transaction
-          const existingConversation = conversations.find(c => c.transactionId === transactionId);
+          const existingConversation = conversationsRef.current.find(c => c.transactionId === transactionId);
           
           if (existingConversation) {
             console.log('Found existing conversation:', existingConversation);
@@ -231,7 +325,7 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
             console.log('Creating new conversation for transactionId:', transactionId);
             // Create a new conversation if none exists
             const newConversation: Conversation = {
-              id: `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              id: `conv_${transactionId}`, // Use transactionId as conversation ID to prevent duplicates
               transactionId,
               participants: [message.senderId],
               lastMessage: message,
@@ -241,7 +335,20 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
               participantDetails: []
             };
             
-            setConversations(prev => [...prev, newConversation]);
+            setConversations(prev => {
+              // Check if conversation already exists to prevent duplicates
+              const existingConv = conversationsRef.current.find(c => c.transactionId === transactionId);
+              if (existingConv) {
+                console.log('Conversation already exists, updating instead of creating new one');
+                return prev.map(conv => 
+                  conv.transactionId === transactionId 
+                    ? { ...conv, lastMessage: message, unreadCount: conv.unreadCount + 1 }
+                    : conv
+                );
+              }
+              console.log('Adding new conversation to state');
+              return [...prev, newConversation];
+            });
           }
         } else if (conversation && conversation.id) {
           // Handle case where we receive full conversation object
@@ -320,8 +427,22 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
             });
           }
           
-          // Update global unread count
-          setUnreadCount(prev => prev + 1);
+          // Update conversation unread count (not global)
+          setConversations(prev => {
+            return prev.map(conv => {
+              if (conv.transactionId === transactionId) {
+                return {
+                  ...conv,
+                  unreadCount: conv.unreadCount + 1,
+                  lastMessage: message
+                };
+              }
+              return conv;
+            });
+          });
+          
+          // Recalculate total unread count
+          recalculateUnreadCount();
           
           // Show toast notification if not in the current conversation
           if (currentConversationRef.current?.transactionId !== transactionId) {
@@ -409,20 +530,41 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
     socket.on('message_read', handleMessageRead);
     
     // Typing indicator event handlers
-    socket.on('typing_start', (data: { transactionId: string; userId: string }) => {
+    socket.on('user_typing', (data: { transactionId: string; userId: string; isTyping: boolean }) => {
       if (data.userId !== user?.id) {
-        setTypingUsers(prev => new Set(prev).add(`${data.transactionId}-${data.userId}`));
+        if (data.isTyping) {
+          setTypingUsers(prev => new Set(prev).add(`${data.transactionId}-${data.userId}`));
+        } else {
+          setTypingUsers(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(`${data.transactionId}-${data.userId}`);
+            return newSet;
+          });
+        }
       }
     });
 
-    socket.on('typing_stop', (data: { transactionId: string; userId: string }) => {
-      if (data.userId !== user?.id) {
-        setTypingUsers(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(`${data.transactionId}-${data.userId}`);
-          return newSet;
-        });
-      }
+    // Handle message read receipts
+    socket.on('message_read_receipt', (data: { messageId: string; readBy: string; transactionId: string; readAt: Date }) => {
+      setMessages(prev => 
+        prev.map(msg => 
+          msg.id === data.messageId 
+            ? { ...msg, isRead: true, readAt: new Date(data.readAt) }
+            : msg
+        )
+      );
+    });
+
+    // Handle conversation read receipts
+    socket.on('conversation_read_receipt', (data: { transactionId: string; readBy: string; readAt: Date }) => {
+      // Mark all messages in this conversation as read
+      setMessages(prev => 
+        prev.map(msg => 
+          msg.transactionId === data.transactionId && msg.senderId !== data.readBy
+            ? { ...msg, isRead: true, readAt: new Date(data.readAt) }
+            : msg
+        )
+      );
     });
     
     // Add error handler for WebSocket events
@@ -431,54 +573,106 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
     });
 
     return () => {
+      console.log('Cleaning up WebSocket message handlers for user:', user?.id);
       socket.off('new_message', handleNewMessage);
       socket.off('message_read', handleMessageRead);
-      socket.off('typing_start');
-      socket.off('typing_stop');
+      socket.off('user_typing');
+      socket.off('message_read_receipt');
+      socket.off('conversation_read_receipt');
       socket.off('error');
     };
   }, [socket, isConnected, user]); // Remove currentConversation from dependencies
 
   const sendMessage = async (transactionId: string, content: string) => {
-    if (!user || !socket || isLoading) return;
+    if (!user || isLoading) return;
 
+    // Generate a unique temporary ID for optimistic updates
+    const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
     const message: Message = {
-      id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: tempId,
       transactionId,
       senderId: user.id,
       receiverId: '', // Not needed in new API
       content,
       timestamp: new Date(),
       isRead: false,
-      messageType: 'TEXT'
+      messageType: 'TEXT',
+      isSynced: false
     };
+
+    // Optimistically add message to UI immediately
+    setMessages(prev => {
+      // Check for duplicates using both temp ID and content
+      const messageExists = prev.some(msg => 
+        msg.id === tempId || 
+        (msg.content === content && msg.senderId === user.id && 
+         Math.abs(new Date(msg.timestamp).getTime() - new Date().getTime()) < 5000)
+      );
+      if (messageExists) {
+        return prev;
+      }
+      return [...prev, message];
+    });
+
+    // Handle offline mode
+    if (isOffline || !socket) {
+      console.log('Offline mode: Queuing message for later sending');
+      setMessageQueue(prev => [...prev, message]);
+      setOfflineMessages(prev => [...prev, message]);
+      
+      // Update conversation for offline message
+      if (currentConversation) {
+        const updatedConversation = {
+          ...currentConversation,
+          lastMessage: message,
+          updatedAt: new Date()
+        };
+        setCurrentConversation(updatedConversation);
+        
+        setConversations(prev => 
+          prev.map(conv => 
+            conv.id === currentConversation.id ? updatedConversation : conv
+          )
+        );
+      }
+      
+      toast.info('Message queued for sending when connection is restored');
+      return;
+    }
 
     try {
       console.log('MessageContext: Attempting to send message:', { transactionId, content });
-      // Send to backend first
+      
+      // Send to backend
       const apiMessage = await messageAPI.sendMessage({
         transactionId,
         content
       });
       console.log('MessageContext: Message sent to backend successfully:', apiMessage);
 
-      // Update message with API response
-      const updatedMessage = { ...message, apiId: apiMessage.id, isSynced: true };
+      // Update message with API response and mark as synced
+      const updatedMessage = { 
+        ...message, 
+        id: apiMessage.id, // Use backend ID
+        apiId: apiMessage.id, 
+        isSynced: true,
+        timestamp: new Date((apiMessage as any).createdAt || apiMessage.timestamp),
+        messageType: apiMessage.messageType || 'TEXT',
+        isEdited: apiMessage.isEdited || false,
+        editedAt: apiMessage.editedAt ? new Date(apiMessage.editedAt) : undefined,
+        replyToId: apiMessage.replyToId,
+        metadata: apiMessage.metadata,
+        attachments: apiMessage.attachments || [],
+        sender: apiMessage.sender
+      };
 
-      // Emit message via WebSocket
-      socket.emit('send_message', {
-        message: updatedMessage,
-        transactionId
-      });
-
-      // Optimistically add message to UI (check for duplicates)
-      setMessages(prev => {
-        const messageExists = prev.some(msg => msg.id === updatedMessage.id);
-        if (messageExists) {
-          return prev;
-        }
-        return [...prev, updatedMessage];
-      });
+      // Update the message in the UI with the real ID
+      setMessages(prev => 
+        prev.map(msg => 
+          msg.id === tempId ? updatedMessage : msg
+        )
+      );
 
       // Update conversation
       if (currentConversation) {
@@ -505,17 +699,39 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
             : conv
         )
       );
+
+      // Emit message via WebSocket for real-time delivery
+      if (socket && isConnected) {
+        socket.emit('send_message', {
+          message: updatedMessage,
+          transactionId,
+          receiverId: currentConversation?.participants.find(p => p !== user.id) || ''
+        });
+        console.log('MessageContext: Message emitted via WebSocket for real-time delivery');
+      }
     } catch (error) {
       console.error('MessageContext: Failed to send message:', error);
-      toast.error('Failed to send message. Please check your connection.');
+      
+      // If network error, queue for retry
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        console.log('Network error: Queuing message for retry');
+        setMessageQueue(prev => [...prev, message]);
+        toast.warning('Message queued for retry when connection is restored');
+      } else {
+        toast.error('Failed to send message. Please try again.');
+      }
+      
       // Mark message as failed
-      const failedMessage = { ...message, error: 'Failed to send' };
-      setMessages(prev => [...prev, failedMessage]);
+      setMessages(prev => 
+        prev.map(msg => 
+          msg.id === tempId ? { ...msg, error: 'Failed to send', isSynced: false } : msg
+        )
+      );
     }
   };
 
   const sendFileMessage = async (transactionId: string, file: File) => {
-    if (!user || !socket) return;
+    if (!user) return;
 
     const fileId = `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
@@ -527,8 +743,20 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
       status: 'UPLOADING'
     }]);
 
+    // Handle offline mode for file uploads
+    if (isOffline || !socket) {
+      console.log('Offline mode: Queuing file for later upload');
+      setUploadProgress(prev => 
+        prev.map(p => 
+          p.fileId === fileId ? { ...p, status: 'FAILED', error: 'Offline - will retry when online' } : p
+        )
+      );
+      toast.warning('File upload queued for when connection is restored');
+      return;
+    }
+
     try {
-      // Upload file
+      // Upload file with progress tracking
       const attachment = await messageAPI.uploadFile(
         file, 
         transactionId, 
@@ -541,16 +769,16 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
         }
       );
 
-      // Update upload progress
+      // Update upload progress to completed
       setUploadProgress(prev => 
         prev.map(p => 
-          p.fileId === fileId ? { ...p, status: 'COMPLETED' } : p
+          p.fileId === fileId ? { ...p, progress: 100, status: 'COMPLETED' } : p
         )
       );
 
       // Create message with attachment
       const message: Message = {
-        id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         transactionId,
         senderId: user.id,
         receiverId: '', // Not needed in new API
@@ -558,11 +786,50 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
         timestamp: new Date(),
         isRead: false,
         messageType: 'FILE',
-        attachments: [attachment]
+        attachments: [attachment],
+        isSynced: false
       };
 
-      // Send message
-      await sendMessage(transactionId, `Sent: ${file.name}`);
+      // Send message via API
+      try {
+        const apiMessage = await messageAPI.sendMessage({
+          transactionId,
+          content: `Sent: ${file.name}`
+        });
+
+        // Update message with API response
+        const updatedMessage = { 
+          ...message, 
+          id: apiMessage.id,
+          apiId: apiMessage.id, 
+          isSynced: true,
+          timestamp: new Date((apiMessage as any).createdAt || apiMessage.timestamp)
+        };
+
+        // Add to messages
+        setMessages(prev => [...prev, updatedMessage]);
+
+        // Update conversation
+        if (currentConversation) {
+          const updatedConversation = {
+            ...currentConversation,
+            lastMessage: updatedMessage,
+            updatedAt: new Date()
+          };
+          setCurrentConversation(updatedConversation);
+          
+          setConversations(prev => 
+            prev.map(conv => 
+              conv.id === currentConversation.id ? updatedConversation : conv
+            )
+          );
+        }
+
+        toast.success('File sent successfully');
+      } catch (error) {
+        console.error('Failed to send file message:', error);
+        toast.error('Failed to send file message');
+      }
       
       // Remove from upload progress after delay
       setTimeout(() => {
@@ -575,9 +842,15 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
       // Update upload progress with error
       setUploadProgress(prev => 
         prev.map(p => 
-          p.fileId === fileId ? { ...p, status: 'FAILED', error: 'Upload failed' } : p
+          p.fileId === fileId ? { 
+            ...p, 
+            status: 'FAILED', 
+            error: error instanceof Error ? error.message : 'Upload failed' 
+          } : p
         )
       );
+      
+      toast.error('Failed to upload file');
     }
   };
 
@@ -591,6 +864,12 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
 
     setIsLoading(true);
     try {
+      // Join transaction room for real-time updates
+      if (socket && isConnected) {
+        socket.emit('join_transaction_room', { transactionId });
+        console.log(`MessageContext: Joined transaction room ${transactionId}`);
+      }
+
       // Find existing conversation
       const conversation = conversations.find(c => c.transactionId === transactionId);
       
@@ -605,10 +884,7 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
         await loadParticipantDetails(transactionId);
         }
         
-        // Mark conversation as read when viewed
-        if (conversation.unreadCount > 0) {
-          await markConversationAsRead(transactionId);
-        }
+        // Don't automatically mark as read - let user explicitly open conversation
       } else {
         // Create new conversation
         const newConversation: Conversation = {
@@ -641,18 +917,36 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
     }
   };
 
-  const loadMessages = async (transactionId: string) => {
+  const loadMessages = async (transactionId: string, page: number = 1, reset: boolean = true) => {
     if (!user) return;
 
-    // Check if we already have messages for this transaction
-    if (messages.length > 0 && messages[0]?.transactionId === transactionId) {
+    // Check if we already have messages for this transaction and not resetting
+    if (!reset && messages.length > 0 && messages[0]?.transactionId === transactionId) {
       return; // Already loaded, don't reload
+    }
+
+    if (reset) {
+      setMessagePage(1);
+      setHasMoreMessages(false);
     }
 
     try {
       // Try to load from API first
       const apiMessages = await messageAPI.getMessages(transactionId);
-      setMessages(apiMessages);
+      
+      if (reset) {
+        setMessages(apiMessages);
+      } else {
+        // Add to existing messages (avoid duplicates)
+        setMessages(prev => {
+          const existingIds = new Set(prev.map(msg => msg.id));
+          const newMessages = apiMessages.filter(msg => !existingIds.has(msg.id));
+          return [...prev, ...newMessages];
+        });
+      }
+      
+      // Check if there are more messages
+      setHasMoreMessages(apiMessages.length === MESSAGES_PER_PAGE);
       
       // Save to localStorage
       localStorage.setItem(`tranzio_messages_${transactionId}`, JSON.stringify(apiMessages));
@@ -671,29 +965,26 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
         updatedAt: msg.updatedAt ? new Date(msg.updatedAt) : new Date()
       }));
       
-      setMessages(messagesWithProperDates);
+      if (reset) {
+        setMessages(messagesWithProperDates);
+      } else {
+        setMessages(prev => [...prev, ...messagesWithProperDates]);
+      }
     }
   };
 
   const loadMoreMessages = async (transactionId: string, beforeMessageId?: string) => {
-    if (!user) return;
+    if (!user || isLoadingMore || !hasMoreMessages) return;
 
+    setIsLoadingMore(true);
     try {
-      // Load more messages from API (you can implement pagination here)
-      const moreMessages = await messageAPI.getMessages(transactionId);
-      
-      // Add to existing messages (avoid duplicates)
-      setMessages(prev => {
-        const existingIds = new Set(prev.map(msg => msg.id));
-        const newMessages = moreMessages.filter(msg => !existingIds.has(msg.id));
-        return [...newMessages, ...prev];
-      });
-      
-      // Save to localStorage
-      const allMessages = messages.concat(moreMessages);
-      localStorage.setItem(`tranzio_messages_${transactionId}`, JSON.stringify(allMessages));
+      const nextPage = messagePage + 1;
+      await loadMessages(transactionId, nextPage, false);
+      setMessagePage(nextPage);
     } catch (error) {
       console.error('Failed to load more messages:', error);
+    } finally {
+      setIsLoadingMore(false);
     }
   };
 
@@ -705,7 +996,13 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
       await messageAPI.markAsRead(messageId);
       
       // Emit read status via WebSocket
-      socket.emit('mark_message_read', { messageId });
+      const message = messages.find(msg => msg.id === messageId);
+      if (message) {
+        socket.emit('message_read', { 
+          messageId, 
+          transactionId: message.transactionId 
+        });
+      }
 
       // Update local state only if not already read
       setMessages(prev => 
@@ -714,8 +1011,7 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
         )
       );
 
-      // Find the message to get its transactionId
-      const message = messages.find(msg => msg.id === messageId);
+      // Use the message we already found
       if (message && !message.isRead) {
         // Update conversation unread count
         setConversations(prev => 
@@ -741,7 +1037,15 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
     if (!user) return;
 
     try {
-      // Mark all messages in the conversation as read
+      // Call backend API to mark conversation as read
+      await messageAPI.markConversationAsRead(transactionId);
+
+      // Emit conversation read via WebSocket
+      if (socket && isConnected) {
+        socket.emit('conversation_read', { transactionId });
+      }
+
+      // Mark all messages in the conversation as read locally
       setMessages(prev => 
         prev.map(msg => 
           msg.transactionId === transactionId ? { ...msg, isRead: true } : msg
@@ -867,13 +1171,17 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
     searchMessages,
     deleteMessage,
     isLoading,
+    isLoadingMore,
+    hasMoreMessages,
     uploadProgress,
     refreshConversations,
     recalculateUnreadCount,
     startTyping,
     stopTyping,
     isUserTyping,
-    typingUsers
+    typingUsers,
+    isOffline,
+    messageQueue
   };
 
   return (

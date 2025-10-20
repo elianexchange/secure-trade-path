@@ -46,18 +46,20 @@ export default function MessageThread({
     markConversationAsRead,
     loadMoreMessages,
     isLoading,
+    isLoadingMore,
+    hasMoreMessages,
     uploadProgress,
     startTyping,
     stopTyping,
     typingUsers,
-    currentConversation
+    currentConversation,
+    isOffline,
+    messageQueue
   } = useMessages();
   const { user } = useAuth();
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [hasMoreMessages, setHasMoreMessages] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLInputElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -70,37 +72,26 @@ export default function MessageThread({
 
   // Check if there are more messages than can be displayed
   const checkForMoreMessages = useCallback(() => {
-    if (messagesContainerRef.current && messages.length > 0) {
-      const container = messagesContainerRef.current;
-      // Check if the container is scrollable (has more content than visible)
-      const isScrollable = container.scrollHeight > container.clientHeight;
-      // Also check if we're not at the top (meaning there might be more messages above)
-      const isNotAtTop = container.scrollTop > 0;
-      // Show load more if container is scrollable or if we're not at the top
-      setHasMoreMessages(isScrollable || isNotAtTop);
-    } else {
-      setHasMoreMessages(false);
-    }
-  }, [messages.length]);
+    // This is now handled by the context state
+    // We can add additional UI logic here if needed
+  }, []);
 
   // Handle loading more messages
   const handleLoadMoreMessages = useCallback(async () => {
-    if (messages.length > 0 && !isLoadingMore) {
-      setIsLoadingMore(true);
+    if (messages.length > 0 && !isLoadingMore && hasMoreMessages) {
       try {
         const oldestMessageId = messages[messages.length - 1]?.id;
         await loadMoreMessages(transactionId, oldestMessageId);
       } catch (error) {
         console.error('Error loading more messages:', error);
-      } finally {
-        setIsLoadingMore(false);
       }
     }
-  }, [messages, isLoadingMore, loadMoreMessages, transactionId]);
+  }, [messages, isLoadingMore, hasMoreMessages, loadMoreMessages, transactionId]);
 
   useEffect(() => {
     if (transactionId && !isLoading) {
       loadConversationStable(transactionId);
+      // Don't automatically mark as read - let user explicitly interact
     }
   }, [transactionId]); // Only depend on transactionId, not on loadConversationStable
 
@@ -155,7 +146,12 @@ export default function MessageThread({
     }
   }, [transactionId, markConversationAsRead]); // Include dependencies
 
-  // No cleanup needed for typing indicators
+  // Cleanup typing indicators when component unmounts
+  useEffect(() => {
+    return () => {
+      stopTyping(transactionId);
+    };
+  }, [transactionId, stopTyping]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,6 +164,9 @@ export default function MessageThread({
       
       // Stop typing indicator when message is sent
       stopTyping(transactionId);
+      
+      // Mark conversation as read when user sends a message (shows they're actively engaging)
+      markConversationAsRead(transactionId);
     } catch (error) {
       console.error('Failed to send message:', error);
     } finally {
@@ -211,6 +210,22 @@ export default function MessageThread({
     }
   };
 
+  // Handle scroll to mark conversation as read when user actively views messages
+  const handleScroll = useCallback(() => {
+    // Mark as read when user scrolls to see messages (shows they're actively viewing)
+    if (transactionId && messages.length > 0) {
+      markConversationAsRead(transactionId);
+    }
+  }, [transactionId, messages.length, markConversationAsRead]);
+
+  // Handle click to mark conversation as read when user actively interacts
+  const handleMessageAreaClick = useCallback(() => {
+    // Mark as read when user clicks on message area (shows they're actively viewing)
+    if (transactionId && messages.length > 0) {
+      markConversationAsRead(transactionId);
+    }
+  }, [transactionId, messages.length, markConversationAsRead]);
+
   const getAvatarFallback = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
@@ -218,6 +233,7 @@ export default function MessageThread({
   const validateMessage = (message: any) => {
     // Ensure message has required properties and valid timestamp
     if (!message || !message.id || !message.content) {
+      console.warn('Message missing required properties:', { id: message?.id, content: message?.content });
       return false;
     }
     
@@ -230,6 +246,13 @@ export default function MessageThread({
           return false;
         }
       }
+      
+      // Validate message type
+      if (message.messageType && !['TEXT', 'FILE', 'SYSTEM'].includes(message.messageType)) {
+        console.warn('Message has invalid messageType:', message.messageType);
+        return false;
+      }
+      
       return true;
     } catch (error) {
       console.error('Error validating message:', error, message);
@@ -252,7 +275,21 @@ export default function MessageThread({
         return 'Just now';
       }
       
-      return formatDistanceToNow(date, { addSuffix: true });
+      const now = new Date();
+      const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+      
+      if (diffInSeconds < 60) {
+        return 'Just now';
+      } else if (diffInSeconds < 3600) {
+        const minutes = Math.floor(diffInSeconds / 60);
+        return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+      } else if (diffInSeconds < 86400) {
+        const hours = Math.floor(diffInSeconds / 3600);
+        return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+      } else {
+        const days = Math.floor(diffInSeconds / 86400);
+        return `${days} day${days > 1 ? 's' : ''} ago`;
+      }
     } catch (error) {
       console.error('Error formatting message time:', error, 'Timestamp:', timestamp);
       return 'Just now';
@@ -295,15 +332,16 @@ export default function MessageThread({
     try {
   return (
     <div className="h-full flex flex-col">
-      <div className="flex-1 flex flex-col p-0 min-h-0">
+      <div className="flex-1 flex flex-col min-h-0">
         {/* Messages Area */}
         <div 
           ref={messagesContainerRef}
-          className="flex-1 overflow-y-auto px-3 pb-2 space-y-2 relative messages-area bg-gray-50/30" 
+          className="flex-1 overflow-y-auto px-4 py-3 space-y-3 relative messages-area bg-gray-50/30" 
           style={{ 
-            scrollBehavior: 'smooth',
-            maxHeight: 'calc(100vh - 280px)'
+            scrollBehavior: 'smooth'
           }}
+          onScroll={handleScroll}
+          onClick={handleMessageAreaClick}
         >
           {/* Load More Button - Only show when there are more messages */}
           {hasMoreMessages && messages.length > 0 && (
@@ -341,7 +379,9 @@ export default function MessageThread({
           ) : (
             messages.filter(validateMessage).map((message) => {
               const isOwnMessage = message.senderId === user?.id;
-              const senderName = isOwnMessage ? `${user?.firstName} ${user?.lastName}` : counterpartyName;
+              const senderName = isOwnMessage 
+                ? `${user?.firstName} ${user?.lastName}` 
+                : (message.sender ? `${message.sender.firstName} ${message.sender.lastName}` : counterpartyName);
               
               return (
                 <div
@@ -359,7 +399,7 @@ export default function MessageThread({
                     
                     <div className={`rounded-lg px-3 py-2 shadow-sm max-w-xs lg:max-w-md ${
                       isOwnMessage 
-                        ? 'bg-blue-500 text-white ml-auto' 
+                        ? (message.error ? 'bg-red-500 text-white ml-auto' : 'bg-blue-500 text-white ml-auto')
                         : 'bg-white text-gray-900 border border-gray-200'
                     }`}>
                       {/* Sender Name */}
@@ -415,16 +455,35 @@ export default function MessageThread({
                         <span className="text-xs opacity-70">
                           {formatMessageTime(message.timestamp)}
                         </span>
+                        {message.isEdited && (
+                          <span className="text-xs opacity-50 italic">(edited)</span>
+                        )}
                         {isOwnMessage && (
-                          <span className="text-xs opacity-70">
+                          <div className="flex items-center space-x-1">
                             {message.error ? (
-                              <AlertCircle className="h-3 w-3 text-red-500" />
+                              <div className="flex items-center space-x-1">
+                                <AlertCircle className="h-3 w-3 text-red-500" />
+                                <button
+                                  onClick={() => {
+                                    // Retry sending the message
+                                    if (message.content) {
+                                      sendMessage(transactionId, message.content);
+                                    }
+                                  }}
+                                  className="text-xs text-red-300 hover:text-red-100 underline"
+                                  title="Retry sending"
+                                >
+                                  Retry
+                                </button>
+                              </div>
+                            ) : !message.isSynced ? (
+                              <Clock className="h-3 w-3 text-yellow-500" />
                             ) : message.isRead ? (
-                              <CheckCheck className="h-3 w-3" />
+                              <CheckCheck className="h-3 w-3 text-blue-500" />
                             ) : (
-                              <Check className="h-3 w-3" />
+                              <Check className="h-3 w-3 text-gray-500" />
                             )}
-                          </span>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -448,13 +507,13 @@ export default function MessageThread({
               });
               
               return (
-                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                <div className="flex items-center space-x-2 text-sm text-muted-foreground bg-blue-50 rounded-lg p-2 mx-2">
                   <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                   </div>
-                  <span className="text-xs">
+                  <span className="text-xs font-medium">
                     {typingNames.length === 1 
                       ? `${typingNames[0]} is typing...`
                       : `${typingNames.slice(0, -1).join(', ')} and ${typingNames[typingNames.length - 1]} are typing...`
@@ -502,16 +561,27 @@ export default function MessageThread({
           </div>
         )}
 
+        {/* Offline Status */}
+        {isOffline && (
+          <div className="px-3 py-2 bg-yellow-50 border-t border-yellow-200 text-center">
+            <div className="flex items-center justify-center space-x-2 text-yellow-800">
+              <AlertCircle className="h-4 w-4" />
+              <span className="text-sm font-medium">You're offline</span>
+              <span className="text-xs">({messageQueue.length} messages queued)</span>
+            </div>
+          </div>
+        )}
+
         {/* Message Input */}
-        <div className="p-3 pb-20 border-t bg-white flex-shrink-0">
+        <div className="p-4 border-t bg-white flex-shrink-0">
           {/* File Selection Display */}
           {selectedFile && (
-            <div className="mb-2 p-2 bg-gray-50 rounded-lg">
+            <div className="mb-3 p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <Paperclip className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-xs font-medium">{selectedFile.name}</span>
-                  <span className="text-xs text-muted-foreground">
+                  <Paperclip className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">{selectedFile.name}</span>
+                  <span className="text-sm text-muted-foreground">
                     ({formatFileSize(selectedFile.size)})
                   </span>
                 </div>
@@ -520,22 +590,22 @@ export default function MessageThread({
                   variant="ghost"
                   size="sm"
                   onClick={removeSelectedFile}
-                  className="h-5 w-5 p-0"
+                  className="h-6 w-6 p-0"
                 >
-                  <X className="h-3 w-3" />
+                  <X className="h-4 w-4" />
                 </Button>
               </div>
             </div>
           )}
 
-          <form onSubmit={handleSendMessage} className="flex space-x-2">
+          <form onSubmit={handleSendMessage} className="flex items-end space-x-3">
             {/* File Upload Button */}
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => fileInputRef.current?.click()}
-              className="px-2 h-9"
+              className="px-3 h-10 flex-shrink-0"
               disabled={isSending}
             >
               <Paperclip className="h-4 w-4" />
@@ -549,46 +619,56 @@ export default function MessageThread({
             />
 
             {/* Message Input */}
-            <Input
-              value={newMessage}
-              onChange={(e) => {
-                setNewMessage(e.target.value);
-                
-                // Start typing indicator for other users
-                if (e.target.value.length > 0) {
-                  startTyping(transactionId);
+            <div className="flex-1 relative">
+              <Input
+                value={newMessage}
+                onChange={(e) => {
+                  setNewMessage(e.target.value);
                   
-                  // Auto-stop typing after 3 seconds of no input
-                  setTimeout(() => {
-                    if (e.target.value === newMessage) {
-                      stopTyping(transactionId);
+                  // Start typing indicator for other users
+                  if (e.target.value.length > 0) {
+                    startTyping(transactionId);
+                    
+                    // Auto-stop typing after 3 seconds of no input
+                    setTimeout(() => {
+                      if (e.target.value === newMessage) {
+                        stopTyping(transactionId);
+                      }
+                    }, 3000);
+                  } else {
+                    stopTyping(transactionId);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  // Start typing indicator when key is pressed
+                  if (newMessage.length === 0) {
+                    startTyping(transactionId);
+                  }
+                  
+                  // Send message on Enter (but not Shift+Enter)
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (newMessage.trim() && !isSending) {
+                      handleSendMessage(e);
                     }
-                  }, 3000);
-                } else {
+                  }
+                }}
+                onBlur={() => {
+                  // Stop typing indicator when input loses focus
                   stopTyping(transactionId);
-                }
-              }}
-              onKeyDown={() => {
-                // Start typing indicator when key is pressed
-                if (newMessage.length === 0) {
-                  startTyping(transactionId);
-                }
-              }}
-              onBlur={() => {
-                // Stop typing indicator when input loses focus
-                stopTyping(transactionId);
-              }}
-              placeholder="Type your message..."
-              className="flex-1 h-9"
-              disabled={isSending}
-            />
+                }}
+                placeholder="Type your message..."
+                className="w-full h-10 pr-12 resize-none"
+                disabled={isSending}
+              />
+            </div>
 
             {/* Send Button */}
             <Button 
               type="submit" 
               size="sm" 
               disabled={(!newMessage.trim() && !selectedFile) || isSending}
-              className="px-3 h-9"
+              className="px-4 h-10 flex-shrink-0"
             >
               {isSending ? (
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>

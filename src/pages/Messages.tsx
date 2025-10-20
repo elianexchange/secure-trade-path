@@ -10,7 +10,7 @@ import {
   Bell,
   BellOff
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMessages } from '@/contexts/MessageContext';
 import { notificationService } from '@/services/notificationService';
@@ -21,12 +21,14 @@ import { MessageSearchResult } from '@/types/message';
 
 export default function Messages() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const { 
     conversations, 
     currentConversation, 
     unreadCount, 
-    refreshConversations 
+    refreshConversations,
+    loadConversation
   } = useMessages();
   const [selectedTransactionId, setSelectedTransactionId] = useState<string | undefined>();
   const [selectedCounterparty, setSelectedCounterparty] = useState<{
@@ -38,6 +40,15 @@ export default function Messages() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(
     notificationService.isEnabled()
   );
+
+  // Check for transactionId in location state (from transaction details navigation)
+  React.useEffect(() => {
+    if (location.state?.transactionId) {
+      setSelectedTransactionId(location.state.transactionId);
+      // Load the conversation for this transaction
+      loadConversation(location.state.transactionId);
+    }
+  }, [location.state, loadConversation]);
 
   const handleSelectConversation = (transactionId: string) => {
     setSelectedTransactionId(transactionId);
@@ -99,6 +110,13 @@ export default function Messages() {
     await refreshConversations();
   };
 
+  // Load conversations when component mounts
+  React.useEffect(() => {
+    if (user) {
+      refreshConversations();
+    }
+  }, [user, refreshConversations]);
+
   if (!user) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -159,10 +177,10 @@ export default function Messages() {
       )}
 
       {/* Messages Interface */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 min-h-[60vh] max-h-[75vh]">
+      <div className="flex flex-col lg:flex-row gap-3 h-[calc(100vh-200px)] min-h-[500px] max-h-[calc(100vh-120px)]">
         {/* Conversations List - Hidden on mobile when conversation is selected */}
-        <div className={`${selectedTransactionId ? 'hidden lg:block' : 'block'} lg:col-span-1 h-full overflow-hidden`}>
-          <div className="h-full bg-white border border-gray-200 rounded-lg shadow-sm">
+        <div className={`${selectedTransactionId ? 'hidden lg:flex' : 'flex'} lg:w-1/3 w-full flex-col`}>
+          <div className="flex-1 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
             <ConversationsList
               onSelectConversation={handleSelectConversation}
               selectedTransactionId={selectedTransactionId}
@@ -171,13 +189,22 @@ export default function Messages() {
         </div>
 
         {/* Message Thread - Full width on mobile */}
-        <div className={`${selectedTransactionId ? 'block' : 'hidden lg:block'} lg:col-span-2 h-full`}>
-          <div className="h-full bg-white border border-gray-200 rounded-lg shadow-sm">
+        <div className={`${selectedTransactionId ? 'flex' : 'hidden lg:flex'} lg:w-2/3 w-full flex-col`}>
+          <div className="flex-1 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
             {selectedTransactionId && selectedCounterparty ? (
               <>
                 {/* Fixed Header - Always visible */}
                 <div className="flex items-center justify-between p-4 border-b bg-white sticky top-0 z-10 rounded-t-lg">
                   <div className="flex items-center space-x-3">
+                    {/* Back button for mobile */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedTransactionId(undefined)}
+                      className="lg:hidden p-2"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </Button>
                     <div>
                       <h2 className="text-lg font-semibold">
                         {selectedCounterparty.name}

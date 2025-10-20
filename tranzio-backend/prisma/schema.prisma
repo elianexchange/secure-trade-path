@@ -6,8 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // User Management
@@ -273,14 +273,39 @@ model Message {
   transactionId String
   senderId      String
   content       String
+  messageType   String   @default("TEXT") // TEXT, FILE, SYSTEM
   isRead        Boolean  @default(false)
+  isEdited      Boolean  @default(false)
+  editedAt      DateTime?
+  replyToId     String?  // For message threading
+  metadata      String?  // Additional message metadata as JSON string
   createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   // Relations
   transaction   EscrowTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
   sender        User              @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  attachments   MessageAttachment[]
+  replyTo       Message?          @relation("MessageReplies", fields: [replyToId], references: [id])
+  replies       Message[]         @relation("MessageReplies")
 
   @@map("messages")
+}
+
+// Message Attachments
+model MessageAttachment {
+  id        String   @id @default(cuid())
+  messageId String
+  filename  String
+  fileUrl   String
+  fileSize  Int
+  mimeType  String
+  createdAt DateTime @default(now())
+
+  // Relations
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@map("message_attachments")
 }
 
 // Wallet System

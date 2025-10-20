@@ -4,16 +4,9 @@ import { emailService } from '../services/emailService';
 
 const router = express.Router();
 
-// Test email configuration
-router.post('/test', authenticateToken, async (req, res) => {
+// Test email configuration (public endpoint for testing)
+router.post('/test', async (req, res) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        error: 'User not authenticated'
-      });
-    }
-
     const result = await emailService.testEmailConfiguration();
     
     if (result) {

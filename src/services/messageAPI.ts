@@ -1,6 +1,6 @@
 import { Message, Conversation, MessageAttachment, ParticipantDetail } from '@/types/message';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://192.168.63.1:4000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
 class MessageAPI {
   private async request<T>(
@@ -53,6 +53,13 @@ class MessageAPI {
   // Mark message as read
   async markAsRead(messageId: string): Promise<void> {
     return this.request<void>(`/api/messages/${messageId}/read`, {
+      method: 'PUT',
+    });
+  }
+
+  // Mark all messages in a conversation as read
+  async markConversationAsRead(transactionId: string): Promise<void> {
+    return this.request<void>(`/api/messages/conversations/${transactionId}/read`, {
       method: 'PUT',
     });
   }

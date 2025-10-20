@@ -7,17 +7,18 @@ import path from 'path';
 import { PrismaClient } from '@prisma/client';
 import { createServer } from 'http';
 // Initialize WebSocket service
-import { initializeSocket } from './services/socketService';
+import WebSocketService from './services/websocket';
+import { setWebSocketService } from './controllers/messageController';
 
 // Import routes
 import authRoutes from './routes/auth';
 import usersRoutes from './routes/users';
 import transactionsRoutes from './routes/transactions';
 import notificationsRoutes from './routes/notifications';
-// import messageRoutes from './routes/messageRoutes';
+import messageRoutes from './routes/messageRoutes';
 // import verificationRoutes from './routes/verification';
 // import paymentConditionsRoutes from './routes/paymentConditions';
-// import emailRoutes from './routes/email';
+import emailRoutes from './routes/email';
 // import escrowCalculatorRoutes from './routes/escrowCalculator';
 // import disputesRoutes from './routes/disputes';
 // import chatbotRoutes from './routes/chatbot';
@@ -34,7 +35,8 @@ const PORT = process.env.PORT || 4000;
 export const prisma = new PrismaClient();
 
 // Initialize WebSocket service
-initializeSocket(server);
+const wsService = new WebSocketService(server);
+setWebSocketService(wsService);
 
 // Middleware
 app.use(helmet()); // Security headers
@@ -79,10 +81,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/transactions', transactionsRoutes);
 app.use('/api/notifications', notificationsRoutes);
-// app.use('/api/messages', messageRoutes);
+app.use('/api/email', emailRoutes);
+app.use('/api/messages', messageRoutes);
 // app.use('/api/verification', verificationRoutes);
 // app.use('/api/payment-conditions', paymentConditionsRoutes);
-// app.use('/api/email', emailRoutes);
 // app.use('/api/escrow-calculator', escrowCalculatorRoutes);
 // app.use('/api/disputes', disputesRoutes);
 // app.use('/api/chatbot', chatbotRoutes);

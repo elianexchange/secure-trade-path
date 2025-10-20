@@ -51,9 +51,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const loadUser = async () => {
       try {
         const token = localStorage.getItem('authToken');
+        console.log('AuthContext: Checking for existing token:', token ? 'Found' : 'Not found');
+        
         if (token) {
           // Verify token by getting user profile
+          console.log('AuthContext: Verifying existing token...');
           const user = await authAPI.getProfile();
+          console.log('AuthContext: Token verified, user loaded:', user.email);
           setAuthState({
             user,
             token,
@@ -63,9 +67,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         } else {
           // For development: Auto-login test user if no token exists
           if (process.env.NODE_ENV === 'development') {
-            console.log('No auth token found, attempting auto-login for development...');
+            console.log('AuthContext: No auth token found, attempting auto-login for development...');
             try {
               const { user, token } = await authAPI.login('test@example.com', 'password123');
+              console.log('AuthContext: Auto-login successful, storing token and user data');
               localStorage.setItem('authToken', token);
               setAuthState({
                 user,
@@ -73,16 +78,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 isAuthenticated: true,
                 isLoading: false,
               });
-              console.log('Auto-login successful for development');
+              console.log('AuthContext: Auto-login completed successfully');
               return;
             } catch (autoLoginError) {
-              console.log('Auto-login failed, user needs to login manually:', autoLoginError);
+              console.error('AuthContext: Auto-login failed:', autoLoginError);
+              console.log('AuthContext: User needs to login manually');
             }
           }
           setAuthState(prev => ({ ...prev, isLoading: false }));
         }
       } catch (error) {
-        console.error('Failed to load user:', error);
+        console.error('AuthContext: Failed to load user:', error);
         // Clear invalid token
         localStorage.removeItem('authToken');
         setAuthState({

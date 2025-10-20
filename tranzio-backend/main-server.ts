@@ -27,16 +27,38 @@ const prisma = new PrismaClient();
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'http://localhost:8080',
-    'http://localhost:8081',
-    'http://127.0.0.1:3000',
-    'http://127.0.0.1:3001',
-    'http://127.0.0.1:8080',
-    'http://127.0.0.1:8081'
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:8080',
+      'http://localhost:8081',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3001',
+      'http://127.0.0.1:8080',
+      'http://127.0.0.1:8081',
+      'https://tranzzio.netlify.app',
+      'https://tranzzio.netlify.app/',
+      // Add your custom domain here
+      'https://your-custom-domain.com'
+    ];
+
+    // Also check environment variable for additional origins
+    if (process.env.CORS_ORIGIN) {
+      const envOrigins = process.env.CORS_ORIGIN.split(',').map(o => o.trim());
+      allowedOrigins.push(...envOrigins);
+    }
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    console.log('CORS blocked origin:', origin);
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -60,8 +82,16 @@ console.log('✅ Health endpoint configured');
 
 // Initialize WebSocket service
 import { initializeSocket } from './src/services/socketService';
+import WebSocketService from './src/services/websocket';
+import { setWebSocketService } from './src/controllers/messageController';
+
+// Initialize the main WebSocket service
+const wsService = new WebSocketService(server);
+setWebSocketService(wsService);
+
+// Also initialize the socket service for compatibility
 initializeSocket(server);
-console.log('✅ WebSocket service initialized');
+console.log('✅ WebSocket services initialized');
 
 // Import and use auth routes
 import authRoutes from './src/routes/auth';
@@ -71,7 +101,15 @@ app.use('/api/auth', authRoutes);
 import transactionRoutes from './src/routes/transactions';
 app.use('/api/transactions', transactionRoutes);
 
-console.log('✅ Auth and transaction routes configured');
+// Import and use message routes
+import messageRoutes from './src/routes/messageRoutes';
+app.use('/api/messages', messageRoutes);
+
+// Import and use Lemu routes
+import lemuRoutes from './src/routes/lemu';
+app.use('/api/lemu', lemuRoutes);
+
+console.log('✅ Auth, transaction, message, and Lemu routes configured');
 
 // 404 handler
 app.use('*', (req, res) => {

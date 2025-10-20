@@ -432,8 +432,9 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   // Listen for new notifications added for current user
   useEffect(() => {
     const handleNewNotification = () => {
-      // Reload notifications when a new one is added
-      loadNotifications();
+      // Don't reload all notifications - the new one is already added to state
+      // This prevents the notification from disappearing when API hasn't caught up
+      console.log('New notification added, keeping local state');
     };
 
     window.addEventListener('notificationAdded', handleNewNotification);
@@ -441,7 +442,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     return () => {
       window.removeEventListener('notificationAdded', handleNewNotification);
     };
-  }, [loadNotifications]);
+  }, []);
 
   const value: NotificationContextType = {
     notifications,

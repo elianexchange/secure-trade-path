@@ -219,6 +219,62 @@ const emailTemplates = {
         </div>
       </div>
     `
+  }),
+
+  passwordReset: (data: any) => ({
+    subject: 'Reset Your Tranzio Password',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; padding: 20px; text-align: center;">
+          <h1 style="margin: 0;">Tranzio</h1>
+          <p style="margin: 10px 0 0 0;">Secure Escrow Trading Platform</p>
+        </div>
+        
+        <div style="padding: 30px; background: #f8fafc;">
+          <h2 style="color: #1f2937; margin-bottom: 20px;">Password Reset Request</h2>
+          
+          <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <p style="color: #374151; margin-bottom: 16px;">Hello ${data.firstName || 'there'},</p>
+            <p style="color: #374151; margin-bottom: 16px;">
+              We received a request to reset your password for your Tranzio account. 
+              If you made this request, click the button below to reset your password.
+            </p>
+            
+            <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; padding: 12px; margin: 16px 0;">
+              <p style="color: #92400e; margin: 0; font-size: 14px;">
+                <strong>Security Notice:</strong> This link will expire in 1 hour for your security.
+              </p>
+            </div>
+            
+            <p style="color: #6b7280; font-size: 14px; margin: 16px 0 0 0;">
+              If you didn't request this password reset, please ignore this email. 
+              Your password will remain unchanged.
+            </p>
+          </div>
+          
+          <div style="text-align: center; margin-top: 30px;">
+            <a href="${process.env.FRONTEND_URL || 'http://localhost:8081'}/reset-password?token=${data.resetToken}" 
+               style="background: #ef4444; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
+              Reset My Password
+            </a>
+          </div>
+          
+          <div style="text-align: center; margin-top: 20px;">
+            <p style="color: #6b7280; font-size: 12px; margin: 0;">
+              If the button doesn't work, copy and paste this link into your browser:
+            </p>
+            <p style="color: #3b82f6; font-size: 12px; margin: 4px 0 0 0; word-break: break-all;">
+              ${process.env.FRONTEND_URL || 'http://localhost:8081'}/reset-password?token=${data.resetToken}
+            </p>
+          </div>
+        </div>
+        
+        <div style="background: #f3f4f6; padding: 20px; text-align: center; color: #6b7280; font-size: 14px;">
+          <p style="margin: 0 0 8px 0;">This is an automated message from Tranzio. Please do not reply to this email.</p>
+          <p style="margin: 0;">If you have any questions, please contact our support team.</p>
+        </div>
+      </div>
+    `
   })
 };
 
@@ -337,6 +393,21 @@ export class EmailService {
       return await this.sendEmail(userEmail, template.subject, template.html);
     } catch (error) {
       console.error('Error sending notification email:', error);
+      return false;
+    }
+  }
+
+  // Send password reset email
+  async sendPasswordResetEmail(userEmail: string, resetToken: string, firstName?: string): Promise<boolean> {
+    try {
+      const template = emailTemplates.passwordReset({
+        firstName,
+        resetToken
+      });
+      
+      return await this.sendEmail(userEmail, template.subject, template.html);
+    } catch (error) {
+      console.error('Error sending password reset email:', error);
       return false;
     }
   }

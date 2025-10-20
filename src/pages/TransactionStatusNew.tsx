@@ -300,10 +300,13 @@ export default function TransactionStatusNew() {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Update transaction status - after payment, move to waiting for shipment
+      // Determine next status based on whether transaction requires shipping
+      const nextStatus = transaction.useCourier ? 'WAITING_FOR_SHIPMENT' : 'PAYMENT_MADE';
+      
+      // Update transaction status - after payment, move to appropriate next status
       setTransaction(prev => prev ? {
         ...prev,
-        status: 'WAITING_FOR_SHIPMENT',
+        status: nextStatus,
         paymentCompleted: true,
         paymentMethod: payment.paymentMethod,
         paymentReference: payment.paymentReference,
@@ -318,7 +321,7 @@ export default function TransactionStatusNew() {
       if (transactionIndex !== -1) {
         storedTransactions[transactionIndex] = {
           ...storedTransactions[transactionIndex],
-          status: 'WAITING_FOR_SHIPMENT',
+          status: nextStatus,
           paymentCompleted: true,
           paymentMethod: payment.paymentMethod,
           paymentReference: payment.paymentReference,
@@ -328,11 +331,11 @@ export default function TransactionStatusNew() {
         localStorage.setItem('tranzio_transactions', JSON.stringify(storedTransactions));
         
         // Emit WebSocket event for real-time update
-        emitTransactionUpdate(transaction.id, 'WAITING_FOR_SHIPMENT');
+        emitTransactionUpdate(transaction.id, nextStatus);
         
         // Dispatch custom event
         window.dispatchEvent(new CustomEvent('transactionUpdated', { 
-          detail: { transactionId: transaction.id, status: 'WAITING_FOR_SHIPMENT' }
+          detail: { transactionId: transaction.id, status: nextStatus }
         }));
       }
       

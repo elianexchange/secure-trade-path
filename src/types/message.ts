@@ -7,7 +7,16 @@ export interface Message {
   timestamp: Date;
   isRead: boolean;
   messageType: 'TEXT' | 'FILE' | 'SYSTEM';
+  isEdited?: boolean;
+  editedAt?: Date;
+  replyToId?: string;
+  metadata?: string; // JSON string for additional metadata
   attachments?: MessageAttachment[];
+  sender?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
   // Backend integration fields
   apiId?: string;
   isSynced?: boolean;
@@ -16,10 +25,12 @@ export interface Message {
 
 export interface MessageAttachment {
   id: string;
+  messageId: string;
   filename: string;
   fileUrl: string;
   fileSize: number;
   mimeType: string;
+  createdAt: Date;
   // Backend integration fields
   apiId?: string;
   uploadProgress?: number;

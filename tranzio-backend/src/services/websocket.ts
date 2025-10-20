@@ -90,6 +90,9 @@ class WebSocketService {
       // Join role-based rooms
       socket.join(`role:${user.userRole}`);
 
+      // Join user to their transaction rooms
+      this.joinUserTransactionRooms(socket, user.userId);
+
       // Handle disconnection
       socket.on('disconnect', () => {
         console.log(`User ${user.userEmail} disconnected`);
@@ -439,14 +442,16 @@ class WebSocketService {
       socket.on('send_message', async (data: { message: any; transactionId: string; receiverId: string }) => {
         try {
           // Join transaction room if not already joined
-          socket.join(`transaction:${data.transactionId}`);
+          socket.join(`transaction_${data.transactionId}`);
           
-          // Emit to all users in the transaction room
-          this.io.to(`transaction:${data.transactionId}`).emit('new_message', {
-            message: data.message,
-            transactionId: data.transactionId,
-            receiverId: data.receiverId
-          });
+          // Emit to the specific receiver only (not the sender)
+          if (data.receiverId && data.receiverId !== user.userId) {
+            this.io.to(`user:${data.receiverId}`).emit('new_message', {
+              message: data.message,
+              transactionId: data.transactionId,
+              receiverId: data.receiverId
+            });
+          }
           
           // Update user's last seen (commented out due to schema mismatch)
           // await prisma.user.update({
@@ -481,9 +486,40 @@ class WebSocketService {
         }
       });
 
+      // Handle transaction room management
+      socket.on('join_transaction_room', async (data: { transactionId: string }) => {
+        try {
+          // Verify user has access to this transaction
+          const transaction = await prisma.escrowTransaction.findFirst({
+            where: {
+              id: data.transactionId,
+              OR: [
+                { creatorId: user.userId },
+                { counterpartyId: user.userId }
+              ]
+            }
+          });
+
+          if (transaction) {
+            socket.join(`transaction_${data.transactionId}`);
+            console.log(`User ${user.userId} joined transaction room ${data.transactionId}`);
+          } else {
+            socket.emit('error', { message: 'Access denied to transaction room' });
+          }
+        } catch (error) {
+          console.error('Error joining transaction room:', error);
+          socket.emit('error', { message: 'Failed to join transaction room' });
+        }
+      });
+
+      socket.on('leave_transaction_room', (data: { transactionId: string }) => {
+        socket.leave(`transaction_${data.transactionId}`);
+        console.log(`User ${user.userId} left transaction room ${data.transactionId}`);
+      });
+
       // Handle user typing
       socket.on('typing_start', (data: { transactionId: string }) => {
-        socket.to(`transaction:${data.transactionId}`).emit('user_typing', {
+        socket.to(`transaction_${data.transactionId}`).emit('user_typing', {
           userId: user.userId,
           transactionId: data.transactionId,
           isTyping: true
@@ -491,10 +527,29 @@ class WebSocketService {
       });
 
       socket.on('typing_stop', (data: { transactionId: string }) => {
-        socket.to(`transaction:${data.transactionId}`).emit('user_typing', {
+        socket.to(`transaction_${data.transactionId}`).emit('user_typing', {
           userId: user.userId,
           transactionId: data.transactionId,
           isTyping: false
+        });
+      });
+
+      // Handle message read receipts
+      socket.on('message_read', (data: { messageId: string, transactionId: string }) => {
+        socket.to(`transaction_${data.transactionId}`).emit('message_read_receipt', {
+          messageId: data.messageId,
+          readBy: user.userId,
+          transactionId: data.transactionId,
+          readAt: new Date()
+        });
+      });
+
+      // Handle conversation read
+      socket.on('conversation_read', (data: { transactionId: string }) => {
+        socket.to(`transaction_${data.transactionId}`).emit('conversation_read_receipt', {
+          transactionId: data.transactionId,
+          readBy: user.userId,
+          readAt: new Date()
         });
       });
     });
@@ -535,6 +590,29 @@ class WebSocketService {
     this.io.to(`user:${creatorId}`).emit(event, data);
     if (counterpartyId) {
       this.io.to(`user:${counterpartyId}`).emit(event, data);
+    }
+  }
+
+  // Join user to all their transaction rooms
+  private async joinUserTransactionRooms(socket: any, userId: string): Promise<void> {
+    try {
+      const transactions = await prisma.escrowTransaction.findMany({
+        where: {
+          OR: [
+            { creatorId: userId },
+            { counterpartyId: userId }
+          ]
+        },
+        select: { id: true }
+      });
+
+      transactions.forEach(transaction => {
+        socket.join(`transaction_${transaction.id}`);
+      });
+
+      console.log(`User ${userId} joined ${transactions.length} transaction rooms`);
+    } catch (error) {
+      console.error('Error joining user transaction rooms:', error);
     }
   }
 }

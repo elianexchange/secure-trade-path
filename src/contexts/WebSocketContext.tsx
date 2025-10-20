@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 import { toast } from 'sonner';
@@ -301,37 +301,37 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     };
   }, [user, token]);
 
-  const emitTransactionUpdate = (transactionId: string, status: string, transactionData?: any) => {
+  const emitTransactionUpdate = useCallback((transactionId: string, status: string, transactionData?: any) => {
     if (socket && isConnected) {
       socket.emit('transaction:status_update', { 
         transactionId, 
         status, 
-        transaction: transactionData 
+        transaction: transactionData
       });
     }
-  };
+  }, [socket, isConnected]);
 
-  const emitTransactionCreated = (transactionId: string) => {
+  const emitTransactionCreated = useCallback((transactionId: string) => {
     if (socket && isConnected) {
       socket.emit('transaction:created', { transactionId });
     }
-  };
+  }, [socket, isConnected]);
 
-  const joinTransactionRoom = (transactionId: string) => {
+  const joinTransactionRoom = useCallback((transactionId: string) => {
     if (socket && isConnected) {
       socket.emit('join_transaction_room', { transactionId });
       console.log(`WebSocket: Joined transaction room ${transactionId}`);
     }
-  };
+  }, [socket, isConnected]);
 
-  const leaveTransactionRoom = (transactionId: string) => {
+  const leaveTransactionRoom = useCallback((transactionId: string) => {
     if (socket && isConnected) {
       socket.emit('leave_transaction_room', { transactionId });
       console.log(`WebSocket: Left transaction room ${transactionId}`);
     }
-  };
+  }, [socket, isConnected]);
 
-  const reconnect = () => {
+  const reconnect = useCallback(() => {
     console.log('WebSocket: Manual reconnect requested');
     if (socket) {
       socket.disconnect();
@@ -343,7 +343,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
       console.log('WebSocket: Forcing reconnection...');
       // The useEffect will handle reconnection automatically
     }
-  };
+  }, [socket, user, token]);
 
   const value: WebSocketContextType = {
     socket,

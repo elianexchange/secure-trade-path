@@ -47,7 +47,21 @@ export default function ConversationsList({
         return 'Just now';
       }
       
-      return formatDistanceToNow(date, { addSuffix: true });
+      const now = new Date();
+      const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+      
+      if (diffInSeconds < 60) {
+        return 'Just now';
+      } else if (diffInSeconds < 3600) {
+        const minutes = Math.floor(diffInSeconds / 60);
+        return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+      } else if (diffInSeconds < 86400) {
+        const hours = Math.floor(diffInSeconds / 3600);
+        return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+      } else {
+        const days = Math.floor(diffInSeconds / 86400);
+        return `${days} day${days > 1 ? 's' : ''} ago`;
+      }
     } catch (error) {
       console.error('Error formatting message time:', error, 'Timestamp:', timestamp);
       return 'Just now';
@@ -150,16 +164,16 @@ export default function ConversationsList({
               <Button
                 key={conversation.id}
                 variant="ghost"
-              className={`w-full justify-start h-auto p-2 transition-all duration-200 ${
-                isSelected ? 'bg-blue-50 border-l-2 border-blue-500' : 'hover:bg-gray-50'
-              } ${hasUnread ? 'bg-blue-50/50' : ''}`}
+                className={`w-full justify-start h-auto p-3 transition-all duration-200 ${
+                  isSelected ? 'bg-blue-50 border-l-2 border-blue-500' : 'hover:bg-gray-50'
+                } ${hasUnread ? 'bg-blue-50/50' : ''}`}
                 onClick={() => onSelectConversation(conversation.transactionId)}
               >
-                <div className="flex items-center space-x-2 w-full">
-                  <div className="relative">
-                    <Avatar className="h-8 w-8 flex-shrink-0">
+                <div className="flex items-center space-x-3 w-full min-w-0">
+                  <div className="relative flex-shrink-0">
+                    <Avatar className="h-10 w-10">
                       <AvatarImage src={counterpartyAvatar} alt={counterpartyName} />
-                      <AvatarFallback className="bg-blue-100 text-blue-600 text-xs font-medium">
+                      <AvatarFallback className="bg-blue-100 text-blue-600 text-sm font-medium">
                         {getAvatarFallback(counterpartyName)}
                       </AvatarFallback>
                     </Avatar>
@@ -171,35 +185,36 @@ export default function ConversationsList({
                   </div>
                   
                   <div className="flex-1 min-w-0 text-left">
-                    <div className="flex items-center space-x-1">
+                    <div className="flex items-center justify-between mb-1">
                       <p className={`font-medium truncate text-sm ${
                         hasUnread ? 'text-blue-900' : 'text-foreground'
                       }`}>
                         {counterpartyName}
                       </p>
-                      {hasUnread && (
-                        <Badge variant="destructive" className="text-xs px-1 py-0.5 h-4">
-                          {conversation.unreadCount}
-                        </Badge>
-                      )}
+                      <div className="flex items-center space-x-1 flex-shrink-0">
+                        {hasUnread && (
+                          <Badge variant="destructive" className="text-xs px-1.5 py-0.5 h-5">
+                            {conversation.unreadCount}
+                          </Badge>
+                        )}
+                        <span className="text-xs text-muted-foreground">
+                          {conversation.lastMessage 
+                            ? formatLastMessageTime(conversation.lastMessage.timestamp)
+                            : formatLastMessageTime(conversation.updatedAt)
+                          }
+                        </span>
+                      </div>
                     </div>
                     
-                    <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-                      <span className="truncate">
+                    <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                      <span className="truncate flex-1">
                         {conversation.lastMessage?.content || getTransactionDescription(conversation)}
-                      </span>
-                      <span>•</span>
-                      <span>
-                        {conversation.lastMessage 
-                          ? formatLastMessageTime(conversation.lastMessage.timestamp)
-                          : formatLastMessageTime(conversation.updatedAt)
-                        }
                       </span>
                     </div>
                     
                     {/* Transaction and role info */}
-                    <div className="flex items-center space-x-1 mt-0.5">
-                      <Badge variant="outline" className="text-xs px-1 py-0.5 h-4">
+                    <div className="flex items-center space-x-2 mt-1">
+                      <Badge variant="outline" className="text-xs px-2 py-0.5 h-5">
                         {counterpartyRole}
                       </Badge>
                       <span className="text-xs text-muted-foreground truncate">

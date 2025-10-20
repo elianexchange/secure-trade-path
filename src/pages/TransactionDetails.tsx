@@ -177,9 +177,7 @@ export default function TransactionDetails() {
         setTransaction(transactionWithDefaults);
         setActivities(generateActivityLog(transactionWithDefaults));
         
-        // Join the transaction room for real-time updates
-        joinTransactionRoom(id);
-        console.log('TransactionDetails: Joined transaction room for real-time updates');
+        // Note: WebSocket room joining is handled separately to avoid infinite loops
         
         console.log('TransactionDetails: Transaction loaded successfully');
       } else {
@@ -193,7 +191,7 @@ export default function TransactionDetails() {
       console.error('Failed to load transaction:', error);
       setIsLoading(false);
     }
-  }, [id, user?.id, joinTransactionRoom]);
+  }, [id, user?.id]);
 
   useEffect(() => {
     if (id) {
@@ -232,14 +230,23 @@ export default function TransactionDetails() {
         clearTimeout(refreshTimeout);
         sharedTransactionStore.removeListener(handleStoreChange);
         window.removeEventListener('transactionUpdated', handleTransactionUpdate as EventListener);
-        // Leave the transaction room when component unmounts
-        if (id) {
-          leaveTransactionRoom(id);
-          console.log('TransactionDetails: Left transaction room on unmount');
-        }
+        // WebSocket room leaving is handled in separate useEffect
       };
     }
-  }, [id, loadTransaction, leaveTransactionRoom]);
+  }, [id, loadTransaction]);
+
+  // Separate useEffect to handle WebSocket room joining
+  useEffect(() => {
+    if (id && isConnected) {
+      joinTransactionRoom(id);
+      console.log('TransactionDetails: Joined transaction room for real-time updates');
+      
+      return () => {
+        leaveTransactionRoom(id);
+        console.log('TransactionDetails: Left transaction room on unmount');
+      };
+    }
+  }, [id, isConnected, joinTransactionRoom, leaveTransactionRoom]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -632,14 +639,17 @@ export default function TransactionDetails() {
         // Update shared transaction store with API response
         sharedTransactionStore.addTransaction(updatedTransactionData);
         
+        // Determine next status based on whether transaction requires shipping
+        const nextStatus = transaction.useCourier ? 'WAITING_FOR_SHIPMENT' : 'PAYMENT_MADE';
+        
         // Emit WebSocket event for real-time update
-        emitTransactionUpdate(transaction.id, 'WAITING_FOR_SHIPMENT', updatedTransactionData);
+        emitTransactionUpdate(transaction.id, nextStatus, updatedTransactionData);
         
         // Dispatch custom event
         window.dispatchEvent(new CustomEvent('transactionUpdated', { 
           detail: { 
             transactionId: transaction.id, 
-            status: 'WAITING_FOR_SHIPMENT',
+            status: nextStatus,
             transaction: updatedTransactionData
           }
         }));
@@ -1418,6 +1428,15 @@ export default function TransactionDetails() {
                 >
                     <MessageCircle className="h-4 w-4 mr-2" />
                   Chat with Counterparty
+                </Button>
+                
+                <Button 
+                    onClick={() => navigate('/app/messages', { state: { transactionId: transaction.id } })}
+                  className="w-full"
+                  variant="outline"
+                >
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                  Go to Messages
                 </Button>
                 
                   <Button 
