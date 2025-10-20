@@ -32,12 +32,27 @@
   },
   "include": [
     "src/**/*",
-    "main-server.ts",
-    "*.ts"
+    "main-server.ts"
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "production-server.ts",
+    "production-server.js",
+    "simple-test.ts",
+    "test-*.ts",
+    "test-*.js",
+    "*-test.ts",
+    "*-test.js",
+    "debug-*.js",
+    "enhanced-*.js",
+    "minimal-*.js",
+    "minimal-*.ts",
+    "simple-*.js",
+    "simple-*.ts",
+    "working-*.js",
+    "real-*.js",
+    "deploy-*.sh"
   ],
   "ts-node": {
     "esm": false,
