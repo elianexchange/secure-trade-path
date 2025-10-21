@@ -1,6 +1,6 @@
 import { Message, Conversation, MessageAttachment, ParticipantDetail } from '@/types/message';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://tranzio-backend.onrender.com/api';
 
 class MessageAPI {
   private async request<T>(
@@ -19,7 +19,7 @@ class MessageAPI {
     };
 
     try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+      const response = await fetch(`${API_BASE_URL.replace('/api', '')}${endpoint}`, config);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

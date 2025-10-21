@@ -27,13 +27,47 @@ class WebSocketService {
   constructor(server: HTTPServer) {
     this.io = new SocketIOServer(server, {
       cors: {
-        origin: [
-          process.env.CORS_ORIGIN || 'http://localhost:8080',
-          'http://localhost:8081',
-          'http://127.0.0.1:8080',
-          'http://127.0.0.1:8081'
-        ],
+        origin: function (origin, callback) {
+          // Allow requests with no origin (like mobile apps or curl requests)
+          if (!origin) return callback(null, true);
+          
+          const allowedOrigins = [
+            'http://localhost:3000',
+            'http://localhost:3001',
+            'http://localhost:8080',
+            'http://localhost:8081',
+            'http://127.0.0.1:3000',
+            'http://127.0.0.1:3001',
+            'http://127.0.0.1:8080',
+            'http://127.0.0.1:8081',
+            'https://tranzzio.netlify.app',
+            'https://tranzzio.netlify.app/',
+            'https://www.tranzzio.com',
+            'https://www.tranzzio.com/',
+            'https://tranzzio.com',
+            'https://tranzzio.com/'
+          ];
+
+          // Also check environment variable for additional origins
+          if (process.env.CORS_ORIGIN) {
+            const envOrigins = process.env.CORS_ORIGIN.split(',').map(o => o.trim());
+            allowedOrigins.push(...envOrigins);
+          }
+
+          console.log('WebSocket CORS request from origin:', origin);
+          console.log('WebSocket allowed origins:', allowedOrigins);
+
+          if (allowedOrigins.includes(origin)) {
+            console.log('✅ WebSocket CORS allowed for origin:', origin);
+            return callback(null, true);
+          }
+          
+          console.log('❌ WebSocket CORS blocked origin:', origin);
+          return callback(new Error('Not allowed by CORS'));
+        },
         credentials: true,
+        methods: ['GET', 'POST', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
       },
     });
 

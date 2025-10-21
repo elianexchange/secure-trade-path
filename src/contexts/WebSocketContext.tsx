@@ -52,7 +52,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
         return `http://localhost:4000`;
       }
       // In production, use the backend URL directly
-      return import.meta.env.VITE_WS_URL || 'http://localhost:4000';
+      return import.meta.env.VITE_WS_URL || 'https://tranzio-backend.onrender.com';
     };
 
     const wsUrl = getWebSocketUrl();
@@ -73,13 +73,15 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
             token: token
           },
           transports: ['websocket', 'polling'],
-          timeout: 15000, // 15 second timeout
+          timeout: 30000, // 30 second timeout for production
           forceNew: true,
           reconnection: true,
           reconnectionAttempts: maxReconnectAttempts,
           reconnectionDelay: reconnectDelay,
-          reconnectionDelayMax: 10000,
-          maxReconnectionAttempts: maxReconnectAttempts
+          reconnectionDelayMax: 15000,
+          maxReconnectionAttempts: maxReconnectAttempts,
+          upgrade: true,
+          rememberUpgrade: true
         });
 
         newSocket.on('connect', () => {

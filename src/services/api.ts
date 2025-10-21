@@ -8,8 +8,6 @@ import {
 // API Configuration
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || 'https://tranzio-backend.onrender.com/api';
-  
-  const FALLBACK_API_BASE_URL = 'http://192.168.63.1:4000/api';
 
 // API Response interface
 interface ApiResponse<T = any> {
@@ -72,35 +70,20 @@ const apiRequest = async <T>(
   const token = getAuthToken();
   console.log('API Request:', { endpoint, hasToken: !!token, options });
   
-  // Try primary URL first, then fallback
-  const urls = [API_BASE_URL, FALLBACK_API_BASE_URL];
+  // Use production API URL only
+  const url = `${API_BASE_URL}${endpoint}`;
   
-  for (const baseUrl of urls) {
-    try {
-      const url = `${baseUrl}${endpoint}`;
-      
-      const config: RequestInit = {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { Authorization: `Bearer ${token}` }),
-          ...options.headers,
-        },
-        ...options,
-      };
+  const config: RequestInit = {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+      ...options.headers,
+    },
+    ...options,
+  };
 
-      const response = await fetch(url, config);
-      return handleApiResponse<T>(response);
-    } catch (error) {
-      console.warn(`API request failed for ${baseUrl}${endpoint}:`, error);
-      // Continue to next URL if this one fails
-      if (baseUrl === urls[urls.length - 1]) {
-        // If this is the last URL, throw the error
-        throw error;
-      }
-    }
-  }
-  
-  throw new Error('All API endpoints failed');
+  const response = await fetch(url, config);
+  return handleApiResponse<T>(response);
 };
 
 
