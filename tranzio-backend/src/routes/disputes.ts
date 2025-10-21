@@ -1,5 +1,4 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
 import { authenticateToken } from '../middleware/auth';
 import { z } from 'zod';
 import { 
@@ -9,9 +8,9 @@ import {
   EvidenceData, 
   MessageData 
 } from '../services/disputeResolutionService';
+import { prisma } from '../lib/prisma';
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // Validation schemas
 const createDisputeSchema = z.object({
