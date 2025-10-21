@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../lib/prisma';
-import { User, UserRole } from '../types';
+import { UserRole } from '../types';
 import { JwtPayload } from 'jsonwebtoken';
+import { User } from '@prisma/client';
 
 // Extend Express Request interface to include user
 declare global {
@@ -44,8 +45,7 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
     
     // Get user from database
     const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
-      select: { id: true, email: true, role: true, status: true, firstName: true, lastName: true }
+      where: { id: decoded.userId }
     });
 
     if (!user) {

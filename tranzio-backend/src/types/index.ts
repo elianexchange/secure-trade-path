@@ -1,23 +1,7 @@
 // Shared TypeScript interfaces for Tranzio Platform
 
-// User Management
-export interface User {
-  id: string;
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  role: 'BUYER' | 'VENDOR' | 'ADMIN';
-  status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
-  nin?: string;
-  bvn?: string;
-  isVerified: boolean;
-  verificationLevel: 'BASIC' | 'ENHANCED' | 'PREMIUM';
-  trustScore: number;
-  lastSeen?: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
+// User Management - Use Prisma-generated types
+export { User } from '@prisma/client';
 
 export type UserRole = 'BUYER' | 'VENDOR' | 'ADMIN';
 
@@ -155,7 +139,7 @@ export interface SignupRequest {
   password: string;
   firstName: string;
   lastName: string;
-  role: UserRole;
+  role: string;
 }
 
 export interface AuthResponse {
