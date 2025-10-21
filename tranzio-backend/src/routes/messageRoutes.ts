@@ -1,5 +1,5 @@
 import express from 'express';
-import { MessageController } from '../controllers/messageController';
+import messageController from '../controllers/messageController';
 import { uploadSingle } from '../services/fileService';
 import { authenticateToken } from '../middleware/auth';
 
@@ -9,30 +9,30 @@ const router = express.Router();
 router.use(authenticateToken);
 
 // Get conversations for authenticated user
-router.get('/conversations', MessageController.getConversations);
+router.get('/conversations', messageController.getConversations);
 
 // Get messages for a specific transaction
-router.get('/transactions/:transactionId', MessageController.getMessages);
+router.get('/transactions/:transactionId', messageController.getMessages);
 
 // Send a message
-router.post('/', MessageController.sendMessage);
+router.post('/', messageController.sendMessage);
 
 // Mark message as read
-router.put('/:messageId/read', MessageController.markAsRead);
+router.put('/:messageId/read', messageController.markAsRead);
 
 // Mark all messages in a conversation as read
-router.put('/conversations/:transactionId/read', MessageController.markConversationAsRead);
+router.put('/conversations/:transactionId/read', messageController.markConversationAsRead);
 
 // Upload file attachment
-router.post('/upload', uploadSingle, MessageController.uploadFile);
+router.post('/upload', uploadSingle, messageController.uploadFile);
 
 // Search messages
-router.get('/search', MessageController.searchMessages);
+router.get('/search', messageController.searchMessages);
 
 // Get unread message count
-router.get('/unread-count', MessageController.getUnreadCount);
+router.get('/unread-count', messageController.getUnreadCount);
 
 // Delete message (only for sender)
-router.delete('/:messageId', MessageController.deleteMessage);
+router.delete('/:messageId', messageController.deleteMessage);
 
 export default router;

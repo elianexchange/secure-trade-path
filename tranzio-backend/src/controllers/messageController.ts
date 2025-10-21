@@ -11,9 +11,9 @@ export const setWebSocketService = (service: WebSocketService) => {
   wsService = service;
 };
 
-export class MessageController {
+class MessageController {
   // Get conversations for a user
-  static async getConversations(req: Request, res: Response) {
+  async getConversations(req: Request, res: Response) {
     try {
       const userId = req.user?.id;
       if (!userId) {
@@ -109,7 +109,7 @@ export class MessageController {
   }
 
   // Get messages for a specific transaction
-  static async getMessages(req: Request, res: Response) {
+  async getMessages(req: Request, res: Response) {
     try {
       const { transactionId } = req.params;
       const userId = req.user?.id;
@@ -156,7 +156,7 @@ export class MessageController {
   }
 
   // Send a message
-  static async sendMessage(req: Request, res: Response) {
+  async sendMessage(req: Request, res: Response) {
     try {
       const { transactionId, content } = req.body;
       const senderId = req.user?.id;
@@ -255,7 +255,7 @@ export class MessageController {
   }
 
   // Mark message as read
-  static async markAsRead(req: Request, res: Response) {
+  async markAsRead(req: Request, res: Response) {
     try {
       const { messageId } = req.params;
       const userId = req.user?.id;
@@ -323,7 +323,7 @@ export class MessageController {
   }
 
   // Upload file attachment (placeholder for future implementation)
-  static async uploadFile(req: Request, res: Response) {
+  async uploadFile(req: Request, res: Response) {
     try {
       if (!req.file) {
         return res.status(400).json({ error: 'No file provided' });
@@ -368,7 +368,7 @@ export class MessageController {
   }
 
   // Search messages
-  static async searchMessages(req: Request, res: Response) {
+  async searchMessages(req: Request, res: Response) {
     try {
       const { q: query, transactionId } = req.query;
       const userId = req.user?.id;
@@ -425,7 +425,7 @@ export class MessageController {
   }
 
   // Get unread message count
-  static async getUnreadCount(req: Request, res: Response) {
+  async getUnreadCount(req: Request, res: Response) {
     try {
       const userId = req.user?.id;
 
@@ -453,7 +453,7 @@ export class MessageController {
   }
 
   // Mark all messages in a conversation as read
-  static async markConversationAsRead(req: Request, res: Response) {
+  async markConversationAsRead(req: Request, res: Response) {
     try {
       const { transactionId } = req.params;
       const userId = req.user?.id;
@@ -514,7 +514,7 @@ export class MessageController {
   }
 
   // Delete message (only for sender)
-  static async deleteMessage(req: Request, res: Response) {
+  async deleteMessage(req: Request, res: Response) {
     try {
       const { messageId } = req.params;
       const userId = req.user?.id;
@@ -545,3 +545,5 @@ export class MessageController {
     }
   }
 }
+
+export default new MessageController();
