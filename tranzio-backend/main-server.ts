@@ -42,8 +42,10 @@ app.use(cors({
       'http://127.0.0.1:8081',
       'https://tranzzio.netlify.app',
       'https://tranzzio.netlify.app/',
-      // Add your custom domain here
-      'https://your-custom-domain.com'
+      'https://www.tranzzio.com',
+      'https://www.tranzzio.com/',
+      'https://tranzzio.com',
+      'https://tranzzio.com/'
     ];
 
     // Also check environment variable for additional origins
