@@ -581,7 +581,7 @@ export class ChatbotService {
    * Get contextual actions based on category
    */
   private static getContextualActions(category: string, context: ChatbotContext): any[] {
-    const actions = [];
+    const actions: { type: string; label: string; url: string }[] = [];
     
     switch (category) {
       case 'transactions':

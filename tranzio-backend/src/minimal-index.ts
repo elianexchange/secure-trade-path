@@ -61,7 +61,7 @@ app.post('/api/auth/login', async (req, res) => {
       role: 'BUYER'
     };
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Login successful',
       user,
@@ -70,7 +70,7 @@ app.post('/api/auth/login', async (req, res) => {
 
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Internal server error'
     });
@@ -97,7 +97,7 @@ app.post('/api/auth/signup', async (req, res) => {
       role: 'BUYER'
     };
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: 'User created successfully',
       user,
@@ -106,7 +106,7 @@ app.post('/api/auth/signup', async (req, res) => {
 
   } catch (error) {
     console.error('Signup error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Internal server error'
     });
