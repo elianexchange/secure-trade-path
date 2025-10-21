@@ -1,9 +1,7 @@
 import { Server as SocketIOServer } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../lib/prisma';
 
 export let io: SocketIOServer;
 
@@ -14,18 +12,40 @@ const socketUsers = new Map<string, string>(); // socketId -> userId
 export const initializeSocket = (server: HTTPServer) => {
   io = new SocketIOServer(server, {
     cors: {
-      origin: [
-        process.env.CORS_ORIGIN || 'http://localhost:8080',
-        'http://localhost:3000',
-        'http://localhost:3001',
-        'http://localhost:8080',
-        'http://localhost:8081',
-        'http://127.0.0.1:3000',
-        'http://127.0.0.1:3001',
-        'http://127.0.0.1:8080',
-        'http://127.0.0.1:8081'
-      ],
-      methods: ["GET", "POST"],
+      origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        const allowedOrigins = [
+          'http://localhost:3000',
+          'http://localhost:3001',
+          'http://localhost:8080',
+          'http://localhost:8081',
+          'http://127.0.0.1:3000',
+          'http://127.0.0.1:3001',
+          'http://127.0.0.1:8080',
+          'http://127.0.0.1:8081',
+          'https://tranzzio.netlify.app',
+          'https://tranzzio.netlify.app/',
+          'https://www.tranzzio.com',
+          'https://www.tranzzio.com/',
+          'https://tranzzio.com',
+          'https://tranzzio.com/'
+        ];
+
+        // Also check environment variable for additional origins
+        if (process.env.CORS_ORIGIN) {
+          const envOrigins = process.env.CORS_ORIGIN.split(',').map(o => o.trim());
+          allowedOrigins.push(...envOrigins);
+        }
+
+        if (allowedOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+        
+        return callback(new Error('Not allowed by CORS'));
+      },
+      methods: ["GET", "POST", "OPTIONS"],
       credentials: true
     }
   });

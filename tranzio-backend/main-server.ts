@@ -94,23 +94,39 @@ app.get('/health', (req, res) => {
     status: 'OK',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
+    cors_origin: process.env.CORS_ORIGIN || 'Not set'
+  });
+});
+
+// Simple test endpoint
+app.get('/api/test', (req, res) => {
+  console.log('Test endpoint requested');
+  res.json({
+    success: true,
+    message: 'Backend is working',
+    timestamp: new Date().toISOString()
   });
 });
 
 console.log('✅ Health endpoint configured');
 
 // Initialize WebSocket service
-import { initializeSocket } from './src/services/socketService';
 import WebSocketService from './src/services/websocket';
 import { setWebSocketService } from './src/controllers/messageController';
 
 // Initialize the main WebSocket service
-const wsService = new WebSocketService(server);
-setWebSocketService(wsService);
+try {
+  const wsService = new WebSocketService(server);
+  setWebSocketService(wsService);
+  console.log('✅ WebSocket service initialized');
+} catch (error) {
+  console.error('❌ Failed to initialize WebSocket service:', error);
+  if (error instanceof Error) {
+    console.error('Error details:', error.message);
+  }
+}
 
-// Also initialize the socket service for compatibility
-initializeSocket(server);
 console.log('✅ WebSocket services initialized');
 
 // Import and use auth routes
