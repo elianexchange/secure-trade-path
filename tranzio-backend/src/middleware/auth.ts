@@ -1,15 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../lib/prisma';
-import { UserRole } from '../types';
+import { UserRole, AppUser } from '../types';
 import { JwtPayload } from 'jsonwebtoken';
-import { User } from '@prisma/client';
 
 // Extend Express Request interface to include user
 declare global {
   namespace Express {
     interface Request {
-      user?: User;
+      user?: AppUser;
     }
   }
 }

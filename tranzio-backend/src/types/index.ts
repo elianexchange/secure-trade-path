@@ -1,7 +1,13 @@
 // Shared TypeScript interfaces for Tranzio Platform
 
 // User Management - Use Prisma-generated types
+import { User as PrismaUser } from '@prisma/client';
 export { User } from '@prisma/client';
+
+// Extended User type for application use
+export interface AppUser extends PrismaUser {
+  // Add any additional fields if needed in the future
+}
 
 export type UserRole = 'BUYER' | 'VENDOR' | 'ADMIN';
 
