@@ -68,13 +68,7 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
     }
 
     // Add user to request
-    req.user = {
-      id: user.id,
-      email: user.email,
-      role: user.role as UserRole,
-      firstName: user.firstName,
-      lastName: user.lastName
-    };
+    req.user = user;
 
     next();
   } catch (error) {
@@ -137,8 +131,7 @@ export const requireVendor = async (req: Request, res: Response, next: NextFunct
 
     // Verify user is still active in database
     const user = await prisma.user.findUnique({
-      where: { id: req.user.id },
-      select: { id: true, email: true, role: true, status: true, firstName: true, lastName: true }
+      where: { id: req.user.id }
     });
 
     if (!user || user.role !== 'VENDOR' || user.status !== 'ACTIVE') {
@@ -175,18 +168,11 @@ export const optionalAuth = async (
     if (token) {
       const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
       const user = await prisma.user.findUnique({
-        where: { id: decoded.userId },
-        select: { id: true, email: true, role: true, status: true, firstName: true, lastName: true }
+        where: { id: decoded.userId }
       });
 
       if (user && user.status === 'ACTIVE') {
-        req.user = {
-          id: user.id,
-          email: user.email,
-          role: user.role as UserRole,
-          firstName: user.firstName,
-          lastName: user.lastName
-        };
+        req.user = user;
       }
     }
 

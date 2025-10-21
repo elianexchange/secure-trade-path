@@ -4,6 +4,7 @@ import { prisma } from '../lib/prisma';
 import { authenticateToken } from '../middleware/auth';
 import { UserRole } from '../types';
 import { emailService } from '../services/emailService';
+import { User } from '@prisma/client';
 
 import bcrypt from 'bcryptjs';
 

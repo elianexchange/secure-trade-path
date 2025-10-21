@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
 import { uploadFile, deleteFile } from '../services/fileService';
 import WebSocketService from '../services/websocket';
+import { User } from '@prisma/client';
 
 // WebSocket service instance - will be initialized by the main server
 let wsService: WebSocketService | null = null;

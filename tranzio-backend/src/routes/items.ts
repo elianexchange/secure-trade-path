@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { prisma } from '../index';
 import { authenticateToken, requireVendor, requireAdmin } from '../middleware/auth';
 import { ItemCondition, ItemStatus } from '../types';
+import { User } from '@prisma/client';
 
 const router = Router();
 

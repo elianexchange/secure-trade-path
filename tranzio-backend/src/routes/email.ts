@@ -1,6 +1,7 @@
 import express from 'express';
 import { authenticateToken } from '../middleware/auth';
 import { emailService } from '../services/emailService';
+import { User } from '@prisma/client';
 
 const router = express.Router();
 

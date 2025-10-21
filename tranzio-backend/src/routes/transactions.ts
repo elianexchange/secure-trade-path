@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { emailService } from '../services/emailService';
 import { sendToUser, sendToTransaction } from '../services/websocketService';
 import { prisma } from '../lib/prisma';
+import { User } from '@prisma/client';
 
 const router = express.Router();
 
