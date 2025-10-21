@@ -50,8 +50,10 @@ const corsOptions = {
       'https://www.tranzzio.com',
       'https://www.tranzzio.com/',
       'https://tranzzio.com',
-      'https://tranzzio.com/'
-    ];
+      'https://tranzzio.com/',
+      process.env.FRONTEND_URL,
+      process.env.CORS_ORIGIN
+    ].filter(Boolean);
 
     // Also check environment variable for additional origins
     if (process.env.CORS_ORIGIN) {

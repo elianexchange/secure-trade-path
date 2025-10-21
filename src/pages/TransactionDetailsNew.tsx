@@ -213,7 +213,7 @@ export default function TransactionDetailsNew() {
           // If not found in localStorage, try API
           console.log('TransactionDetailsNew: Transaction not found in localStorage, trying API...');
           try {
-            const response = await fetch(`http://localhost:4000/api/transactions/${id}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://tranzio-backend.onrender.com/api'}/transactions/${id}`, {
               headers: {
                 'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
                 'Content-Type': 'application/json'
@@ -319,7 +319,7 @@ export default function TransactionDetailsNew() {
       console.log('TransactionDetailsNew: Saving delivery details via API:', details);
       
       // Make real API call to save delivery details
-      const response = await fetch(`http://localhost:4000/api/transactions/${transaction.id}/delivery-details`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://tranzio-backend.onrender.com/api'}/transactions/${transaction.id}/delivery-details`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

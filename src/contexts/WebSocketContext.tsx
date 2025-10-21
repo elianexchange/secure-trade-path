@@ -49,7 +49,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     const getWebSocketUrl = () => {
       // Connect directly to backend in development
       if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        return `http://localhost:4000`;
+        return import.meta.env.VITE_WS_URL || 'http://localhost:4000';
       }
       // In production, use the backend URL directly
       return import.meta.env.VITE_WS_URL || 'https://tranzio-backend.onrender.com';
