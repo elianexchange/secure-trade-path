@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { prisma } from '../index';
+import { prisma } from '../lib/prisma';
 import { uploadFile, deleteFile } from '../services/fileService';
 import WebSocketService from '../services/websocket';
 

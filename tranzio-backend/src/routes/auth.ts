@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import { prisma } from '../index';
+import { prisma } from '../lib/prisma';
 import { authenticateToken } from '../middleware/auth';
 import { UserRole } from '../types';
 import { emailService } from '../services/emailService';
