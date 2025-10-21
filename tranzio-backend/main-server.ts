@@ -25,8 +25,13 @@ console.log('  - JWT_SECRET:', process.env.JWT_SECRET ? 'Set' : 'Not set');
 const prisma = new PrismaClient();
 
 // Middleware
-app.use(helmet());
-app.use(cors({
+app.use(helmet({
+  crossOriginEmbedderPolicy: false,
+  contentSecurityPolicy: false
+}));
+
+// CORS configuration
+const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
@@ -54,15 +59,28 @@ app.use(cors({
       allowedOrigins.push(...envOrigins);
     }
 
+    console.log('CORS request from origin:', origin);
+    console.log('Allowed origins:', allowedOrigins);
+
     if (allowedOrigins.includes(origin)) {
+      console.log('✅ CORS allowed for origin:', origin);
       return callback(null, true);
     }
     
-    console.log('CORS blocked origin:', origin);
+    console.log('❌ CORS blocked origin:', origin);
     return callback(new Error('Not allowed by CORS'));
   },
-  credentials: true
-}));
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
+
+// Handle preflight requests
+app.options('*', cors(corsOptions));
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(morgan('combined'));

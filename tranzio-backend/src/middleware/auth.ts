@@ -28,6 +28,11 @@ export interface JWTPayload {
 // Authentication middleware
 export const authenticateToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    // Handle preflight OPTIONS requests
+    if (req.method === 'OPTIONS') {
+      return next();
+    }
+
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1];
 
