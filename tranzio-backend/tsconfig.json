@@ -57,7 +57,8 @@
     "src/routes/orders.ts",
     "src/models/Conversation.ts",
     "src/models/Message.ts",
-    "src/services/chatbotService.ts"
+    "src/services/chatbotService.ts",
+    "src/index.ts"
   ],
   "ts-node": {
     "esm": false,
