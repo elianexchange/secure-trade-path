@@ -149,7 +149,7 @@ export interface SignupRequest {
 }
 
 export interface AuthResponse {
-  user: User;
+  user: PrismaUser;
   token: string;
 }
 
