@@ -4,12 +4,19 @@
 export interface User {
   id: string;
   email: string;
-  name: string;
-  avatar?: string;
+  password: string;
+  firstName: string;
+  lastName: string;
   role: 'BUYER' | 'VENDOR' | 'ADMIN';
+  status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+  nin?: string;
+  bvn?: string;
   isVerified: boolean;
-  createdAt: string;
-  updatedAt: string;
+  verificationLevel: 'BASIC' | 'ENHANCED' | 'PREMIUM';
+  trustScore: number;
+  lastSeen?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export type UserRole = 'BUYER' | 'VENDOR' | 'ADMIN';
@@ -146,7 +153,8 @@ export interface LoginRequest {
 export interface SignupRequest {
   email: string;
   password: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   role: UserRole;
 }
 
