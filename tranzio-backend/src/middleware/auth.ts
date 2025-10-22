@@ -3,7 +3,17 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../lib/prisma';
 import { UserRole } from '../types';
 import { JwtPayload } from 'jsonwebtoken';
-import { User } from '@prisma/client';
+import { User as PrismaUser } from '@prisma/client';
+
+// Create a custom User type that extends Prisma User
+export interface User extends PrismaUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  status: string;
+}
 
 // Extend Express Request interface to include user
 declare global {
