@@ -1,5 +1,5 @@
 import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -35,9 +35,11 @@ import { useMessages } from '@/contexts/MessageContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import WalletNavigation from '@/components/WalletNavigation';
 import { ProfessionalMobileNavigation } from '@/components/ProfessionalMobileNavigation';
+import { FallbackMobileNavigation } from '@/components/FallbackMobileNavigation';
 import { PWAStatus } from '@/components/PWAInstallPrompt';
 import AIChatbot from '@/components/AIChatbot';
 import { useChatbot } from '@/contexts/ChatbotContext';
+import { DebugInfo } from '@/components/DebugInfo';
 
 const navigationItems = [
   { name: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard },
@@ -183,6 +185,7 @@ export function Layout() {
 
   return (
     <div className="min-h-screen bg-background">
+      <DebugInfo />
       {/* Sticky Header */}
       <header className="sticky top-0 z-50 border-b border-gray-200 bg-white shadow-sm">
         <div className={`flex items-center justify-between ${isMobile ? 'h-12 px-3' : 'h-16 px-4 sm:px-6'}`}>
@@ -335,16 +338,28 @@ export function Layout() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-2 sm:p-6">
-          
+        <main className={`flex-1 p-2 sm:p-6 ${isMobile ? 'pb-20' : ''}`}>
           <div className="space-y-4">
-          <Outlet />
+            <React.Suspense fallback={
+              <div className="flex items-center justify-center h-64">
+                <div className="flex items-center space-x-2">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                  <span className="text-sm text-muted-foreground">Loading...</span>
+                </div>
+              </div>
+            }>
+              <Outlet />
+            </React.Suspense>
           </div>
         </main>
       </div>
 
       {/* Professional Mobile Navigation */}
-      {isMobile && <ProfessionalMobileNavigation />}
+      {isMobile && (
+        <React.Suspense fallback={<FallbackMobileNavigation />}>
+          <ProfessionalMobileNavigation />
+        </React.Suspense>
+      )}
 
       {/* Logout Confirmation Modal */}
       <Dialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>

@@ -44,6 +44,12 @@ export function ProfessionalMobileNavigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
+  // Add error boundary for mobile navigation
+  if (!user) {
+    console.warn('ProfessionalMobileNavigation: No user data available');
+    return null;
+  }
+
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   // Handle scroll effect
