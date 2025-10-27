@@ -25,6 +25,11 @@ model User {
   verificationLevel String @default("BASIC") // BASIC, ENHANCED, PREMIUM
   trustScore  Float    @default(0.0) // 0-100 trust score
   lastSeen    DateTime? // Track when user was last active
+  
+  // Google OAuth fields
+  googleId    String?  @unique // Google user ID
+  profilePicture String? // Profile picture URL from Google
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

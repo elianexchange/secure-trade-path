@@ -147,9 +147,13 @@ app.use('/api/messages', messageRoutes);
 import notificationRoutes from './src/routes/notifications';
 app.use('/api/notifications', notificationRoutes);
 
+// Import and use Google auth routes
+import googleAuthRoutes from './src/routes/googleAuth';
+app.use('/api/google', googleAuthRoutes);
+
 // Lemu routes removed - file doesn't exist
 
-console.log('✅ Auth, transaction, message, and notification routes configured');
+console.log('✅ Auth, transaction, message, notification, and Google auth routes configured');
 
 // 404 handler
 app.use('*', (req, res) => {
