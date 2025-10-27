@@ -101,7 +101,7 @@ class GoogleAuthService {
   }
 
   // Render Google Sign-In button
-  renderGoogleSignInButton(elementId: string, onSuccess: (user: GoogleUser) => void, onError: (error: Error) => void): void {
+  renderGoogleSignInButton(elementId: string, onSuccess: (user: GoogleUser) => void, onError: (error: Error) => void, buttonText: string = 'signin_with'): void {
     if (!window.google) {
       onError(new Error('Google API not loaded'));
       return;
@@ -132,7 +132,7 @@ class GoogleAuthService {
       {
         theme: 'outline',
         size: 'large',
-        text: 'signin_with',
+        text: buttonText === 'Sign up with Google' ? 'signup_with' : 'signin_with',
         shape: 'rectangular',
         logo_alignment: 'left',
         width: '100%',

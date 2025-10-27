@@ -289,6 +289,7 @@ export default function Login() {
                   onError={(error) => {
                     console.error('Google Sign-In error:', error);
                   }}
+                  buttonText="Sign in with Google"
                   className="w-full"
                 />
 

@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import GoogleSignIn from '@/components/GoogleSignIn';
 import { 
   Eye, 
   EyeOff, 
@@ -355,6 +356,31 @@ export default function Signup() {
               {isLoading ? 'Creating Account...' : 'Create Account'}
             </Button>
           </form>
+
+          {/* Divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
+          {/* Google Sign-In */}
+          <GoogleSignIn 
+            onSuccess={(user) => {
+              toast.success('Account created successfully with Google!');
+              navigate('/dashboard');
+            }}
+            onError={(error) => {
+              toast.error(`Google sign-up failed: ${error.message}`);
+            }}
+            buttonText="Sign up with Google"
+            className="w-full"
+          />
 
           {/* Trust Badges */}
           <div className="flex justify-center items-center gap-4 pt-4">

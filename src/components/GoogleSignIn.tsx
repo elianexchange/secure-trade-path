@@ -12,6 +12,7 @@ interface GoogleSignInProps {
   variant?: 'default' | 'outline' | 'secondary' | 'ghost' | 'link' | 'destructive';
   size?: 'default' | 'sm' | 'lg' | 'icon';
   disabled?: boolean;
+  buttonText?: string;
 }
 
 export const GoogleSignIn: React.FC<GoogleSignInProps> = ({
@@ -20,7 +21,8 @@ export const GoogleSignIn: React.FC<GoogleSignInProps> = ({
   className,
   variant = 'outline',
   size = 'default',
-  disabled = false
+  disabled = false,
+  buttonText = 'Continue with Google'
 }) => {
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
@@ -91,10 +93,11 @@ export const GoogleSignIn: React.FC<GoogleSignInProps> = ({
       googleAuthService.renderGoogleSignInButton(
         'google-signin-button',
         handleGoogleSuccess,
-        handleGoogleError
+        handleGoogleError,
+        buttonText
       );
     }
-  }, [isInitialized]);
+  }, [isInitialized, buttonText]);
 
   if (!isInitialized) {
     return (
