@@ -3,7 +3,6 @@ import { authenticateToken } from '../middleware/auth';
 import { z } from 'zod';
 import { EscrowCalculator, RiskFactors } from '../services/escrowCalculator';
 import { prisma } from '../lib/prisma';
-import { User } from '../middleware/auth';
 
 const router = express.Router();
 

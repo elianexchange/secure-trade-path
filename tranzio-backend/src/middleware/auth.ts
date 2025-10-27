@@ -3,26 +3,6 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../lib/prisma';
 import { UserRole } from '../types';
 import { JwtPayload } from 'jsonwebtoken';
-import { User as PrismaUser } from '@prisma/client';
-
-// Create a custom User type that extends Prisma User
-export interface User extends PrismaUser {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: string;
-  status: string;
-}
-
-// Extend Express Request interface to include user
-declare global {
-  namespace Express {
-    interface Request {
-      user?: User;
-    }
-  }
-}
 
 export interface JWTPayload {
   userId: string;
@@ -103,7 +83,7 @@ export const requireRole = (allowedRoles: UserRole[]) => {
       return;
     }
 
-    if (!allowedRoles.includes(req.user.role)) {
+    if (!allowedRoles.includes(req.user.role as UserRole)) {
       res.status(403).json({
         success: false,
         error: 'Insufficient permissions',

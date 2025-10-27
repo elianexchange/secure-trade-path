@@ -9,7 +9,6 @@ import {
   MessageData 
 } from '../services/disputeResolutionService';
 import { prisma } from '../lib/prisma';
-import { User } from '../middleware/auth';
 
 const router = express.Router();
 

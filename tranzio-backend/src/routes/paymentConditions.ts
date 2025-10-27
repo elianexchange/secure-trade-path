@@ -3,7 +3,6 @@ import { authenticateToken } from '../middleware/auth';
 import { z } from 'zod';
 import { emailService } from '../services/emailService';
 import { prisma } from '../lib/prisma';
-import { User } from '../middleware/auth';
 
 const router = express.Router();
 

@@ -11,6 +11,32 @@ export interface AppUser extends PrismaUser {
 
 export type UserRole = 'BUYER' | 'VENDOR' | 'ADMIN';
 
+// Extend Express Request interface to include user
+declare global {
+  namespace Express {
+    interface User {
+      id: string;
+      email: string;
+      password: string;
+      firstName: string;
+      lastName: string;
+      role: string;
+      status: string;
+      nin: string | null;
+      bvn: string | null;
+      isVerified: boolean;
+      verificationLevel: string;
+      trustScore: number;
+      lastSeen: Date | null;
+      createdAt: Date;
+      updatedAt: Date;
+    }
+    interface Request {
+      user?: User;
+    }
+  }
+}
+
 // Item Management
 export interface Item {
   id: string;
