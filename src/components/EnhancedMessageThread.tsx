@@ -27,7 +27,9 @@ import {
   Copy,
   Trash2,
   Circle,
-  ArrowLeft
+  ArrowLeft,
+  Search,
+  Edit3
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMessages } from '@/contexts/MessageContext';
@@ -82,8 +84,12 @@ export default function EnhancedMessageThread({
   const [showFileOptions, setShowFileOptions] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [replyTo, setReplyTo] = useState<Message | null>(null);
+  const [editingMessage, setEditingMessage] = useState<Message | null>(null);
+  const [editContent, setEditContent] = useState('');
   const [onlineStatus, setOnlineStatus] = useState<{ [key: string]: { isOnline: boolean; lastSeen: Date } }>({});
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -106,7 +112,7 @@ export default function EnhancedMessageThread({
 
   // Memoized values
   const filteredMessages = useMemo(() => {
-    return messages.filter(message => {
+    let msgs = messages.filter(message => {
       try {
         return message && 
                message.id && 
@@ -119,7 +125,16 @@ export default function EnhancedMessageThread({
         return false;
       }
     });
-  }, [messages]);
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      msgs = msgs.filter(msg => 
+        msg.content.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    return msgs;
+  }, [messages, searchQuery]);
 
   const isOwnMessage = useCallback((message: Message) => {
     return message.senderId === user?.id;
@@ -238,10 +253,11 @@ export default function EnhancedMessageThread({
     const value = e.target.value;
     setNewMessage(value);
     
-    // Auto-resize textarea
+    // Auto-resize textarea with max height constraint
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+      const newHeight = Math.min(textareaRef.current.scrollHeight, 120);
+      textareaRef.current.style.height = `${newHeight}px`;
     }
     
     // Handle typing indicators
@@ -308,6 +324,31 @@ export default function EnhancedMessageThread({
     }
   }, [newMessage, user, isSending, filteredMessages, sendMessage, transactionId, stopTyping, markConversationAsRead]);
 
+  // Handle edit message
+  const handleEditMessage = useCallback(async (messageId: string, newContent: string) => {
+    if (!newContent.trim()) return;
+    
+    try {
+      // In a real app, you'd call an edit message API
+      console.log('Editing message:', messageId, newContent);
+      setEditingMessage(null);
+      setEditContent('');
+    } catch (error) {
+      console.error('Failed to edit message:', error);
+    }
+  }, []);
+
+  // Handle delete message
+  const handleDeleteMessage = useCallback(async (messageId: string) => {
+    try {
+      // In a real app, you'd call a delete message API
+      console.log('Deleting message:', messageId);
+      setSelectedMessage(null);
+    } catch (error) {
+      console.error('Failed to delete message:', error);
+    }
+  }, []);
+
   // Handle file selection
   const handleFileSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -357,18 +398,23 @@ export default function EnhancedMessageThread({
       case 'reply':
         setReplyTo(message);
         break;
+      case 'edit':
+        setEditingMessage(message);
+        setEditContent(message.content);
+        break;
       case 'forward':
         // Implement forward functionality
+        console.log('Forwarding message:', message.id);
         break;
       case 'copy':
         navigator.clipboard.writeText(message.content);
         break;
       case 'delete':
-        // Implement delete functionality
+        handleDeleteMessage(message.id);
         break;
     }
     setSelectedMessage(null);
-  }, []);
+  }, [handleDeleteMessage]);
 
   // Cleanup timeouts
   useEffect(() => {
@@ -381,11 +427,10 @@ export default function EnhancedMessageThread({
 
   // Stable online status (no fluctuation)
   useEffect(() => {
-    // Set a stable online status
     setOnlineStatus(prev => ({
       ...prev,
       [counterpartyId]: {
-        isOnline: true, // Keep it stable for demo
+        isOnline: true,
         lastSeen: new Date()
       }
     }));
@@ -408,11 +453,11 @@ export default function EnhancedMessageThread({
 
   return (
     <div className={cn("h-full flex flex-col bg-white", className)}>
-      {/* Sticky Header */}
-      <div className="flex-shrink-0 p-3 border-b bg-gray-50/50">
+      {/* Sticky Header - Always visible at top */}
+      <div className="flex-shrink-0 p-3 border-b bg-gray-50/50 sticky top-0 z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            {/* Mobile back button */}
+            {/* Mobile back button - replaces search button */}
             {isMobile && onClose && (
               <Button
                 variant="ghost"
@@ -436,18 +481,36 @@ export default function EnhancedMessageThread({
                 counterpartyStatus.isOnline ? "bg-green-500" : "bg-gray-400"
               )} />
             </div>
-            <div>
-              <h3 className="font-medium text-sm">{counterpartyName}</h3>
-              <p className="text-xs text-muted-foreground">
-                {counterpartyStatus.isOnline 
-                  ? 'Online' 
-                  : `Last seen ${formatLastSeen(counterpartyStatus.lastSeen || null)}`
-                }
-              </p>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-medium text-sm truncate">{counterpartyName}</h3>
+              <div className="flex items-center space-x-2">
+                <p className="text-xs text-muted-foreground">
+                  {counterpartyStatus.isOnline 
+                    ? 'Online' 
+                    : `Last seen ${formatLastSeen(counterpartyStatus.lastSeen || null)}`
+                  }
+                </p>
+                <span className="text-xs text-gray-400">•</span>
+                <p className="text-xs text-gray-400 capitalize">{counterpartyRole.toLowerCase()}</p>
+                <span className="text-xs text-gray-400">•</span>
+                <p className="text-xs text-gray-400 font-mono">{transactionId.slice(-8)}</p>
+              </div>
             </div>
           </div>
           
           <div className="flex items-center space-x-2">
+            {/* Search button - only on desktop */}
+            {!isMobile && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowSearch(!showSearch)}
+                className="h-8 w-8 p-0"
+              >
+                <Search className="h-4 w-4" />
+              </Button>
+            )}
+            
             {isOffline && (
               <Badge variant="secondary" className="text-xs">
                 Offline ({messageQueue.length})
@@ -455,10 +518,22 @@ export default function EnhancedMessageThread({
             )}
           </div>
         </div>
+
+        {/* Search bar - only when search is active */}
+        {showSearch && (
+          <div className="mt-3">
+            <Input
+              placeholder="Search messages..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full"
+            />
+          </div>
+        )}
       </div>
 
-      {/* Scrollable Messages Area */}
-      <div className="flex-1 overflow-hidden">
+      {/* Scrollable Messages Area - Takes remaining space */}
+      <div className="flex-1 overflow-hidden min-h-0">
         <ScrollArea 
           className="h-full" 
           ref={scrollAreaRef}
@@ -530,6 +605,14 @@ export default function EnhancedMessageThread({
                     "flex flex-col max-w-[80%] sm:max-w-[60%]",
                     isOwn ? "items-end" : "items-start"
                   )}>
+                    {/* Reply indicator */}
+                    {replyTo && replyTo.id === message.id && (
+                      <div className="mb-1 p-2 bg-blue-50 rounded-lg border-l-4 border-blue-400 max-w-full">
+                        <p className="text-xs font-medium text-blue-700">Replying to {replyTo.senderId === user?.id ? 'yourself' : counterpartyName}</p>
+                        <p className="text-xs text-blue-600 truncate">{replyTo.content}</p>
+                      </div>
+                    )}
+
                     {/* Message Bubble */}
                     <div className={cn(
                       "rounded-2xl px-4 py-2 shadow-sm relative group/message",
@@ -537,9 +620,40 @@ export default function EnhancedMessageThread({
                         ? "bg-blue-500 text-white" 
                         : "bg-gray-100 text-gray-900"
                     )}>
-                      <p className="text-sm whitespace-pre-wrap break-words">
-                        {message.content}
-                      </p>
+                      {editingMessage && editingMessage.id === message.id ? (
+                        <div className="flex items-center space-x-2">
+                          <Textarea
+                            value={editContent}
+                            onChange={(e) => setEditContent(e.target.value)}
+                            className="flex-1 min-h-[40px] max-h-[120px] resize-none"
+                            autoFocus
+                          />
+                          <div className="flex flex-col space-y-1">
+                            <Button
+                              size="sm"
+                              onClick={() => handleEditMessage(message.id, editContent)}
+                              className="h-6 w-6 p-0"
+                            >
+                              <Check className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                setEditingMessage(null);
+                                setEditContent('');
+                              }}
+                              className="h-6 w-6 p-0"
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-sm whitespace-pre-wrap break-words">
+                          {message.content}
+                        </p>
+                      )}
                       
                       {/* File Attachments */}
                       {message.attachments && message.attachments.length > 0 && (
@@ -653,8 +767,8 @@ export default function EnhancedMessageThread({
         </div>
       )}
 
-      {/* Sticky Message Input */}
-      <div className="flex-shrink-0 p-3 border-t bg-white">
+      {/* Sticky Message Input - Always visible at bottom */}
+      <div className="flex-shrink-0 p-3 border-t bg-white sticky bottom-0 z-10">
         {/* Reply Indicator */}
         {replyTo && (
           <div className="mb-3 p-2 bg-blue-50 rounded-lg border-l-4 border-blue-400">
@@ -804,6 +918,16 @@ export default function EnhancedMessageThread({
                 <Reply className="h-4 w-4 mr-2" />
                 Reply
               </Button>
+              {isOwnMessage(selectedMessage) && (
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start"
+                  onClick={() => handleMessageAction('edit', selectedMessage)}
+                >
+                  <Edit3 className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 className="w-full justify-start"
@@ -820,14 +944,16 @@ export default function EnhancedMessageThread({
                 <Copy className="h-4 w-4 mr-2" />
                 Copy
               </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-red-600"
-                onClick={() => handleMessageAction('delete', selectedMessage)}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
-              </Button>
+              {isOwnMessage(selectedMessage) && (
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-red-600"
+                  onClick={() => handleMessageAction('delete', selectedMessage)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+              )}
             </div>
             <Button
               variant="outline"
