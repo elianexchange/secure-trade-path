@@ -4,7 +4,7 @@ import { useNotifications } from '@/contexts/NotificationContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
+// import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
@@ -484,12 +484,18 @@ export default function Notifications() {
                       {setting.description}
                     </p>
                   </div>
-                  <Switch
-                    id={setting.id}
-                    checked={setting.enabled}
-                    onCheckedChange={() => toggleSetting(setting.id)}
-                    className="flex-shrink-0"
-                  />
+                  <div className="flex items-center space-x-2 flex-shrink-0">
+                    <input
+                      type="checkbox"
+                      id={setting.id}
+                      checked={setting.enabled}
+                      onChange={() => toggleSetting(setting.id)}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <Label htmlFor={setting.id} className="text-sm font-medium cursor-pointer">
+                      {setting.enabled ? 'Enabled' : 'Disabled'}
+                    </Label>
+                  </div>
                 </div>
               ))}
             </CardContent>
