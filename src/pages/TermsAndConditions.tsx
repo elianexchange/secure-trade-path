@@ -9,21 +9,22 @@ export default function TermsAndConditions() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
-        <div className="max-w-4xl mx-auto px-4 py-6">
-          <div className="flex items-center gap-4">
+        <div className="max-w-4xl mx-auto px-4 py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <Link to="/login">
-              <Button variant="ghost" size="sm" className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
                 <ArrowLeft className="h-4 w-4" />
-                Back to Login
+                <span className="hidden sm:inline">Back to Login</span>
+                <span className="sm:hidden">Back</span>
               </Button>
             </Link>
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <FileText className="h-6 w-6 text-blue-600" />
+            <div className="flex items-center gap-3 flex-1">
+              <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
+                <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Terms and Conditions</h1>
-                <p className="text-sm text-gray-600">Last updated: {new Date().toLocaleDateString()}</p>
+              <div className="min-w-0 flex-1">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">Terms and Conditions</h1>
+                <p className="text-xs sm:text-sm text-gray-600">Last updated: {new Date().toLocaleDateString()}</p>
               </div>
             </div>
           </div>
@@ -308,18 +309,18 @@ export default function TermsAndConditions() {
 
             {/* Footer */}
             <div className="border-t pt-6 mt-8">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-500">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="text-sm text-gray-500 text-center sm:text-left">
                   <p>© {new Date().getFullYear()} Tranzio Limited. All rights reserved.</p>
                 </div>
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                   <Link to="/privacy-policy">
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" className="w-full sm:w-auto">
                       Privacy Policy
                     </Button>
                   </Link>
                   <Link to="/login">
-                    <Button size="sm">
+                    <Button size="sm" className="w-full sm:w-auto">
                       Back to Login
                     </Button>
                   </Link>
