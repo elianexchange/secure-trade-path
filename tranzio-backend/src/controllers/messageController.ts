@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
 import { uploadFile, deleteFile } from '../services/fileService';
+import { backendNotificationService } from '../services/notificationService';
 import WebSocketService from '../services/websocket';
 
 // WebSocket service instance - will be initialized by the main server
@@ -173,6 +174,22 @@ class MessageController {
             { creatorId: senderId },
             { counterpartyId: senderId }
           ]
+        },
+        include: {
+          creator: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true
+            }
+          },
+          counterparty: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true
+            }
+          }
         }
       });
 
@@ -246,6 +263,25 @@ class MessageController {
           // Don't fail the request if WebSocket fails
         }
       }
+
+      // Create notification for the recipient (non-blocking)
+      setImmediate(async () => {
+        try {
+          const recipientId = transaction.creatorId === senderId ? transaction.counterpartyId : transaction.creatorId;
+          const senderName = `${message.sender.firstName} ${message.sender.lastName}`;
+          
+          if (recipientId) {
+            await backendNotificationService.createMessageNotification(
+              recipientId,
+              transactionId,
+              senderName,
+              content
+            );
+          }
+        } catch (notificationError) {
+          console.error('Failed to create message notification:', notificationError);
+        }
+      });
 
       return res.status(201).json(message);
     } catch (error) {

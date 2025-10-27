@@ -3,6 +3,7 @@ import { authenticateToken } from '../middleware/auth';
 import { z } from 'zod';
 import { emailService } from '../services/emailService';
 import { sendToUser, sendToTransaction } from '../services/websocketService';
+import { backendNotificationService } from '../services/notificationService';
 import { prisma } from '../lib/prisma';
 
 const router = express.Router();
@@ -82,19 +83,28 @@ router.post('/create', authenticateToken, async (req, res) => {
       }
     });
 
-    // Handle email notification asynchronously (non-blocking)
+    // Handle email and notification asynchronously (non-blocking)
     setImmediate(async () => {
     try {
       const user = await prisma.user.findUnique({
         where: { id: userId },
-        select: { email: true }
+        select: { email: true, firstName: true, lastName: true }
       });
       
       if (user?.email) {
           await emailService.sendTransactionCreatedEmail(result.transaction.id, user.email);
       }
-    } catch (emailError) {
-      console.error('Failed to send transaction created email:', emailError);
+
+      // Create notification for transaction creator
+      await backendNotificationService.createTransactionNotification(
+        userId,
+        result.transaction.id,
+        'PENDING',
+        `${user?.firstName} ${user?.lastName}`,
+        validatedData.price
+      );
+    } catch (error) {
+      console.error('Failed to send transaction created notification:', error);
       }
     });
 
@@ -283,16 +293,16 @@ router.post('/join', authenticateToken, async (req, res) => {
 
         console.log(`WebSocket events sent for transaction ${result.id} - status updated to ${result.status}`);
 
-        // Send email notifications
+        // Send email notifications and create notifications
         if (invitation) {
           const [creator, counterparty] = await Promise.all([
             prisma.user.findUnique({
               where: { id: invitation.transaction.creatorId },
-              select: { email: true }
+              select: { email: true, firstName: true, lastName: true }
             }),
             prisma.user.findUnique({
               where: { id: userId },
-              select: { email: true }
+              select: { email: true, firstName: true, lastName: true }
             })
           ]);
 
@@ -314,7 +324,27 @@ router.post('/join', authenticateToken, async (req, res) => {
             );
           }
 
-          await Promise.allSettled(emailPromises);
+          // Create notifications for both users
+          const notificationPromises = [
+            // Notification for the creator that someone joined
+            backendNotificationService.createTransactionNotification(
+              invitation.transaction.creatorId,
+              result.id,
+              'ACTIVE',
+              counterpartyName,
+              result.price
+            ),
+            // Notification for the joiner
+            backendNotificationService.createTransactionNotification(
+              userId,
+              result.id,
+              'ACTIVE',
+              `${creator?.firstName} ${creator?.lastName}`,
+              result.price
+            )
+          ];
+
+          await Promise.allSettled([...emailPromises, ...notificationPromises]);
         }
       } catch (error) {
         console.error('Error in async operations:', error);

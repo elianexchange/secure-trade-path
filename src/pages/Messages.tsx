@@ -37,9 +37,7 @@ export default function Messages() {
     role: 'BUYER' | 'SELLER';
   } | null>(null);
   const [showSearch, setShowSearch] = useState(false);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(
-    notificationService.isEnabled()
-  );
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   // Check for transactionId in location state (from transaction details navigation)
   React.useEffect(() => {
