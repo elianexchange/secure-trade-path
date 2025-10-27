@@ -114,10 +114,8 @@ export function PWAInstallPrompt() {
     sessionStorage.setItem('pwa-install-dismissed', 'true');
   };
 
-  // Don't show if already installed or dismissed
-  if (isInstalled || !showInstallPrompt || sessionStorage.getItem('pwa-install-dismissed')) {
-    return null;
-  }
+  // Disabled PWA install prompt - always return null
+  return null;
 
   return (
     <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:max-w-sm">

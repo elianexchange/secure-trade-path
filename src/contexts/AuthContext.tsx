@@ -34,16 +34,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   
   const [showOnboarding, setShowOnboarding] = useState(false);
 
-  // Check if onboarding has been completed (disabled for testing - show for all users)
+  // Check if onboarding has been completed - only show for first-time users
   useEffect(() => {
-    // For testing phase, show onboarding for all users
-    // const onboardingCompleted = localStorage.getItem('onboardingCompleted');
-    // if (onboardingCompleted === 'true') {
-    //   setShowOnboarding(false);
-    // }
-    
-    // Always show onboarding during testing
-    setShowOnboarding(true);
+    const onboardingCompleted = localStorage.getItem('onboardingCompleted');
+    if (onboardingCompleted === 'true') {
+      setShowOnboarding(false);
+    } else {
+      // Only show onboarding for new users who haven't completed it
+      setShowOnboarding(true);
+    }
   }, []);
 
   // Load user from localStorage on mount
@@ -118,6 +117,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isAuthenticated: true,
         isLoading: false,
       });
+      
+      // Check if user has completed onboarding
+      const onboardingCompleted = localStorage.getItem('onboardingCompleted');
+      setShowOnboarding(onboardingCompleted !== 'true');
     } catch (error) {
       setAuthState(prev => ({ ...prev, isLoading: false }));
       throw error;
