@@ -125,7 +125,7 @@ export default function EnhancedMessageThread({
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   }, []);
 
-  const formatMessageTime = useCallback((timestamp: Date | string | undefined) => {
+  const formatMessageTime = useCallback((timestamp: Date | string | undefined | null) => {
     try {
       if (!timestamp) return 'Just now';
       
@@ -147,6 +147,7 @@ export default function EnhancedMessageThread({
       const days = Math.floor(diffInSeconds / 86400);
       return `${days}d ago`;
     } catch (error) {
+      console.warn('Error formatting message time:', error);
       return 'Just now';
     }
   }, []);
@@ -178,18 +179,29 @@ export default function EnhancedMessageThread({
     return status;
   }, [onlineStatus]);
 
-  const formatLastSeen = useCallback((lastSeen: Date) => {
-    const now = new Date();
-    const diffInMinutes = Math.floor((now.getTime() - lastSeen.getTime()) / (1000 * 60));
+  const formatLastSeen = useCallback((lastSeen: Date | null | undefined) => {
+    if (!lastSeen) return 'Never';
     
-    if (diffInMinutes < 1) return 'Just now';
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-    if (diffInMinutes < 1440) {
-      const hours = Math.floor(diffInMinutes / 60);
-      return `${hours}h ago`;
+    try {
+      const now = new Date();
+      const lastSeenDate = lastSeen instanceof Date ? lastSeen : new Date(lastSeen);
+      
+      if (isNaN(lastSeenDate.getTime())) return 'Never';
+      
+      const diffInMinutes = Math.floor((now.getTime() - lastSeenDate.getTime()) / (1000 * 60));
+      
+      if (diffInMinutes < 1) return 'Just now';
+      if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+      if (diffInMinutes < 1440) {
+        const hours = Math.floor(diffInMinutes / 60);
+        return `${hours}h ago`;
+      }
+      const days = Math.floor(diffInMinutes / 1440);
+      return `${days}d ago`;
+    } catch (error) {
+      console.warn('Error formatting last seen:', error);
+      return 'Unknown';
     }
-    const days = Math.floor(diffInMinutes / 1440);
-    return `${days}d ago`;
   }, []);
 
   // Load conversation on mount
@@ -363,6 +375,15 @@ export default function EnhancedMessageThread({
 
   // Simulate online status (in real app, this would come from WebSocket)
   useEffect(() => {
+    // Initialize with a default status
+    setOnlineStatus(prev => ({
+      ...prev,
+      [counterpartyId]: {
+        isOnline: true,
+        lastSeen: new Date()
+      }
+    }));
+
     const interval = setInterval(() => {
       setOnlineStatus(prev => ({
         ...prev,
@@ -413,7 +434,7 @@ export default function EnhancedMessageThread({
             <p className="text-xs text-muted-foreground">
               {counterpartyStatus.isOnline 
                 ? 'Online' 
-                : `Last seen ${formatLastSeen(counterpartyStatus.lastSeen)}`
+                : `Last seen ${formatLastSeen(counterpartyStatus.lastSeen || null)}`
               }
             </p>
           </div>
@@ -453,9 +474,23 @@ export default function EnhancedMessageThread({
           {filteredMessages.map((message, index) => {
             const isOwn = isOwnMessage(message);
             const prevMessage = index > 0 ? filteredMessages[index - 1] : null;
-            const isConsecutive = prevMessage && 
-              prevMessage.senderId === message.senderId && 
-              Math.abs(new Date(message.timestamp).getTime() - new Date(prevMessage.timestamp).getTime()) < 300000; // 5 minutes
+            
+            // Safe timestamp comparison
+            let isConsecutive = false;
+            try {
+              if (prevMessage && message.timestamp && prevMessage.timestamp) {
+                const messageTime = new Date(message.timestamp).getTime();
+                const prevMessageTime = new Date(prevMessage.timestamp).getTime();
+                
+                if (!isNaN(messageTime) && !isNaN(prevMessageTime)) {
+                  isConsecutive = prevMessage.senderId === message.senderId && 
+                    Math.abs(messageTime - prevMessageTime) < 300000; // 5 minutes
+                }
+              }
+            } catch (error) {
+              console.warn('Error comparing message timestamps:', error);
+              isConsecutive = false;
+            }
 
             return (
               <div
