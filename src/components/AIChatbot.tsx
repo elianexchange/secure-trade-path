@@ -172,7 +172,7 @@ const AIChatbot: React.FC<AIChatbotProps> = ({ isOpen, onToggle, className = '' 
 
   if (!isOpen) {
     return (
-      <div className={`fixed bottom-6 right-6 z-50 ${className}`}>
+      <div className={`fixed bottom-6 right-6 z-40 hidden md:block ${className}`}>
         <Button
           onClick={onToggle}
           className="h-14 w-14 rounded-full bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all duration-200"
@@ -190,7 +190,7 @@ const AIChatbot: React.FC<AIChatbotProps> = ({ isOpen, onToggle, className = '' 
   }
 
   return (
-    <div className={`fixed bottom-6 right-6 z-50 ${className}`}>
+    <div className={`fixed bottom-6 right-6 z-40 hidden md:block ${className}`}>
       <Card className={`w-80 h-96 shadow-2xl border-0 bg-white ${isMinimized ? 'h-16' : ''} transition-all duration-300`}>
         <CardHeader className="pb-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-lg">
           <div className="flex items-center justify-between">

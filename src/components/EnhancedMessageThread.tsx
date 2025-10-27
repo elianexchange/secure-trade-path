@@ -26,7 +26,8 @@ import {
   Forward,
   Copy,
   Trash2,
-  Circle
+  Circle,
+  ArrowLeft
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMessages } from '@/contexts/MessageContext';
@@ -39,6 +40,7 @@ interface EnhancedMessageThreadProps {
   counterpartyName: string;
   counterpartyRole: 'BUYER' | 'SELLER';
   className?: string;
+  onClose?: () => void;
 }
 
 export default function EnhancedMessageThread({ 
@@ -46,7 +48,8 @@ export default function EnhancedMessageThread({
   counterpartyId, 
   counterpartyName, 
   counterpartyRole,
-  className
+  className,
+  onClose
 }: EnhancedMessageThreadProps) {
   const { user } = useAuth();
   const { 
@@ -80,14 +83,15 @@ export default function EnhancedMessageThread({
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [onlineStatus, setOnlineStatus] = useState<{ [key: string]: { isOnline: boolean; lastSeen: Date } }>({});
+  const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
 
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Check if mobile
   useEffect(() => {
@@ -213,16 +217,17 @@ export default function EnhancedMessageThread({
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    if (messagesEndRef.current && scrollAreaRef.current) {
-      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-      if (scrollContainer) {
-        scrollContainer.scrollTop = scrollContainer.scrollHeight;
-      }
+    if (isScrolledToBottom && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [filteredMessages.length]);
+  }, [filteredMessages.length, isScrolledToBottom]);
 
-  // Mark conversation as read when user scrolls
-  const handleScroll = useCallback(() => {
+  // Handle scroll events to detect if user is at bottom
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
+    setIsScrolledToBottom(isAtBottom);
+
     if (transactionId && filteredMessages.length > 0) {
       markConversationAsRead(transactionId);
     }
@@ -369,247 +374,256 @@ export default function EnhancedMessageThread({
   useEffect(() => {
     return () => {
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
       stopTyping(transactionId);
     };
   }, [transactionId, stopTyping]);
 
-  // Simulate online status (in real app, this would come from WebSocket)
+  // Stable online status (no fluctuation)
   useEffect(() => {
-    // Initialize with a default status
+    // Set a stable online status
     setOnlineStatus(prev => ({
       ...prev,
       [counterpartyId]: {
-        isOnline: true,
+        isOnline: true, // Keep it stable for demo
         lastSeen: new Date()
       }
     }));
-
-    const interval = setInterval(() => {
-      setOnlineStatus(prev => ({
-        ...prev,
-        [counterpartyId]: {
-          isOnline: Math.random() > 0.3, // Simulate online status
-          lastSeen: new Date(Date.now() - Math.random() * 3600000) // Random last seen
-        }
-      }));
-    }, 10000);
-
-    return () => clearInterval(interval);
   }, [counterpartyId]);
 
   if (isLoading) {
     return (
-      <Card className={cn("h-96", className)}>
-        <CardContent className="flex items-center justify-center h-full">
+      <div className={cn("h-full flex flex-col bg-white", className)}>
+        <div className="flex items-center justify-center h-full">
           <div className="flex items-center space-x-2">
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
             <span className="text-sm text-muted-foreground">Loading messages...</span>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
   const counterpartyStatus = getOnlineStatus(counterpartyId);
 
   return (
-    <div className={cn("h-full flex flex-col bg-white rounded-lg border", className)}>
-      {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b bg-gray-50/50">
-        <div className="flex items-center space-x-3">
-          <div className="relative">
-            <Avatar className="h-8 w-8">
-              <AvatarFallback className="bg-blue-100 text-blue-600 text-sm">
-                {getAvatarFallback(counterpartyName)}
-              </AvatarFallback>
-            </Avatar>
-            {/* Online status indicator */}
-            <div className={cn(
-              "absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white",
-              counterpartyStatus.isOnline ? "bg-green-500" : "bg-gray-400"
-            )} />
+    <div className={cn("h-full flex flex-col bg-white", className)}>
+      {/* Sticky Header */}
+      <div className="flex-shrink-0 p-3 border-b bg-gray-50/50">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            {/* Mobile back button */}
+            {isMobile && onClose && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="h-8 w-8 p-0"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            )}
+            
+            <div className="relative">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className="bg-blue-100 text-blue-600 text-sm">
+                  {getAvatarFallback(counterpartyName)}
+                </AvatarFallback>
+              </Avatar>
+              {/* Online status indicator */}
+              <div className={cn(
+                "absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white",
+                counterpartyStatus.isOnline ? "bg-green-500" : "bg-gray-400"
+              )} />
+            </div>
+            <div>
+              <h3 className="font-medium text-sm">{counterpartyName}</h3>
+              <p className="text-xs text-muted-foreground">
+                {counterpartyStatus.isOnline 
+                  ? 'Online' 
+                  : `Last seen ${formatLastSeen(counterpartyStatus.lastSeen || null)}`
+                }
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-medium text-sm">{counterpartyName}</h3>
-            <p className="text-xs text-muted-foreground">
-              {counterpartyStatus.isOnline 
-                ? 'Online' 
-                : `Last seen ${formatLastSeen(counterpartyStatus.lastSeen || null)}`
-              }
-            </p>
+          
+          <div className="flex items-center space-x-2">
+            {isOffline && (
+              <Badge variant="secondary" className="text-xs">
+                Offline ({messageQueue.length})
+              </Badge>
+            )}
           </div>
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          {isOffline && (
-            <Badge variant="secondary" className="text-xs">
-              Offline ({messageQueue.length})
-            </Badge>
-          )}
         </div>
       </div>
 
-      {/* Messages Area */}
-      <ScrollArea className="flex-1" ref={scrollAreaRef} onScroll={handleScroll}>
-        <div className="p-3 space-y-2">
-          {/* Load More Button */}
-          {hasMoreMessages && filteredMessages.length > 0 && (
-            <div className="flex justify-center">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleLoadMore}
-                disabled={isLoadingMore}
-                className="text-xs"
-              >
-                {isLoadingMore ? (
-                  <Loader2 className="h-3 w-3 animate-spin mr-2" />
-                ) : null}
-                Load more messages
-              </Button>
-            </div>
-          )}
+      {/* Scrollable Messages Area */}
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea 
+          className="h-full" 
+          ref={scrollAreaRef}
+          onScrollCapture={handleScroll}
+        >
+          <div className="p-3 space-y-1">
+            {/* Load More Button */}
+            {hasMoreMessages && filteredMessages.length > 0 && (
+              <div className="flex justify-center pb-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLoadMore}
+                  disabled={isLoadingMore}
+                  className="text-xs"
+                >
+                  {isLoadingMore ? (
+                    <Loader2 className="h-3 w-3 animate-spin mr-2" />
+                  ) : null}
+                  Load more messages
+                </Button>
+              </div>
+            )}
 
-          {/* Messages */}
-          {filteredMessages.map((message, index) => {
-            const isOwn = isOwnMessage(message);
-            const prevMessage = index > 0 ? filteredMessages[index - 1] : null;
-            
-            // Safe timestamp comparison
-            let isConsecutive = false;
-            try {
-              if (prevMessage && message.timestamp && prevMessage.timestamp) {
-                const messageTime = new Date(message.timestamp).getTime();
-                const prevMessageTime = new Date(prevMessage.timestamp).getTime();
-                
-                if (!isNaN(messageTime) && !isNaN(prevMessageTime)) {
-                  isConsecutive = prevMessage.senderId === message.senderId && 
-                    Math.abs(messageTime - prevMessageTime) < 300000; // 5 minutes
+            {/* Messages */}
+            {filteredMessages.map((message, index) => {
+              const isOwn = isOwnMessage(message);
+              const prevMessage = index > 0 ? filteredMessages[index - 1] : null;
+              
+              // Safe timestamp comparison
+              let isConsecutive = false;
+              try {
+                if (prevMessage && message.timestamp && prevMessage.timestamp) {
+                  const messageTime = new Date(message.timestamp).getTime();
+                  const prevMessageTime = new Date(prevMessage.timestamp).getTime();
+                  
+                  if (!isNaN(messageTime) && !isNaN(prevMessageTime)) {
+                    isConsecutive = prevMessage.senderId === message.senderId && 
+                      Math.abs(messageTime - prevMessageTime) < 300000; // 5 minutes
+                  }
                 }
+              } catch (error) {
+                console.warn('Error comparing message timestamps:', error);
+                isConsecutive = false;
               }
-            } catch (error) {
-              console.warn('Error comparing message timestamps:', error);
-              isConsecutive = false;
-            }
 
-            return (
-              <div
-                key={message.id}
-                className={cn(
-                  "flex items-end space-x-2 group",
-                  isOwn ? "justify-end" : "justify-start",
-                  isConsecutive ? "mt-1" : "mt-3"
-                )}
-              >
-                {!isOwn && !isConsecutive && (
-                  <Avatar className="h-6 w-6 flex-shrink-0">
-                    <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
-                      {getAvatarFallback(counterpartyName)}
-                    </AvatarFallback>
-                  </Avatar>
-                )}
-                
-                {!isOwn && isConsecutive && (
-                  <div className="w-6" /> // Spacer for consecutive messages
-                )}
-                
-                <div className={cn(
-                  "flex flex-col max-w-[80%] sm:max-w-[60%]",
-                  isOwn ? "items-end" : "items-start"
-                )}>
-                  {/* Message Bubble */}
+              return (
+                <div
+                  key={message.id}
+                  className={cn(
+                    "flex items-end space-x-2 group",
+                    isOwn ? "justify-end" : "justify-start",
+                    isConsecutive ? "mt-0.5" : "mt-2"
+                  )}
+                >
+                  {!isOwn && !isConsecutive && (
+                    <Avatar className="h-6 w-6 flex-shrink-0">
+                      <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
+                        {getAvatarFallback(counterpartyName)}
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+                  
+                  {!isOwn && isConsecutive && (
+                    <div className="w-6" /> // Spacer for consecutive messages
+                  )}
+                  
                   <div className={cn(
-                    "rounded-2xl px-4 py-2 shadow-sm relative group/message",
-                    isOwn 
-                      ? "bg-blue-500 text-white" 
-                      : "bg-gray-100 text-gray-900"
+                    "flex flex-col max-w-[80%] sm:max-w-[60%]",
+                    isOwn ? "items-end" : "items-start"
                   )}>
-                    <p className="text-sm whitespace-pre-wrap break-words">
-                      {message.content}
-                    </p>
-                    
-                    {/* File Attachments */}
-                    {message.attachments && message.attachments.length > 0 && (
-                      <div className="mt-2 space-y-2">
-                        {message.attachments.map((attachment, index) => (
-                          <div
-                            key={index}
-                            className={cn(
-                              "flex items-center space-x-2 p-2 rounded-lg",
-                              isOwn ? "bg-blue-400/20" : "bg-white/50"
-                            )}
-                          >
-                            {getFileIcon(attachment.mimeType)}
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-medium truncate">
-                                {attachment.filename}
-                              </p>
-                              <p className="text-xs opacity-75">
-                                {formatFileSize(attachment.fileSize)}
-                              </p>
-                            </div>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => window.open(attachment.fileUrl, '_blank')}
-                              className="h-6 w-6 p-0"
+                    {/* Message Bubble */}
+                    <div className={cn(
+                      "rounded-2xl px-4 py-2 shadow-sm relative group/message",
+                      isOwn 
+                        ? "bg-blue-500 text-white" 
+                        : "bg-gray-100 text-gray-900"
+                    )}>
+                      <p className="text-sm whitespace-pre-wrap break-words">
+                        {message.content}
+                      </p>
+                      
+                      {/* File Attachments */}
+                      {message.attachments && message.attachments.length > 0 && (
+                        <div className="mt-2 space-y-2">
+                          {message.attachments.map((attachment, index) => (
+                            <div
+                              key={index}
+                              className={cn(
+                                "flex items-center space-x-2 p-2 rounded-lg",
+                                isOwn ? "bg-blue-400/20" : "bg-white/50"
+                              )}
                             >
-                              <Download className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                              {getFileIcon(attachment.mimeType)}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium truncate">
+                                  {attachment.filename}
+                                </p>
+                                <p className="text-xs opacity-75">
+                                  {formatFileSize(attachment.fileSize)}
+                                </p>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => window.open(attachment.fileUrl, '_blank')}
+                                className="h-6 w-6 p-0"
+                              >
+                                <Download className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
 
-                    {/* Message Actions (on hover) */}
-                    <div className="absolute -right-2 top-1/2 transform -translate-y-1/2 opacity-0 group-hover/message:opacity-100 transition-opacity">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0 bg-white shadow-md"
-                        onClick={() => setSelectedMessage(message)}
-                      >
-                        <MoreVertical className="h-3 w-3" />
-                      </Button>
+                      {/* Message Actions (on hover) */}
+                      <div className="absolute -right-2 top-1/2 transform -translate-y-1/2 opacity-0 group-hover/message:opacity-100 transition-opacity">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 bg-white shadow-md"
+                          onClick={() => setSelectedMessage(message)}
+                        >
+                          <MoreVertical className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {/* Message Status and Time */}
+                    <div className={cn(
+                      "flex items-center space-x-1 mt-1 px-1",
+                      isOwn ? "justify-end" : "justify-start"
+                    )}>
+                      <span className="text-xs text-muted-foreground">
+                        {formatMessageTime(message.timestamp)}
+                      </span>
+                      {isOwn && getMessageStatus(message)}
                     </div>
                   </div>
-                  
-                  {/* Message Status and Time */}
-                  <div className={cn(
-                    "flex items-center space-x-1 mt-1 px-1",
-                    isOwn ? "justify-end" : "justify-start"
-                  )}>
-                    <span className="text-xs text-muted-foreground">
-                      {formatMessageTime(message.timestamp)}
-                    </span>
-                    {isOwn && getMessageStatus(message)}
-                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
 
-          {/* Typing Indicator */}
-          {typingUsers[transactionId] && typingUsers[transactionId].length > 0 && (
-            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            {/* Typing Indicator */}
+            {typingUsers[transactionId] && typingUsers[transactionId].length > 0 && (
+              <div className="flex items-center space-x-2 text-sm text-muted-foreground py-2">
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                </div>
+                <span className="text-xs">
+                  {counterpartyName} is typing...
+                </span>
               </div>
-              <span className="text-xs">
-                {counterpartyName} is typing...
-              </span>
-            </div>
-          )}
+            )}
 
-          <div ref={messagesEndRef} />
-        </div>
-      </ScrollArea>
+            <div ref={messagesEndRef} />
+          </div>
+        </ScrollArea>
+      </div>
 
       {/* File Upload Progress */}
       {uploadProgress.length > 0 && (
-        <div className="px-4 py-2 border-t bg-muted/20">
+        <div className="flex-shrink-0 px-4 py-2 border-t bg-muted/20">
           <div className="space-y-2">
             {uploadProgress.map((progress) => (
               <div key={progress.fileId} className="flex items-center space-x-2">
@@ -639,8 +653,8 @@ export default function EnhancedMessageThread({
         </div>
       )}
 
-      {/* Message Input */}
-      <div className="p-3 border-t bg-white">
+      {/* Sticky Message Input */}
+      <div className="flex-shrink-0 p-3 border-t bg-white">
         {/* Reply Indicator */}
         {replyTo && (
           <div className="mb-3 p-2 bg-blue-50 rounded-lg border-l-4 border-blue-400">

@@ -45,28 +45,13 @@ export default function ResponsiveMessageContainer({
     return (
       <Sheet open={isOpen} onOpenChange={onClose}>
         <SheetContent side="right" className="w-full sm:w-96 p-0 flex flex-col h-full">
-          <SheetHeader className="p-4 border-b flex-shrink-0">
-            <div className="flex items-center justify-between">
-              <SheetTitle className="text-lg font-semibold">{title}</SheetTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClose}
-                className="h-8 w-8 p-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Communicate securely with your transaction partner
-            </p>
-          </SheetHeader>
           <div className="flex-1 overflow-hidden min-h-0">
             <EnhancedMessageThread
               transactionId={transactionId}
               counterpartyId={counterpartyId}
               counterpartyName={counterpartyName}
               counterpartyRole={counterpartyRole}
+              onClose={onClose}
               className="h-full"
             />
           </div>
@@ -78,30 +63,13 @@ export default function ResponsiveMessageContainer({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl h-[80vh] p-0 flex flex-col">
-        <DialogHeader className="p-6 pb-4 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div>
-              <DialogTitle className="text-xl font-semibold">{title}</DialogTitle>
-              <p className="text-sm text-muted-foreground mt-1">
-                Communicate securely with your transaction partner
-              </p>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="h-8 w-8 p-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </DialogHeader>
-        <div className="flex-1 overflow-hidden px-6 pb-6 min-h-0">
+        <div className="flex-1 overflow-hidden min-h-0">
           <EnhancedMessageThread
             transactionId={transactionId}
             counterpartyId={counterpartyId}
             counterpartyName={counterpartyName}
             counterpartyRole={counterpartyRole}
+            onClose={onClose}
             className="h-full"
           />
         </div>
