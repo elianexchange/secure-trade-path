@@ -43,33 +43,41 @@ export default function Dashboard() {
         
         console.log('Dashboard: Loading data for user:', user.id);
         
-        // Load transactions from real data service
-        const transactions = await transactionsAPI.getMyTransactions();
-        
-        console.log('Dashboard: Received transactions:', transactions);
+        // Load transactions from API with error handling
+        let transactions = [];
+        try {
+          transactions = await transactionsAPI.getMyTransactions();
+          console.log('Dashboard: Received transactions from API:', transactions?.length || 0);
+        } catch (apiError) {
+          console.warn('Dashboard: API failed, using shared store fallback:', apiError);
+          // Fallback to shared store if API fails
+          transactions = sharedTransactionStore.getTransactionsForUser(user.id);
+          console.log('Dashboard: Using shared store transactions:', transactions.length);
+        }
         
         // Ensure transactions is an array
         const transactionsArray = Array.isArray(transactions) ? transactions : [];
         setUserTransactions(transactionsArray);
         
-        // Calculate stats
-        const totalTransactions = transactionsArray.length;
-        const activeTransactions = transactionsArray.filter((tx: any) => 
-          ['PENDING', 'ACTIVE', 'PAYMENT', 'SHIPPING'].includes(tx.status)
-        ).length;
-        const completedTransactions = transactionsArray.filter((tx: any) => 
-          tx.status === 'COMPLETED'
-        ).length;
-        const totalValue = transactionsArray.reduce((sum: number, tx: any) => sum + (tx.total || 0), 0);
-
-        setStats({
-          totalTransactions,
-          activeTransactions,
-          completedTransactions,
-          totalValue,
+        // Calculate stats efficiently
+        const stats = transactionsArray.reduce((acc, tx: any) => {
+          acc.totalTransactions++;
+          if (['PENDING', 'ACTIVE', 'PAYMENT', 'SHIPPING'].includes(tx.status)) {
+            acc.activeTransactions++;
+          } else if (tx.status === 'COMPLETED') {
+            acc.completedTransactions++;
+          }
+          acc.totalValue += tx.total || 0;
+          return acc;
+        }, {
+          totalTransactions: 0,
+          activeTransactions: 0,
+          completedTransactions: 0,
+          totalValue: 0,
         });
-        
-        console.log('Dashboard: Stats updated:', { totalTransactions, activeTransactions, completedTransactions, totalValue });
+
+        setStats(stats);
+        console.log('Dashboard: Stats updated:', stats);
       } catch (error) {
         console.error('Failed to load dashboard data:', error);
         // Set empty data on error
@@ -95,7 +103,7 @@ export default function Dashboard() {
         refreshTimeout = setTimeout(() => {
           console.log('Dashboard: Debounced refresh triggered');
           loadDashboardData();
-        }, 500); // 500ms debounce
+        }, 1000); // 1 second debounce to reduce API calls
       };
       
       // Listen for WebSocket transaction updates (only for relevant transactions)

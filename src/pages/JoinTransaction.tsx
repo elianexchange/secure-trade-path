@@ -67,10 +67,26 @@ export default function JoinTransaction() {
       const loadTransaction = async () => {
         try {
           console.log('Attempting to load transaction with ID:', transactionId);
+          
+          // Try to get from shared store first for faster loading
+          const cachedTransaction = sharedTransactionStore.getTransaction(transactionId);
+          if (cachedTransaction) {
+            console.log('Transaction found in cache, using cached data');
+            setTransaction(cachedTransaction);
+            setIsLoading(false);
+            return;
+          }
+          
+          // If not in cache, fetch from API
           const response = await transactionsAPI.getTransactionByInvite(transactionId);
           console.log('Transaction loaded from API:', response.invitation);
           
-          setTransaction(response.invitation.transaction);
+          const transactionData = response.invitation.transaction;
+          setTransaction(transactionData);
+          
+          // Cache the transaction for future use
+          sharedTransactionStore.addTransaction(transactionData);
+          
           setIsLoading(false);
         } catch (error) {
           console.error('Error loading transaction:', error);
@@ -127,19 +143,7 @@ export default function JoinTransaction() {
       // Force refresh all components by dispatching a global event
       window.dispatchEvent(new CustomEvent('forceRefreshTransactions'));
       
-      // Add fallback: re-fetch transaction details after a short delay to ensure both parties see updates
-      setTimeout(async () => {
-        try {
-          console.log('JoinTransaction: Fallback - re-fetching transaction details');
-          const refreshedTransaction = await transactionsAPI.getTransaction(updatedTransaction.id);
-          if (refreshedTransaction) {
-            sharedTransactionStore.addTransaction(refreshedTransaction);
-            console.log('JoinTransaction: Fallback - transaction refreshed successfully');
-          }
-        } catch (error) {
-          console.error('JoinTransaction: Fallback - failed to refresh transaction:', error);
-        }
-      }, 2000); // 2 second delay to allow WebSocket events to process first
+      // WebSocket will handle real-time updates, no need for fallback
       
       // Emit WebSocket event for real-time update with complete transaction data
       console.log('JoinTransaction: Emitting WebSocket update for transaction:', response.transaction.id);

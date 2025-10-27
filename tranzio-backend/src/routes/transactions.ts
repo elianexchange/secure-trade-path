@@ -45,8 +45,14 @@ router.post('/create', authenticateToken, async (req, res) => {
     const userId = req.user.id;
     const validatedData = createTransactionSchema.parse(req.body);
 
+    // Generate invitation code
+    const inviteCode = generateInviteCode();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+    // Create transaction and invitation in a single transaction for better performance
+    const result = await prisma.$transaction(async (tx) => {
     // Create the transaction
-    const transaction = await prisma.escrowTransaction.create({
+      const transaction = await tx.escrowTransaction.create({
       data: {
         ...validatedData,
         creatorId: userId,
@@ -54,26 +60,30 @@ router.post('/create', authenticateToken, async (req, res) => {
       }
     });
 
-    // Generate invitation code
-    const inviteCode = generateInviteCode();
-    const invitation = await prisma.transactionInvitation.create({
+      // Create invitation
+      const invitation = await tx.transactionInvitation.create({
       data: {
         transactionId: transaction.id,
         inviteCode,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+          expiresAt
+        }
+      });
+
+      return { transaction, invitation };
+    });
+
+    // Send response immediately
+    return res.status(201).json({
+      success: true,
+      transaction: result.transaction,
+      invitation: {
+        code: result.invitation.inviteCode,
+        expiresAt: result.invitation.expiresAt
       }
     });
 
-    // Emit WebSocket event for transaction creation (temporarily disabled)
-    // if (wsService) {
-    //   wsService.emitToUser(userId, 'transaction:created', {
-    //     transactionId: transaction.id,
-    //     description: transaction.description,
-    //     status: transaction.status
-    //   });
-    // }
-
-    // Send email notification to transaction creator
+    // Handle email notification asynchronously (non-blocking)
+    setImmediate(async () => {
     try {
       const user = await prisma.user.findUnique({
         where: { id: userId },
@@ -81,21 +91,13 @@ router.post('/create', authenticateToken, async (req, res) => {
       });
       
       if (user?.email) {
-        await emailService.sendTransactionCreatedEmail(transaction.id, user.email);
+          await emailService.sendTransactionCreatedEmail(result.transaction.id, user.email);
       }
     } catch (emailError) {
       console.error('Failed to send transaction created email:', emailError);
-      // Don't fail the request if email fails
-    }
-
-    return res.status(201).json({
-      success: true,
-      transaction,
-      invitation: {
-        code: invitation.inviteCode,
-        expiresAt: invitation.expiresAt
       }
     });
+
   } catch (error) {
     console.error('Error creating transaction:', error);
     if (error instanceof z.ZodError) {
@@ -213,19 +215,22 @@ router.post('/join', authenticateToken, async (req, res) => {
       });
     }
 
+    // Update transaction and mark invitation as used in a single transaction
+    const counterpartyName = req.user.firstName + ' ' + req.user.lastName;
+    const result = await prisma.$transaction(async (tx) => {
     // Update transaction with counterparty
-    const updatedTransaction = await prisma.escrowTransaction.update({
+      const updatedTransaction = await tx.escrowTransaction.update({
       where: { id: invitation.transaction.id },
       data: {
         counterpartyId: userId,
         counterpartyRole: invitation.transaction.creatorRole === 'BUYER' ? 'SELLER' : 'BUYER',
-        counterpartyName: req.user.firstName + ' ' + req.user.lastName,
+          counterpartyName,
         status: 'ACTIVE'
       }
     });
 
     // Mark invitation as used
-    await prisma.transactionInvitation.update({
+      await tx.transactionInvitation.update({
       where: { id: invitation.id },
       data: {
         status: 'USED',
@@ -234,76 +239,86 @@ router.post('/join', authenticateToken, async (req, res) => {
       }
     });
 
-    // Emit WebSocket events for transaction status update
-    try {
-      // Notify creator about counterparty joining
-      sendToUser(invitation.transaction.creatorId, 'transaction:updated', {
-        transactionId: updatedTransaction.id,
-        status: updatedTransaction.status,
-        description: updatedTransaction.description,
-        counterpartyJoined: true,
-        counterpartyName: req.user.firstName + ' ' + req.user.lastName,
-        transaction: updatedTransaction
-      });
+      return updatedTransaction;
+    });
+
+    // Send response immediately
+    return res.json({
+      success: true,
+      transaction: result,
+      message: 'Successfully joined transaction'
+    });
+
+    // Handle WebSocket and email notifications asynchronously (non-blocking)
+    setImmediate(async () => {
+      try {
+        // Emit WebSocket events for transaction status update
+        if (invitation) {
+          sendToUser(invitation.transaction.creatorId, 'transaction:updated', {
+            transactionId: result.id,
+            status: result.status,
+            description: result.description,
+            counterpartyJoined: true,
+            counterpartyName,
+            transaction: result
+          });
+        }
 
       // Notify the joiner about successful join
       sendToUser(userId, 'transaction:updated', {
-        transactionId: updatedTransaction.id,
-        status: updatedTransaction.status,
-        description: updatedTransaction.description,
+          transactionId: result.id,
+          status: result.status,
+          description: result.description,
         joined: true,
-        transaction: updatedTransaction
+          transaction: result
       });
 
       // Broadcast to all users in the transaction room
-      sendToTransaction(updatedTransaction.id, 'transaction:updated', {
-        transactionId: updatedTransaction.id,
-        status: updatedTransaction.status,
-        description: updatedTransaction.description,
-        transaction: updatedTransaction
-      });
-
-      console.log(`WebSocket events sent for transaction ${updatedTransaction.id} - status updated to ${updatedTransaction.status}`);
-    } catch (error) {
-      console.error('Error sending WebSocket events:', error);
-      // Don't fail the request if WebSocket fails
-    }
-
-    // Send email notifications
-    try {
-      // Get user emails
-      const [creator, counterparty] = await Promise.all([
-        prisma.user.findUnique({
-          where: { id: invitation.transaction.creatorId },
-          select: { email: true }
-        }),
-        prisma.user.findUnique({
-          where: { id: userId },
-          select: { email: true }
-        })
-      ]);
-
-      // Send email to counterparty (person who joined)
-      if (counterparty?.email) {
-        await emailService.sendTransactionJoinedEmail(updatedTransaction.id, counterparty.email);
-      }
-
-      // Send notification email to creator about counterparty joining
-      if (creator?.email) {
-        await emailService.sendNotificationEmail(creator.email, {
-          title: 'Transaction Joined',
-          message: `${req.user.firstName} ${req.user.lastName} has joined your transaction "${updatedTransaction.description}". The transaction is now active and you can proceed with the next steps.`
+        sendToTransaction(result.id, 'transaction:updated', {
+          transactionId: result.id,
+          status: result.status,
+          description: result.description,
+          transaction: result
         });
-      }
-    } catch (emailError) {
-      console.error('Failed to send join transaction emails:', emailError);
-      // Don't fail the request if email fails
-    }
 
-    return res.json({
-      success: true,
-      transaction: updatedTransaction,
-      message: 'Successfully joined transaction'
+        console.log(`WebSocket events sent for transaction ${result.id} - status updated to ${result.status}`);
+
+        // Send email notifications
+        if (invitation) {
+          const [creator, counterparty] = await Promise.all([
+            prisma.user.findUnique({
+              where: { id: invitation.transaction.creatorId },
+              select: { email: true }
+            }),
+            prisma.user.findUnique({
+              where: { id: userId },
+              select: { email: true }
+            })
+          ]);
+
+          // Send emails in parallel
+          const emailPromises: Promise<boolean>[] = [];
+          
+          if (counterparty?.email) {
+            emailPromises.push(
+              emailService.sendTransactionJoinedEmail(result.id, counterparty.email)
+            );
+          }
+
+          if (creator?.email) {
+            emailPromises.push(
+              emailService.sendNotificationEmail(creator.email, {
+                title: 'Transaction Joined',
+                message: `${counterpartyName} has joined your transaction "${result.description}". The transaction is now active and you can proceed with the next steps.`
+              })
+            );
+          }
+
+          await Promise.allSettled(emailPromises);
+        }
+      } catch (error) {
+        console.error('Error in async operations:', error);
+      }
     });
   } catch (error) {
     console.error('Error joining transaction:', error);

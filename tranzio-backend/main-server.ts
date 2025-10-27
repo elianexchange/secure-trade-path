@@ -143,9 +143,13 @@ app.use('/api/transactions', transactionRoutes);
 import messageRoutes from './src/routes/messageRoutes';
 app.use('/api/messages', messageRoutes);
 
+// Import and use notification routes
+import notificationRoutes from './src/routes/notifications';
+app.use('/api/notifications', notificationRoutes);
+
 // Lemu routes removed - file doesn't exist
 
-console.log('✅ Auth, transaction, and message routes configured');
+console.log('✅ Auth, transaction, message, and notification routes configured');
 
 // 404 handler
 app.use('*', (req, res) => {
