@@ -15,7 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useMessages } from '@/contexts/MessageContext';
 import { notificationService } from '@/services/notificationService';
 import ConversationsList from '@/components/ConversationsList';
-import MessageThread from '@/components/MessageThread';
+import OptimizedMessageThread from '@/components/OptimizedMessageThread';
 import MessageSearch from '@/components/MessageSearch';
 import { MessageSearchResult } from '@/types/message';
 

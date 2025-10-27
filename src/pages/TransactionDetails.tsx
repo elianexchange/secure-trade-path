@@ -33,7 +33,7 @@ import { transactionsAPI } from '@/services/api';
 import { useWebSocket } from '@/contexts/WebSocketContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import MessageThread from '@/components/MessageThread';
+import ResponsiveMessageContainer from '@/components/ResponsiveMessageContainer';
 import TransactionStatusFlow from '@/components/TransactionStatusFlow';
 import DeliveryDetailsForm from '@/components/DeliveryDetailsForm';
 import PaymentConfirmation from '@/components/PaymentConfirmation';
@@ -1588,25 +1588,16 @@ export default function TransactionDetails() {
         </DialogContent>
       </Dialog>
 
-      {/* Chat Modal */}
-      <Dialog open={showChatModal} onOpenChange={setShowChatModal}>
-        <DialogContent className="max-w-4xl h-[80vh]">
-          <DialogHeader>
-            <DialogTitle>Chat with Counterparty</DialogTitle>
-            <p className="text-sm text-muted-foreground">
-              Communicate securely with your transaction partner
-            </p>
-          </DialogHeader>
-          <div className="flex-1 overflow-hidden">
-              <MessageThread
-                transactionId={transaction.id}
-              counterpartyId={transaction.creatorId === user?.id ? transaction.counterpartyId || '' : transaction.creatorId}
-              counterpartyName={transaction.counterpartyName || (transaction.creatorId === user?.id ? 'Counterparty' : transaction.creatorName || 'Transaction Creator')}
-                counterpartyRole={transaction.creatorId === user?.id ? 'SELLER' : 'BUYER'}
-              />
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Responsive Chat Container */}
+      <ResponsiveMessageContainer
+        isOpen={showChatModal}
+        onClose={() => setShowChatModal(false)}
+        transactionId={transaction.id}
+        counterpartyId={transaction.creatorId === user?.id ? transaction.counterpartyId || '' : transaction.creatorId}
+        counterpartyName={transaction.counterpartyName || (transaction.creatorId === user?.id ? 'Counterparty' : transaction.creatorName || 'Transaction Creator')}
+        counterpartyRole={transaction.creatorId === user?.id ? 'SELLER' : 'BUYER'}
+        title="Chat with Counterparty"
+      />
     </>
   );
 }
