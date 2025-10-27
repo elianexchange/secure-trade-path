@@ -34,6 +34,7 @@ import { useWebSocket } from '@/contexts/WebSocketContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import ResponsiveMessageContainer from '@/components/ResponsiveMessageContainer';
+import EnhancedMessageThread from '@/components/EnhancedMessageThread';
 import TransactionStatusFlow from '@/components/TransactionStatusFlow';
 import DeliveryDetailsForm from '@/components/DeliveryDetailsForm';
 import PaymentConfirmation from '@/components/PaymentConfirmation';

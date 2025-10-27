@@ -34,7 +34,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useMessages } from '@/contexts/MessageContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import WalletNavigation from '@/components/WalletNavigation';
-import { MobileNavigation } from '@/components/MobileNavigation';
+import { ProfessionalMobileNavigation } from '@/components/ProfessionalMobileNavigation';
 import { PWAStatus } from '@/components/PWAInstallPrompt';
 import AIChatbot from '@/components/AIChatbot';
 import { useChatbot } from '@/contexts/ChatbotContext';
@@ -337,14 +337,14 @@ export function Layout() {
         {/* Main Content */}
         <main className="flex-1 p-2 sm:p-6">
           
-          <div className="space-y-4 pb-16">
+          <div className="space-y-4">
           <Outlet />
           </div>
         </main>
       </div>
 
-      {/* Mobile Navigation */}
-      {isMobile && <MobileNavigation />}
+      {/* Professional Mobile Navigation */}
+      {isMobile && <ProfessionalMobileNavigation />}
 
       {/* Logout Confirmation Modal */}
       <Dialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>

@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, X } from 'lucide-react';
-import OptimizedMessageThread from './OptimizedMessageThread';
+import EnhancedMessageThread from './EnhancedMessageThread';
 import { cn } from '@/lib/utils';
 
 interface ResponsiveMessageContainerProps {
@@ -62,7 +62,7 @@ export default function ResponsiveMessageContainer({
             </p>
           </SheetHeader>
           <div className="flex-1 overflow-hidden">
-            <OptimizedMessageThread
+            <EnhancedMessageThread
               transactionId={transactionId}
               counterpartyId={counterpartyId}
               counterpartyName={counterpartyName}
@@ -97,7 +97,7 @@ export default function ResponsiveMessageContainer({
           </div>
         </DialogHeader>
         <div className="flex-1 overflow-hidden px-6 pb-6">
-          <OptimizedMessageThread
+          <EnhancedMessageThread
             transactionId={transactionId}
             counterpartyId={counterpartyId}
             counterpartyName={counterpartyName}

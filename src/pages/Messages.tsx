@@ -15,7 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useMessages } from '@/contexts/MessageContext';
 import { notificationService } from '@/services/notificationService';
 import ConversationsList from '@/components/ConversationsList';
-import OptimizedMessageThread from '@/components/OptimizedMessageThread';
+import EnhancedMessageThread from '@/components/EnhancedMessageThread';
 import MessageSearch from '@/components/MessageSearch';
 import { MessageSearchResult } from '@/types/message';
 
@@ -235,11 +235,12 @@ export default function Messages() {
                 
                 {/* Message Thread */}
                 <div className="flex-1 min-h-0">
-                  <MessageThread
+                  <EnhancedMessageThread
                     transactionId={selectedTransactionId}
                     counterpartyId={selectedCounterparty.id}
                     counterpartyName={selectedCounterparty.name}
                     counterpartyRole={selectedCounterparty.role}
+                    className="h-full"
                   />
                 </div>
               </>
