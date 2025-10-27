@@ -382,6 +382,17 @@ export default function Signup() {
             className="w-full"
           />
 
+          {/* Terms and Conditions */}
+          <div className="text-center text-xs text-muted-foreground">
+            By creating an account, you agree to our{' '}
+            <Link 
+              to="/terms-and-conditions" 
+              className="text-primary hover:text-primary/80 font-medium hover:underline transition-colors"
+            >
+              Terms & Conditions
+            </Link>
+          </div>
+
           {/* Trust Badges */}
           <div className="flex justify-center items-center gap-4 pt-4">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">

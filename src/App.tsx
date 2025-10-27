@@ -16,6 +16,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { Layout } from './components/Layout';
 import { PWAInstallPrompt, PWAStatus } from './components/PWAInstallPrompt';
 import Landing from './pages/Landing';
+import TermsAndConditions from './pages/TermsAndConditions';
 import Dashboard from './pages/Dashboard';
 import CreateTransaction from './pages/CreateTransaction';
 import JoinTransaction from './pages/JoinTransaction';
@@ -84,6 +85,7 @@ function App() {
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/unauthorized" element={<Unauthorized />} />

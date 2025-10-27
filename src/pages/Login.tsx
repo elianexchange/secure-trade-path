@@ -293,6 +293,17 @@ export default function Login() {
                   className="w-full"
                 />
 
+                {/* Terms and Conditions */}
+                <div className="text-center text-xs text-muted-foreground">
+                  By signing in, you agree to our{' '}
+                  <Link 
+                    to="/terms-and-conditions" 
+                    className="text-primary hover:text-primary/80 font-medium hover:underline transition-colors"
+                  >
+                    Terms & Conditions
+                  </Link>
+                </div>
+
                 {/* Links */}
                 <div className="text-center space-y-3">
                   <div className="text-sm">
