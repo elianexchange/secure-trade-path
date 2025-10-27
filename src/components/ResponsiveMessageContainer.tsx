@@ -44,8 +44,8 @@ export default function ResponsiveMessageContainer({
   if (isMobile) {
     return (
       <Sheet open={isOpen} onOpenChange={onClose}>
-        <SheetContent side="right" className="w-full sm:w-96 p-0">
-          <SheetHeader className="p-4 border-b">
+        <SheetContent side="right" className="w-full sm:w-96 p-0 flex flex-col h-full">
+          <SheetHeader className="p-4 border-b flex-shrink-0">
             <div className="flex items-center justify-between">
               <SheetTitle className="text-lg font-semibold">{title}</SheetTitle>
               <Button
@@ -61,7 +61,7 @@ export default function ResponsiveMessageContainer({
               Communicate securely with your transaction partner
             </p>
           </SheetHeader>
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden min-h-0">
             <EnhancedMessageThread
               transactionId={transactionId}
               counterpartyId={counterpartyId}
@@ -77,8 +77,8 @@ export default function ResponsiveMessageContainer({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[80vh] p-0">
-        <DialogHeader className="p-6 pb-4">
+      <DialogContent className="max-w-4xl h-[80vh] p-0 flex flex-col">
+        <DialogHeader className="p-6 pb-4 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div>
               <DialogTitle className="text-xl font-semibold">{title}</DialogTitle>
@@ -96,7 +96,7 @@ export default function ResponsiveMessageContainer({
             </Button>
           </div>
         </DialogHeader>
-        <div className="flex-1 overflow-hidden px-6 pb-6">
+        <div className="flex-1 overflow-hidden px-6 pb-6 min-h-0">
           <EnhancedMessageThread
             transactionId={transactionId}
             counterpartyId={counterpartyId}

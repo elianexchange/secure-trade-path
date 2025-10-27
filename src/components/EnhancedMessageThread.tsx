@@ -21,13 +21,12 @@ import {
   Clock,
   Smile,
   Mic,
-  Phone,
-  Video,
   MoreVertical,
   Reply,
   Forward,
   Copy,
-  Trash2
+  Trash2,
+  Circle
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMessages } from '@/contexts/MessageContext';
@@ -80,6 +79,7 @@ export default function EnhancedMessageThread({
   const [showFileOptions, setShowFileOptions] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [replyTo, setReplyTo] = useState<Message | null>(null);
+  const [onlineStatus, setOnlineStatus] = useState<{ [key: string]: { isOnline: boolean; lastSeen: Date } }>({});
 
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -87,6 +87,7 @@ export default function EnhancedMessageThread({
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   // Check if mobile
   useEffect(() => {
@@ -171,6 +172,26 @@ export default function EnhancedMessageThread({
     return <Clock className="h-3 w-3 text-gray-400" />;
   }, []);
 
+  const getOnlineStatus = useCallback((userId: string) => {
+    const status = onlineStatus[userId];
+    if (!status) return { isOnline: false, lastSeen: null };
+    return status;
+  }, [onlineStatus]);
+
+  const formatLastSeen = useCallback((lastSeen: Date) => {
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - lastSeen.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    if (diffInMinutes < 1440) {
+      const hours = Math.floor(diffInMinutes / 60);
+      return `${hours}h ago`;
+    }
+    const days = Math.floor(diffInMinutes / 1440);
+    return `${days}d ago`;
+  }, []);
+
   // Load conversation on mount
   useEffect(() => {
     if (transactionId && !isLoading) {
@@ -180,8 +201,11 @@ export default function EnhancedMessageThread({
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (messagesEndRef.current && scrollAreaRef.current) {
+      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+      }
     }
   }, [filteredMessages.length]);
 
@@ -337,6 +361,21 @@ export default function EnhancedMessageThread({
     };
   }, [transactionId, stopTyping]);
 
+  // Simulate online status (in real app, this would come from WebSocket)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setOnlineStatus(prev => ({
+        ...prev,
+        [counterpartyId]: {
+          isOnline: Math.random() > 0.3, // Simulate online status
+          lastSeen: new Date(Date.now() - Math.random() * 3600000) // Random last seen
+        }
+      }));
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [counterpartyId]);
+
   if (isLoading) {
     return (
       <Card className={cn("h-96", className)}>
@@ -350,19 +389,33 @@ export default function EnhancedMessageThread({
     );
   }
 
+  const counterpartyStatus = getOnlineStatus(counterpartyId);
+
   return (
     <div className={cn("h-full flex flex-col bg-white rounded-lg border", className)}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-gray-50/50">
+      <div className="flex items-center justify-between p-3 border-b bg-gray-50/50">
         <div className="flex items-center space-x-3">
-          <Avatar className="h-8 w-8">
-            <AvatarFallback className="bg-blue-100 text-blue-600 text-sm">
-              {getAvatarFallback(counterpartyName)}
-            </AvatarFallback>
-          </Avatar>
+          <div className="relative">
+            <Avatar className="h-8 w-8">
+              <AvatarFallback className="bg-blue-100 text-blue-600 text-sm">
+                {getAvatarFallback(counterpartyName)}
+              </AvatarFallback>
+            </Avatar>
+            {/* Online status indicator */}
+            <div className={cn(
+              "absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white",
+              counterpartyStatus.isOnline ? "bg-green-500" : "bg-gray-400"
+            )} />
+          </div>
           <div>
             <h3 className="font-medium text-sm">{counterpartyName}</h3>
-            <p className="text-xs text-muted-foreground capitalize">{counterpartyRole.toLowerCase()}</p>
+            <p className="text-xs text-muted-foreground">
+              {counterpartyStatus.isOnline 
+                ? 'Online' 
+                : `Last seen ${formatLastSeen(counterpartyStatus.lastSeen)}`
+              }
+            </p>
           </div>
         </div>
         
@@ -372,19 +425,12 @@ export default function EnhancedMessageThread({
               Offline ({messageQueue.length})
             </Badge>
           )}
-          
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-            <Phone className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-            <Video className="h-4 w-4" />
-          </Button>
         </div>
       </div>
 
       {/* Messages Area */}
-      <ScrollArea className="flex-1 p-4" ref={messagesContainerRef} onScroll={handleScroll}>
-        <div className="space-y-4">
+      <ScrollArea className="flex-1" ref={scrollAreaRef} onScroll={handleScroll}>
+        <div className="p-3 space-y-2">
           {/* Load More Button */}
           {hasMoreMessages && filteredMessages.length > 0 && (
             <div className="flex justify-center">
@@ -404,21 +450,23 @@ export default function EnhancedMessageThread({
           )}
 
           {/* Messages */}
-          {filteredMessages.map((message) => {
+          {filteredMessages.map((message, index) => {
             const isOwn = isOwnMessage(message);
-            const senderName = isOwn 
-              ? `${user?.firstName} ${user?.lastName}` 
-              : counterpartyName;
+            const prevMessage = index > 0 ? filteredMessages[index - 1] : null;
+            const isConsecutive = prevMessage && 
+              prevMessage.senderId === message.senderId && 
+              Math.abs(new Date(message.timestamp).getTime() - new Date(prevMessage.timestamp).getTime()) < 300000; // 5 minutes
 
             return (
               <div
                 key={message.id}
                 className={cn(
                   "flex items-end space-x-2 group",
-                  isOwn ? "justify-end" : "justify-start"
+                  isOwn ? "justify-end" : "justify-start",
+                  isConsecutive ? "mt-1" : "mt-3"
                 )}
               >
-                {!isOwn && (
+                {!isOwn && !isConsecutive && (
                   <Avatar className="h-6 w-6 flex-shrink-0">
                     <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
                       {getAvatarFallback(counterpartyName)}
@@ -426,18 +474,14 @@ export default function EnhancedMessageThread({
                   </Avatar>
                 )}
                 
+                {!isOwn && isConsecutive && (
+                  <div className="w-6" /> // Spacer for consecutive messages
+                )}
+                
                 <div className={cn(
                   "flex flex-col max-w-[80%] sm:max-w-[60%]",
                   isOwn ? "items-end" : "items-start"
                 )}>
-                  {/* Sender Name */}
-                  <p className={cn(
-                    "text-xs font-medium mb-1 px-1",
-                    isOwn ? "text-right" : "text-left"
-                  )}>
-                    {senderName}
-                  </p>
-                  
                   {/* Message Bubble */}
                   <div className={cn(
                     "rounded-2xl px-4 py-2 shadow-sm relative group/message",
@@ -561,7 +605,7 @@ export default function EnhancedMessageThread({
       )}
 
       {/* Message Input */}
-      <div className="p-4 border-t bg-white">
+      <div className="p-3 border-t bg-white">
         {/* Reply Indicator */}
         {replyTo && (
           <div className="mb-3 p-2 bg-blue-50 rounded-lg border-l-4 border-blue-400">
