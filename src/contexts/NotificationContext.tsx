@@ -2,13 +2,14 @@ import React, { createContext, useContext, useState, useEffect, ReactNode, useCa
 import { useAuth } from './AuthContext';
 import { useWebSocket } from './WebSocketContext';
 import { notificationsAPI } from '@/services/api';
+import { notificationService, NotificationData } from '@/services/notificationService';
 import { toast } from 'sonner';
 
 export interface Notification {
   id: string;
   userId: string;
   transactionId?: string;
-  type: 'TRANSACTION_UPDATE' | 'PAYMENT' | 'SHIPPING' | 'DELIVERY' | 'DISPUTE' | 'SYSTEM' | 'MESSAGE';
+  type: 'TRANSACTION_UPDATE' | 'PAYMENT' | 'SHIPPING' | 'DELIVERY' | 'DISPUTE' | 'SYSTEM' | 'MESSAGE' | 'WALLET';
   title: string;
   message: string;
   isRead: boolean;
@@ -34,6 +35,7 @@ interface NotificationContextType {
   clearAllNotifications: () => Promise<void>;
   refreshNotifications: () => Promise<void>;
   addNotification: (notification: Omit<Notification, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  generateSampleNotifications: () => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -71,14 +73,77 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       console.log('Loading notifications for user:', user.id);
       const apiNotifications = await notificationsAPI.getNotifications();
       console.log('Loaded notifications from API:', apiNotifications.length);
-      setNotifications(apiNotifications);
+      
+      // Transform API notifications to our format
+      const transformedNotifications: Notification[] = apiNotifications.map((notif: any) => ({
+        id: notif.id,
+        userId: notif.userId,
+        transactionId: notif.transactionId,
+        type: notif.type,
+        title: notif.title,
+        message: notif.message,
+        isRead: notif.isRead,
+        priority: notif.priority,
+        createdAt: notif.createdAt,
+        updatedAt: notif.updatedAt,
+        metadata: notif.metadata || {}
+      }));
+      
+      setNotifications(transformedNotifications);
     } catch (error) {
       console.error('Error loading notifications:', error);
-      // Fallback to empty array on error
-      setNotifications([]);
+      // Generate sample notifications for demo if API fails
+      generateSampleNotifications();
     } finally {
       setIsLoading(false);
     }
+  }, [user]);
+
+  // Generate sample notifications for demo
+  const generateSampleNotifications = useCallback(() => {
+    if (!user) return;
+
+    const sampleNotifications: Notification[] = [
+      notificationService.generateTransactionNotification(
+        user.id,
+        'txn_123456789',
+        'ACTIVE',
+        'John Doe',
+        1500
+      ),
+      notificationService.generatePaymentNotification(
+        user.id,
+        'txn_123456789',
+        'ESCROW_RELEASE',
+        1500
+      ),
+      notificationService.generateDisputeNotification(
+        user.id,
+        'txn_987654321',
+        'OPENED',
+        'Jane Smith'
+      ),
+      notificationService.generateSystemNotification(
+        user.id,
+        'Welcome to Tranzio!',
+        'Your account has been successfully set up. Start creating secure transactions today!',
+        'MEDIUM'
+      ),
+      notificationService.generateMessageNotification(
+        user.id,
+        'txn_123456789',
+        'John Doe',
+        'Hi, I have shipped your order. The tracking number is 1Z999AA1234567890.'
+      ),
+      notificationService.generateWalletNotification(
+        user.id,
+        'LOW_BALANCE',
+        'Your wallet balance is low. Consider adding funds for future transactions.'
+      )
+    ];
+
+    setNotifications(sampleNotifications);
+    console.log('Generated sample notifications:', sampleNotifications.length);
   }, [user]);
 
   // Save notifications to localStorage
@@ -124,6 +189,9 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
         console.log('Notification added to state, total notifications:', updated.length);
         return updated;
       });
+
+      // Show toast notification
+      notificationService.showToast(newNotification);
     } else {
       console.log('Notification not for current user, only saving to localStorage');
     }
@@ -144,55 +212,29 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     if (notificationData.userId === user.id) {
       window.dispatchEvent(new CustomEvent('notificationAdded'));
     }
-
-    // Show toast notification only for current user
-    if (notificationData.userId === user.id) {
-      const toastMessage = notificationData.metadata?.actionRequired 
-        ? `${notificationData.title} - Action Required`
-        : notificationData.title;
-      
-      switch (notificationData.priority) {
-        case 'URGENT':
-          toast.error(toastMessage, {
-            description: notificationData.message,
-            duration: 8000
-          });
-          break;
-        case 'HIGH':
-          toast.warning(toastMessage, {
-            description: notificationData.message,
-            duration: 6000
-          });
-          break;
-        case 'MEDIUM':
-          toast.info(toastMessage, {
-            description: notificationData.message,
-            duration: 4000
-          });
-          break;
-        default:
-          toast(toastMessage, {
-            description: notificationData.message,
-            duration: 3000
-          });
-      }
-    }
   }, [user, saveNotifications]);
 
   // Mark notification as read
   const markAsRead = useCallback(async (notificationId: string) => {
     try {
       await notificationsAPI.markAsRead(notificationId);
-      setNotifications(prev => {
-        const updated = prev.map(notification => 
-          notification.id === notificationId 
-            ? { ...notification, isRead: true, updatedAt: new Date().toISOString() }
-            : notification
-        );
-        return updated;
-      });
+      setNotifications(prev => 
+        prev.map(notif => 
+          notif.id === notificationId 
+            ? { ...notif, isRead: true, updatedAt: new Date().toISOString() }
+            : notif
+        )
+      );
     } catch (error) {
       console.error('Error marking notification as read:', error);
+      // Fallback to local update
+      setNotifications(prev => 
+        prev.map(notif => 
+          notif.id === notificationId 
+            ? { ...notif, isRead: true, updatedAt: new Date().toISOString() }
+            : notif
+        )
+      );
     }
   }, []);
 
@@ -200,16 +242,23 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   const markAllAsRead = useCallback(async () => {
     try {
       await notificationsAPI.markAllAsRead();
-      setNotifications(prev => {
-        const updated = prev.map(notification => ({
-          ...notification,
-          isRead: true,
-          updatedAt: new Date().toISOString()
-        }));
-        return updated;
-      });
+      setNotifications(prev => 
+        prev.map(notif => ({ 
+          ...notif, 
+          isRead: true, 
+          updatedAt: new Date().toISOString() 
+        }))
+      );
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
+      // Fallback to local update
+      setNotifications(prev => 
+        prev.map(notif => ({ 
+          ...notif, 
+          isRead: true, 
+          updatedAt: new Date().toISOString() 
+        }))
+      );
     }
   }, []);
 
@@ -217,12 +266,11 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   const deleteNotification = useCallback(async (notificationId: string) => {
     try {
       await notificationsAPI.deleteNotification(notificationId);
-      setNotifications(prev => {
-        const updated = prev.filter(notification => notification.id !== notificationId);
-        return updated;
-      });
+      setNotifications(prev => prev.filter(notif => notif.id !== notificationId));
     } catch (error) {
       console.error('Error deleting notification:', error);
+      // Fallback to local update
+      setNotifications(prev => prev.filter(notif => notif.id !== notificationId));
     }
   }, []);
 
@@ -232,7 +280,9 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       await notificationsAPI.clearAllNotifications();
       setNotifications([]);
     } catch (error) {
-      console.error('Error clearing all notifications:', error);
+      console.error('Error clearing notifications:', error);
+      // Fallback to local update
+      setNotifications([]);
     }
   }, []);
 
@@ -241,208 +291,69 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     await loadNotifications();
   }, [loadNotifications]);
 
-  // WebSocket event handlers for real-time notifications
+  // Load notifications on mount and when user changes
   useEffect(() => {
-    if (!socket || !user) return;
+    if (user) {
+      loadNotifications();
+    } else {
+      setNotifications([]);
+    }
+  }, [user, loadNotifications]);
 
-    // Transaction status updates
-    const handleTransactionUpdate = (data: any) => {
-      const { transaction, status, counterpartyName } = data;
+  // Listen for WebSocket notifications
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNotification = (data: any) => {
+      console.log('Received notification via WebSocket:', data);
       
-      let title = '';
-      let message = '';
-      let priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' = 'MEDIUM';
-      let actionRequired = false;
-
-      switch (status) {
-        case 'ACTIVE':
-          title = 'Transaction Activated';
-          message = `${counterpartyName} has joined your transaction.`;
-          priority = 'HIGH';
-          actionRequired = true;
-          break;
-        case 'WAITING_FOR_DELIVERY_DETAILS':
-          title = 'Delivery Details Required';
-          message = 'Please provide your delivery details to continue.';
-          priority = 'HIGH';
-          actionRequired = true;
-          break;
-        case 'DELIVERY_DETAILS_IMPORTED':
-          title = 'Delivery Details Received';
-          message = 'Delivery details have been provided successfully.';
-          priority = 'MEDIUM';
-          break;
-        case 'WAITING_FOR_PAYMENT':
-          title = 'Payment Required';
-          message = 'Please make payment to proceed with the transaction.';
-          priority = 'HIGH';
-          actionRequired = true;
-          break;
-        case 'PAYMENT_MADE':
-          title = 'Payment Received';
-          message = `Payment of ${transaction.currency} ${transaction.total} has been received and held in escrow.`;
-          priority = 'HIGH';
-          break;
-        case 'WAITING_FOR_SHIPMENT':
-          title = 'Shipment Required';
-          message = 'Please ship the goods and confirm shipment.';
-          priority = 'HIGH';
-          actionRequired = true;
-          break;
-        case 'SHIPMENT_CONFIRMED':
-          title = 'Goods Shipped';
-          message = 'The goods have been shipped and are on their way.';
-          priority = 'MEDIUM';
-          break;
-        case 'WAITING_FOR_BUYER_CONFIRMATION':
-          title = 'Confirmation Required';
-          message = 'Please confirm receipt of the goods.';
-          priority = 'HIGH';
-          actionRequired = true;
-          break;
-        case 'COMPLETED':
-          title = 'Transaction Completed';
-          message = 'Your transaction has been completed successfully!';
-          priority = 'MEDIUM';
-          break;
-        case 'CANCELLED':
-          title = 'Transaction Cancelled';
-          message = 'The transaction has been cancelled.';
-          priority = 'MEDIUM';
-          break;
-        default:
-          title = 'Transaction Update';
-          message = `Transaction status updated to ${status}.`;
+      if (data.userId === user?.id) {
+        const notification: Omit<Notification, 'id' | 'createdAt' | 'updatedAt'> = {
+          userId: data.userId,
+          transactionId: data.transactionId,
+          type: data.type,
+          title: data.title,
+          message: data.message,
+          isRead: false,
+          priority: data.priority || 'MEDIUM',
+          metadata: data.metadata || {}
+        };
+        
+        addNotification(notification);
       }
-
-      addNotification({
-        userId: user.id,
-        transactionId: transaction.id,
-        type: 'TRANSACTION_UPDATE',
-        title,
-        message,
-        isRead: false,
-        priority,
-        metadata: {
-          transactionStatus: status,
-          amount: transaction.total,
-          currency: transaction.currency,
-          counterpartyName,
-          actionRequired
-        }
-      });
     };
 
-    // Payment notifications
-    const handlePaymentUpdate = (data: any) => {
-      const { transaction, paymentMethod, amount, currency } = data;
-      
-      addNotification({
-        userId: user.id,
-        transactionId: transaction.id,
-        type: 'PAYMENT',
-        title: 'Payment Processed',
-        message: `Payment of ${currency} ${amount} via ${paymentMethod} has been processed.`,
-        isRead: false,
-        priority: 'HIGH',
-        metadata: {
-          amount,
-          currency,
-          actionRequired: false
-        }
-      });
-    };
+    socket.on('notification', handleNotification);
 
-    // Message notifications
-    const handleMessageNotification = (data: any) => {
-      const { senderName, transactionId, messagePreview } = data;
-      
-      addNotification({
-        userId: user.id,
-        transactionId,
-        type: 'MESSAGE',
-        title: `New Message from ${senderName}`,
-        message: messagePreview,
-        isRead: false,
-        priority: 'MEDIUM',
-        metadata: {
-          counterpartyName: senderName,
-          actionRequired: true
-        }
-      });
-    };
-
-    // Shipping notifications
-    const handleShippingUpdate = (data: any) => {
-      const { transaction, trackingNumber, courierService } = data;
-      
-      addNotification({
-        userId: user.id,
-        transactionId: transaction.id,
-        type: 'SHIPPING',
-        title: 'Shipping Update',
-        message: `Your package has been shipped via ${courierService}. Tracking: ${trackingNumber}`,
-        isRead: false,
-        priority: 'MEDIUM',
-        metadata: {
-          actionRequired: false
-        }
-      });
-    };
-
-    // System notifications
-    const handleSystemNotification = (data: any) => {
-      const { title, message, priority = 'MEDIUM' } = data;
-      
-      addNotification({
-        userId: user.id,
-        type: 'SYSTEM',
-        title,
-        message,
-        isRead: false,
-        priority,
-        metadata: {
-          actionRequired: false
-        }
-      });
-    };
-
-    // Register WebSocket event listeners
-    socket.on('transaction_update', handleTransactionUpdate);
-    socket.on('payment_update', handlePaymentUpdate);
-    socket.on('message_notification', handleMessageNotification);
-    socket.on('shipping_update', handleShippingUpdate);
-    socket.on('system_notification', handleSystemNotification);
-
-    // Cleanup
     return () => {
-      socket.off('transaction_update', handleTransactionUpdate);
-      socket.off('payment_update', handlePaymentUpdate);
-      socket.off('message_notification', handleMessageNotification);
-      socket.off('shipping_update', handleShippingUpdate);
-      socket.off('system_notification', handleSystemNotification);
+      socket.off('notification', handleNotification);
     };
   }, [socket, user, addNotification]);
 
-  // Load notifications on mount
+  // Listen for notification events
   useEffect(() => {
-    loadNotifications();
+    const handleNotificationAdded = () => {
+      console.log('Notification added event received');
+      loadNotifications();
+    };
+
+    window.addEventListener('notificationAdded', handleNotificationAdded);
+    return () => {
+      window.removeEventListener('notificationAdded', handleNotificationAdded);
+    };
   }, [loadNotifications]);
 
-  // Listen for new notifications added for current user
+  // Auto-generate sample notifications for demo (remove in production)
   useEffect(() => {
-    const handleNewNotification = () => {
-      // Don't reload all notifications - the new one is already added to state
-      // This prevents the notification from disappearing when API hasn't caught up
-      console.log('New notification added, keeping local state');
-    };
-
-    window.addEventListener('notificationAdded', handleNewNotification);
-    
-    return () => {
-      window.removeEventListener('notificationAdded', handleNewNotification);
-    };
-  }, []);
+    if (user && notifications.length === 0 && !isLoading) {
+      // Generate sample notifications after a short delay
+      const timer = setTimeout(() => {
+        generateSampleNotifications();
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [user, notifications.length, isLoading, generateSampleNotifications]);
 
   const value: NotificationContextType = {
     notifications,
@@ -453,7 +364,8 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     deleteNotification,
     clearAllNotifications,
     refreshNotifications,
-    addNotification
+    addNotification,
+    generateSampleNotifications
   };
 
   return (

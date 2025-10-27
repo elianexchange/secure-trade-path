@@ -1,211 +1,346 @@
+import { notificationsAPI } from './api';
+import { toast } from 'sonner';
+
+export interface NotificationData {
+  id: string;
+  userId: string;
+  transactionId?: string;
+  type: 'TRANSACTION_UPDATE' | 'PAYMENT' | 'SHIPPING' | 'DELIVERY' | 'DISPUTE' | 'SYSTEM' | 'MESSAGE' | 'WALLET';
+  title: string;
+  message: string;
+  isRead: boolean;
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  createdAt: string;
+  updatedAt: string;
+  metadata?: {
+    transactionStatus?: string;
+    amount?: number;
+    currency?: string;
+    counterpartyName?: string;
+    actionRequired?: boolean;
+  };
+}
+
 class NotificationService {
-  private isSupported = 'Notification' in window;
-  private permission: NotificationPermission = 'default';
+  private listeners: ((notifications: NotificationData[]) => void)[] = [];
 
-  constructor() {
-    this.initialize();
+  // Subscribe to notification updates
+  subscribe(listener: (notifications: NotificationData[]) => void) {
+    this.listeners.push(listener);
+    return () => {
+      this.listeners = this.listeners.filter(l => l !== listener);
+    };
   }
 
-  private async initialize() {
-    if (!this.isSupported) {
-      console.warn('Notifications not supported in this browser');
-      return;
-    }
-
-    this.permission = Notification.permission;
-    
-    // Request permission if not granted
-    if (this.permission === 'default') {
-      this.permission = await this.requestPermission();
-    }
-
-    // Listen for permission changes
-    if ('permissions' in navigator) {
-      navigator.permissions.query({ name: 'notifications' }).then((permissionStatus) => {
-        permissionStatus.onchange = () => {
-          this.permission = permissionStatus.state as NotificationPermission;
-        };
-      });
-    }
+  // Notify all listeners
+  private notifyListeners(notifications: NotificationData[]) {
+    this.listeners.forEach(listener => listener(notifications));
   }
 
-  async requestPermission(): Promise<NotificationPermission> {
-    if (!this.isSupported) return 'denied';
-
-    try {
-      const permission = await Notification.requestPermission();
-      this.permission = permission;
-      return permission;
-    } catch (error) {
-      console.error('Failed to request notification permission:', error);
-      return 'denied';
-    }
-  }
-
-  async showNotification(title: string, options: NotificationOptions = {}) {
-    if (!this.isSupported || this.permission !== 'granted') {
-      return false;
-    }
-
-    try {
-      // Check if page is visible
-      if (!document.hidden) {
-        // Page is visible, show a toast instead
-        this.showToast(title, options.body || '');
-        return true;
+  // Generate real transaction notifications
+  generateTransactionNotification(
+    userId: string,
+    transactionId: string,
+    status: string,
+    counterpartyName: string,
+    amount?: number
+  ): NotificationData {
+    const notifications: Record<string, { title: string; message: string; priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' }> = {
+      'PENDING': {
+        title: 'Transaction Created',
+        message: `Your transaction with ${counterpartyName} has been created and is pending confirmation.`,
+        priority: 'MEDIUM'
+      },
+      'ACTIVE': {
+        title: 'Transaction Activated',
+        message: `Your transaction with ${counterpartyName} is now active. Funds are secured in escrow.`,
+        priority: 'HIGH'
+      },
+      'PAYMENT_PENDING': {
+        title: 'Payment Pending',
+        message: `Payment of ${amount ? `$${amount}` : 'funds'} is pending for your transaction with ${counterpartyName}.`,
+        priority: 'HIGH'
+      },
+      'PAYMENT_CONFIRMED': {
+        title: 'Payment Confirmed',
+        message: `Payment has been confirmed for your transaction with ${counterpartyName}.`,
+        priority: 'HIGH'
+      },
+      'SHIPPED': {
+        title: 'Item Shipped',
+        message: `Your item has been shipped by ${counterpartyName}. Track your package for updates.`,
+        priority: 'MEDIUM'
+      },
+      'DELIVERED': {
+        title: 'Item Delivered',
+        message: `Your item has been delivered. Please confirm receipt to release payment to ${counterpartyName}.`,
+        priority: 'HIGH'
+      },
+      'COMPLETED': {
+        title: 'Transaction Completed',
+        message: `Your transaction with ${counterpartyName} has been completed successfully.`,
+        priority: 'MEDIUM'
+      },
+      'CANCELLED': {
+        title: 'Transaction Cancelled',
+        message: `Your transaction with ${counterpartyName} has been cancelled.`,
+        priority: 'HIGH'
+      },
+      'DISPUTED': {
+        title: 'Dispute Opened',
+        message: `A dispute has been opened for your transaction with ${counterpartyName}.`,
+        priority: 'URGENT'
       }
+    };
 
-      // Page is hidden, show browser notification
-      const notification = new Notification(title, {
-        icon: '/favicon.ico',
-        badge: '/favicon.ico',
-        tag: 'tranzio-message',
-        requireInteraction: false,
-        silent: false,
-        ...options,
-      });
+    const notification = notifications[status] || {
+      title: 'Transaction Update',
+      message: `Your transaction with ${counterpartyName} status has been updated to ${status}.`,
+      priority: 'MEDIUM' as const
+    };
 
-      // Auto-close after 5 seconds
-      setTimeout(() => {
-        notification.close();
-      }, 5000);
+    return {
+      id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      userId,
+      transactionId,
+      type: 'TRANSACTION_UPDATE',
+      title: notification.title,
+      message: notification.message,
+      isRead: false,
+      priority: notification.priority,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      metadata: {
+        transactionStatus: status,
+        amount,
+        counterpartyName,
+        actionRequired: ['PAYMENT_PENDING', 'DELIVERED', 'DISPUTED'].includes(status)
+      }
+    };
+  }
 
-      // Handle click
-      notification.onclick = () => {
-        window.focus();
-        notification.close();
-        
-        // Navigate to messages if it's a message notification
-        if (options.tag === 'tranzio-message') {
-          window.location.href = '/app/messages';
+  // Generate payment notifications
+  generatePaymentNotification(
+    userId: string,
+    transactionId: string,
+    type: 'DEPOSIT' | 'WITHDRAWAL' | 'ESCROW_RELEASE' | 'REFUND',
+    amount: number,
+    currency: string = 'USD'
+  ): NotificationData {
+    const notifications: Record<string, { title: string; message: string; priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' }> = {
+      'DEPOSIT': {
+        title: 'Funds Deposited',
+        message: `$${amount} has been deposited to your wallet.`,
+        priority: 'MEDIUM'
+      },
+      'WITHDRAWAL': {
+        title: 'Funds Withdrawn',
+        message: `$${amount} has been withdrawn from your wallet.`,
+        priority: 'HIGH'
+      },
+      'ESCROW_RELEASE': {
+        title: 'Escrow Released',
+        message: `$${amount} has been released from escrow for transaction ${transactionId.slice(-8)}.`,
+        priority: 'HIGH'
+      },
+      'REFUND': {
+        title: 'Refund Processed',
+        message: `$${amount} refund has been processed for transaction ${transactionId.slice(-8)}.`,
+        priority: 'HIGH'
+      }
+    };
+
+    const notification = notifications[type] || {
+      title: 'Payment Update',
+      message: `Payment activity: ${type} of $${amount}`,
+      priority: 'MEDIUM' as const
+    };
+
+    return {
+      id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      userId,
+      transactionId,
+      type: 'PAYMENT',
+      title: notification.title,
+      message: notification.message,
+      isRead: false,
+      priority: notification.priority,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      metadata: {
+        amount,
+        currency,
+        actionRequired: type === 'WITHDRAWAL'
+      }
+    };
+  }
+
+  // Generate dispute notifications
+  generateDisputeNotification(
+    userId: string,
+    transactionId: string,
+    type: 'OPENED' | 'RESOLVED' | 'ESCALATED',
+    counterpartyName: string
+  ): NotificationData {
+    const notifications: Record<string, { title: string; message: string; priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' }> = {
+      'OPENED': {
+        title: 'Dispute Opened',
+        message: `A dispute has been opened by ${counterpartyName} for transaction ${transactionId.slice(-8)}.`,
+        priority: 'URGENT'
+      },
+      'RESOLVED': {
+        title: 'Dispute Resolved',
+        message: `The dispute for transaction ${transactionId.slice(-8)} has been resolved.`,
+        priority: 'HIGH'
+      },
+      'ESCALATED': {
+        title: 'Dispute Escalated',
+        message: `The dispute for transaction ${transactionId.slice(-8)} has been escalated to admin review.`,
+        priority: 'URGENT'
+      }
+    };
+
+    const notification = notifications[type] || {
+      title: 'Dispute Update',
+      message: `Dispute activity for transaction ${transactionId.slice(-8)}.`,
+      priority: 'HIGH' as const
+    };
+
+    return {
+      id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      userId,
+      transactionId,
+      type: 'DISPUTE',
+      title: notification.title,
+      message: notification.message,
+      isRead: false,
+      priority: notification.priority,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      metadata: {
+        counterpartyName,
+        actionRequired: type === 'OPENED' || type === 'ESCALATED'
+      }
+    };
+  }
+
+  // Generate system notifications
+  generateSystemNotification(
+    userId: string,
+    title: string,
+    message: string,
+    priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' = 'MEDIUM'
+  ): NotificationData {
+    return {
+      id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      userId,
+      type: 'SYSTEM',
+      title,
+      message,
+      isRead: false,
+      priority,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      metadata: {
+        actionRequired: priority === 'URGENT' || priority === 'HIGH'
+      }
+    };
+  }
+
+  // Generate message notifications
+  generateMessageNotification(
+    userId: string,
+    transactionId: string,
+    senderName: string,
+    messagePreview: string
+  ): NotificationData {
+    return {
+      id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      userId,
+      transactionId,
+      type: 'MESSAGE',
+      title: `New message from ${senderName}`,
+      message: messagePreview.length > 50 ? messagePreview.substring(0, 50) + '...' : messagePreview,
+      isRead: false,
+      priority: 'LOW',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      metadata: {
+        counterpartyName: senderName
+      }
+    };
+  }
+
+  // Generate wallet notifications
+  generateWalletNotification(
+    userId: string,
+    type: 'LOW_BALANCE' | 'SECURITY_ALERT' | 'VERIFICATION_REQUIRED',
+    message: string
+  ): NotificationData {
+    const priorities: Record<string, 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'> = {
+      'LOW_BALANCE': 'MEDIUM',
+      'SECURITY_ALERT': 'URGENT',
+      'VERIFICATION_REQUIRED': 'HIGH'
+    };
+
+    return {
+      id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      userId,
+      type: 'WALLET',
+      title: `Wallet ${type.replace('_', ' ')}`,
+      message,
+      isRead: false,
+      priority: priorities[type] || 'MEDIUM',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      metadata: {
+        actionRequired: type === 'SECURITY_ALERT' || type === 'VERIFICATION_REQUIRED'
+      }
+    };
+  }
+
+  // Get notification icon based on type
+  getNotificationIcon(type: string) {
+    const icons: Record<string, string> = {
+      'TRANSACTION_UPDATE': '📦',
+      'PAYMENT': '💳',
+      'SHIPPING': '🚚',
+      'DELIVERY': '📬',
+      'DISPUTE': '⚠️',
+      'SYSTEM': '🔔',
+      'MESSAGE': '💬',
+      'WALLET': '💰'
+    };
+    return icons[type] || '🔔';
+  }
+
+  // Get priority color
+  getPriorityColor(priority: string) {
+    const colors: Record<string, string> = {
+      'LOW': 'text-gray-500',
+      'MEDIUM': 'text-blue-500',
+      'HIGH': 'text-orange-500',
+      'URGENT': 'text-red-500'
+    };
+    return colors[priority] || 'text-gray-500';
+  }
+
+  // Show toast notification
+  showToast(notification: NotificationData) {
+    const icon = this.getNotificationIcon(notification.type);
+    const priorityColor = this.getPriorityColor(notification.priority);
+    
+    toast(notification.title, {
+      description: notification.message,
+      duration: notification.priority === 'URGENT' ? 8000 : 4000,
+      action: {
+        label: 'View',
+        onClick: () => {
+          // Navigate to notifications page or specific transaction
+          window.location.href = '/app/notifications';
         }
-      };
-
-      return true;
-    } catch (error) {
-      console.error('Failed to show notification:', error);
-      return false;
-    }
-  }
-
-  showToast(title: string, message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') {
-    // Create toast element
-    const toast = document.createElement('div');
-    toast.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm transform transition-all duration-300 translate-x-full`;
-    
-    // Set background color based on type
-    const bgColors = {
-      info: 'bg-blue-500',
-      success: 'bg-green-500',
-      warning: 'bg-yellow-500',
-      error: 'bg-red-500'
-    };
-    
-    toast.className += ` ${bgColors[type]} text-white`;
-    
-    toast.innerHTML = `
-      <div class="flex items-start space-x-3">
-        <div class="flex-1">
-          <h4 class="font-medium">${title}</h4>
-          ${message ? `<p class="text-sm opacity-90 mt-1">${message}</p>` : ''}
-        </div>
-        <button class="text-white opacity-70 hover:opacity-100 transition-opacity">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
-      </div>
-    `;
-
-    // Add to DOM
-    document.body.appendChild(toast);
-
-    // Animate in
-    setTimeout(() => {
-      toast.classList.remove('translate-x-full');
-    }, 100);
-
-    // Handle close button
-    const closeBtn = toast.querySelector('button');
-    if (closeBtn) {
-      closeBtn.addEventListener('click', () => {
-        this.removeToast(toast);
-      });
-    }
-
-    // Auto-remove after 4 seconds
-    setTimeout(() => {
-      this.removeToast(toast);
-    }, 4000);
-  }
-
-  private removeToast(toast: HTMLElement) {
-    toast.classList.add('translate-x-full');
-    setTimeout(() => {
-      if (toast.parentNode) {
-        toast.parentNode.removeChild(toast);
       }
-    }, 300);
-  }
-
-  // Show message notification
-  async showMessageNotification(senderName: string, message: string, transactionId: string) {
-    return this.showNotification(
-      `New message from ${senderName}`,
-      {
-        body: message,
-        tag: 'tranzio-message',
-        data: { transactionId },
-        actions: [
-          {
-            action: 'reply',
-            title: 'Reply',
-            icon: '/favicon.ico'
-          },
-          {
-            action: 'view',
-            title: 'View',
-            icon: '/favicon.ico'
-          }
-        ]
-      }
-    );
-  }
-
-  // Show transaction notification
-  async showTransactionNotification(type: 'created' | 'joined' | 'completed' | 'disputed', transactionId: string) {
-    const titles = {
-      created: 'Transaction Created',
-      joined: 'Transaction Joined',
-      completed: 'Transaction Completed',
-      disputed: 'Transaction Disputed'
-    };
-
-    const messages = {
-      created: 'Your transaction has been created successfully',
-      joined: 'Someone has joined your transaction',
-      completed: 'Your transaction has been completed',
-      disputed: 'Your transaction has been disputed'
-    };
-
-    return this.showNotification(
-      titles[type],
-      {
-        body: messages[type],
-        tag: 'tranzio-transaction',
-        data: { transactionId }
-      }
-    );
-  }
-
-  // Check if notifications are supported and enabled
-  isEnabled(): boolean {
-    return this.isSupported && this.permission === 'granted';
-  }
-
-  // Get current permission status
-  getPermissionStatus(): NotificationPermission {
-    return this.permission;
+    });
   }
 }
 
