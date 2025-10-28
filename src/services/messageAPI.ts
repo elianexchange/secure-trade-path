@@ -19,7 +19,7 @@ class MessageAPI {
     };
 
     try {
-      const response = await fetch(`${API_BASE_URL.replace('/api', '')}${endpoint}`, config);
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -108,7 +108,7 @@ class MessageAPI {
         reject(new Error('Upload failed'));
       });
 
-      xhr.open('POST', `${API_BASE_URL}/api/messages/upload`);
+      xhr.open('POST', `${API_BASE_URL}/messages/upload`);
       xhr.setRequestHeader('Authorization', `Bearer ${token}`);
       xhr.send(formData);
     });
