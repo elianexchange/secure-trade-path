@@ -78,9 +78,14 @@ const Disputes: React.FC = () => {
       };
       
       const response = await disputeService.getUserDisputes(filters);
+      console.log('🔍 Disputes page - loadDisputes response:', response);
       if (response.success) {
+        console.log('🔍 Disputes page - Setting disputes:', response.data);
         setDisputes(response.data);
         setLastUpdated(new Date());
+        console.log('🔍 Disputes page - Disputes state updated, count:', response.data.length);
+      } else {
+        console.error('🔍 Disputes page - Response not successful:', response);
       }
     } catch (error) {
       console.error('Error loading disputes:', error);
@@ -159,6 +164,12 @@ const Disputes: React.FC = () => {
 
   // Disputes are now filtered by the API, so we can use them directly
   const filteredDisputes = disputes;
+  
+  // Debug logging
+  console.log('🔍 Disputes page - Current disputes state:', disputes);
+  console.log('🔍 Disputes page - Filtered disputes:', filteredDisputes);
+  console.log('🔍 Disputes page - Disputes length:', disputes.length);
+  console.log('🔍 Disputes page - Filtered disputes length:', filteredDisputes.length);
 
   const formatCurrency = (amount: number, currency: string) => {
     return new Intl.NumberFormat('en-NG', {
