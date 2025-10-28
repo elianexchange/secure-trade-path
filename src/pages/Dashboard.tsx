@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { ArrowUpRight, ArrowDownRight, TrendingUp, ShoppingCart, Package, Shield, Users, Calendar, MessageCircle, Search, FileText, Star, CheckCircle } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, TrendingUp, ShoppingCart, Package, Shield, Users, Calendar, MessageCircle, Search, FileText, Star, CheckCircle, AlertTriangle, Gavel } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWebSocket } from '@/contexts/WebSocketContext';
 import { toast } from 'sonner';
@@ -23,6 +23,9 @@ export default function Dashboard() {
     activeTransactions: 0,
     completedTransactions: 0,
     totalValue: 0,
+    disputedTransactions: 0,
+    openDisputes: 0,
+    resolvedDisputes: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
   const [userTransactions, setUserTransactions] = useState<any[]>([]);
@@ -66,6 +69,8 @@ export default function Dashboard() {
             acc.activeTransactions++;
           } else if (tx.status === 'COMPLETED') {
             acc.completedTransactions++;
+          } else if (tx.status === 'DISPUTED') {
+            acc.disputedTransactions++;
           }
           acc.totalValue += tx.total || 0;
           return acc;
@@ -74,6 +79,9 @@ export default function Dashboard() {
           activeTransactions: 0,
           completedTransactions: 0,
           totalValue: 0,
+          disputedTransactions: 0,
+          openDisputes: 0,
+          resolvedDisputes: 0,
         });
 
         setStats(stats);
@@ -87,6 +95,9 @@ export default function Dashboard() {
           activeTransactions: 0,
           completedTransactions: 0,
           totalValue: 0,
+          disputedTransactions: 0,
+          openDisputes: 0,
+          resolvedDisputes: 0,
         });
       } finally {
         setIsLoading(false);
@@ -161,7 +172,10 @@ export default function Dashboard() {
             totalTransactions,
             activeTransactions,
             completedTransactions,
-            totalValue
+            totalValue,
+            disputedTransactions: transactionsArray.filter((tx: any) => tx.status === 'DISPUTED').length,
+            openDisputes: 0, // Will be loaded from disputes API
+            resolvedDisputes: 0, // Will be loaded from disputes API
           });
         } catch (error) {
           console.error('Dashboard: Fallback refresh failed:', error);
@@ -303,7 +317,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-2 grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-2 grid-cols-2 lg:grid-cols-5">
         {/* Total Transactions */}
         <div className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-2">
@@ -372,6 +386,24 @@ export default function Dashboard() {
             <div className="text-lg font-bold text-gray-900">{stats.completedTransactions}</div>
             <p className="text-xs text-gray-600 leading-tight">
               Successfully completed
+            </p>
+          </div>
+        </div>
+
+        {/* Disputed Transactions */}
+        <div className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-2">
+            <div className="p-1 rounded-md bg-red-100">
+              <AlertTriangle className="h-3.5 w-3.5 text-red-600" />
+            </div>
+            <div className="text-xs font-medium text-red-600 bg-red-50 px-1.5 py-0.5 rounded">
+              Disputed
+            </div>
+          </div>
+          <div className="space-y-0.5">
+            <div className="text-lg font-bold text-gray-900">{stats.disputedTransactions}</div>
+            <p className="text-xs text-gray-600 leading-tight">
+              Under dispute
             </p>
           </div>
         </div>
@@ -534,7 +566,7 @@ export default function Dashboard() {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="grid gap-4 grid-cols-2">
+          <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
             {/* Row 1 */}
             <Button 
               variant="outline" 
@@ -551,6 +583,14 @@ export default function Dashboard() {
             >
               <FileText className="h-5 w-5" />
               <span className="font-medium text-sm">Create New</span>
+            </Button>
+            <Button 
+              variant="outline" 
+              className="h-20 flex-col gap-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-md"
+              onClick={() => navigate('/app/disputes')}
+            >
+              <Gavel className="h-5 w-5" />
+              <span className="font-medium text-sm">Disputes</span>
             </Button>
             
             {/* Row 2 */}
@@ -569,6 +609,14 @@ export default function Dashboard() {
             >
               <Shield className="h-5 w-5" />
               <span className="font-medium text-sm">Security Settings</span>
+            </Button>
+            <Button 
+              variant="outline" 
+              className="h-20 flex-col gap-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-md"
+              onClick={() => navigate('/app/notifications')}
+            >
+              <MessageCircle className="h-5 w-5" />
+              <span className="font-medium text-sm">Notifications</span>
             </Button>
           </div>
         </CardContent>

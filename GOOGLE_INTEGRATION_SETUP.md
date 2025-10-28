@@ -8,7 +8,7 @@ This guide will help you integrate Google OAuth authentication and Google-based 
 2. **Gmail API Access**
 3. **OAuth 2.0 Credentials**
 
-## 📋 Step-by-Step Setup
+## 📋 Step-by-Step Setup  
 
 ### 1. Google Cloud Console Setup
 

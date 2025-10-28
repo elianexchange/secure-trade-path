@@ -86,7 +86,7 @@ class MessageController {
             id: tx.id,
             description: tx.description,
             status: tx.status,
-            price: tx.price,
+            total: tx.total,
             currency: tx.currency,
             createdAt: tx.createdAt
           },

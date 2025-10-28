@@ -17,7 +17,7 @@ declare global {
     interface User {
       id: string;
       email: string;
-      password: string;
+      password: string | null;
       firstName: string;
       lastName: string;
       role: string;
@@ -28,6 +28,8 @@ declare global {
       verificationLevel: string;
       trustScore: number;
       lastSeen: Date | null;
+      googleId: string | null;
+      profilePicture: string | null;
       createdAt: Date;
       updatedAt: Date;
     }

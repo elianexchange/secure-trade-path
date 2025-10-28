@@ -19,58 +19,68 @@ import {
   DollarSign,
   Truck,
   Package,
-  UserX
+  UserX,
+  Activity
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { disputesAPI } from '@/services/api';
+import { disputeService, Dispute, DisputeFilters } from '@/services/disputeService';
 import { useAuth } from '@/contexts/AuthContext';
+import { useWebSocket } from '@/contexts/WebSocketContext';
 import { Link } from 'react-router-dom';
 
-interface Dispute {
-  id: string;
-  transactionId: string;
-  disputeType: 'PAYMENT' | 'DELIVERY' | 'QUALITY' | 'FRAUD' | 'OTHER';
-  reason: string;
-  description: string;
-  status: 'OPEN' | 'IN_REVIEW' | 'RESOLVED' | 'CLOSED';
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
-  createdAt: string;
-  transaction: {
-    id: string;
-    description: string;
-    price: number;
-    currency: string;
-  };
-  raiser?: {
-    id: string;
-    firstName: string;
-    lastName: string;
-  };
-  accused?: {
-    id: string;
-    firstName: string;
-    lastName: string;
-  };
-}
+// Dispute interface is now imported from disputeService
 
 const Disputes: React.FC = () => {
   const { user } = useAuth();
+  const { isConnected } = useWebSocket();
   const [disputes, setDisputes] = useState<Dispute[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
   useEffect(() => {
     loadDisputes();
-  }, []);
+    
+    // Set up real-time listeners
+    const unsubscribeDisputes = disputeService.addDisputeListener((newDisputes) => {
+      console.log('Disputes page: Received dispute update:', newDisputes);
+      loadDisputes(); // Refresh disputes list
+    });
+
+    // Refresh data periodically if WebSocket is not connected
+    let refreshInterval: NodeJS.Timeout;
+    if (!isConnected) {
+      refreshInterval = setInterval(() => {
+        loadDisputes();
+      }, 30000); // Refresh every 30 seconds
+    }
+
+    return () => {
+      unsubscribeDisputes();
+      if (refreshInterval) {
+        clearInterval(refreshInterval);
+      }
+    };
+  }, [isConnected]);
 
   const loadDisputes = async () => {
     try {
       setLoading(true);
-      const response = await disputesAPI.getUserDisputes();
+      const filters: DisputeFilters = {
+        status: statusFilter !== 'all' ? statusFilter : undefined,
+        type: typeFilter !== 'all' ? typeFilter : undefined,
+        priority: priorityFilter !== 'all' ? priorityFilter : undefined,
+        search: searchTerm || undefined
+      };
+      
+      const response = await disputeService.getUserDisputes(filters);
       if (response.success) {
         setDisputes(response.data);
+        setLastUpdated(new Date());
       }
     } catch (error) {
       console.error('Error loading disputes:', error);
@@ -79,6 +89,13 @@ const Disputes: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // Reload disputes when filters change
+  useEffect(() => {
+    if (!loading) {
+      loadDisputes();
+    }
+  }, [statusFilter, typeFilter, priorityFilter, searchTerm]);
 
   const getDisputeIcon = (type: string) => {
     switch (type) {
@@ -140,14 +157,8 @@ const Disputes: React.FC = () => {
     }
   };
 
-  const filteredDisputes = disputes.filter(dispute => {
-    const matchesSearch = dispute.reason.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         dispute.transaction.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || dispute.status === statusFilter;
-    const matchesType = typeFilter === 'all' || dispute.disputeType === typeFilter;
-    
-    return matchesSearch && matchesStatus && matchesType;
-  });
+  // Disputes are now filtered by the API, so we can use them directly
+  const filteredDisputes = disputes;
 
   const formatCurrency = (amount: number, currency: string) => {
     return new Intl.NumberFormat('en-NG', {
@@ -168,6 +179,29 @@ const Disputes: React.FC = () => {
     });
   };
 
+  const getSLAStatusColor = (status: 'ON_TIME' | 'AT_RISK' | 'OVERDUE') => {
+    switch (status) {
+      case 'ON_TIME':
+        return 'bg-green-100 text-green-800';
+      case 'AT_RISK':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'OVERDUE':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const formatTime = (hours: number) => {
+    if (hours < 24) {
+      return `${Math.round(hours)}h`;
+    } else {
+      const days = Math.floor(hours / 24);
+      const remainingHours = Math.round(hours % 24);
+      return `${days}d ${remainingHours}h`;
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto py-8">
@@ -186,6 +220,15 @@ const Disputes: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-900">Dispute Resolution</h1>
           <p className="text-gray-600 mt-1">
             Manage and resolve transaction disputes
+            {isConnected && (
+              <span className="ml-2 inline-flex items-center gap-1 text-green-600">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                Live Updates
+              </span>
+            )}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            Last updated: {lastUpdated.toLocaleTimeString()}
           </p>
         </div>
         <Button asChild className="bg-blue-600 hover:bg-blue-700">
@@ -293,6 +336,18 @@ const Disputes: React.FC = () => {
                 <SelectItem value="OTHER">Other</SelectItem>
               </SelectContent>
             </Select>
+            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="Filter by priority" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Priorities</SelectItem>
+                <SelectItem value="LOW">Low</SelectItem>
+                <SelectItem value="MEDIUM">Medium</SelectItem>
+                <SelectItem value="HIGH">High</SelectItem>
+                <SelectItem value="URGENT">Urgent</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
@@ -321,24 +376,31 @@ const Disputes: React.FC = () => {
             </CardContent>
           </Card>
         ) : (
-          filteredDisputes.map((dispute) => (
-            <Card key={dispute.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      {getDisputeIcon(dispute.disputeType)}
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {dispute.reason}
-                      </h3>
-                      <Badge className={getPriorityColor(dispute.priority)}>
-                        {dispute.priority}
-                      </Badge>
-                      <Badge className={getStatusColor(dispute.status)}>
-                        {getStatusIcon(dispute.status)}
-                        <span className="ml-1">{dispute.status.replace('_', ' ')}</span>
-                      </Badge>
-                    </div>
+          filteredDisputes.map((dispute) => {
+            const slaStatus = disputeService.calculateSLAStatus(dispute);
+            const timeToResolution = disputeService.calculateTimeToResolution(dispute);
+            
+            return (
+              <Card key={dispute.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        {getDisputeIcon(dispute.disputeType)}
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {dispute.reason}
+                        </h3>
+                        <Badge className={getPriorityColor(dispute.priority)}>
+                          {dispute.priority}
+                        </Badge>
+                        <Badge className={getStatusColor(dispute.status)}>
+                          {getStatusIcon(dispute.status)}
+                          <span className="ml-1">{dispute.status.replace('_', ' ')}</span>
+                        </Badge>
+                        <Badge className={getSLAStatusColor(slaStatus)}>
+                          {slaStatus.replace('_', ' ')}
+                        </Badge>
+                      </div>
                     
                     <p className="text-gray-600 mb-3 line-clamp-2">
                       {dispute.description}
@@ -356,6 +418,10 @@ const Disputes: React.FC = () => {
                       <div className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />
                         <span>{formatDate(dispute.createdAt)}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Activity className="h-4 w-4" />
+                        <span>Time: {formatTime(timeToResolution)}</span>
                       </div>
                     </div>
                   </div>
@@ -379,7 +445,8 @@ const Disputes: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
-          ))
+            );
+          })
         )}
       </div>
     </div>

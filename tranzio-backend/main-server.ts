@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 import { createServer } from 'http';
+import rateLimit from 'express-rate-limit';
 
 // Load environment variables
 dotenv.config();
@@ -21,14 +22,36 @@ console.log('  - NODE_ENV:', process.env.NODE_ENV);
 console.log('  - DATABASE_URL:', process.env.DATABASE_URL ? 'Set' : 'Not set');
 console.log('  - JWT_SECRET:', process.env.JWT_SECRET ? 'Set' : 'Not set');
 
-// Initialize Prisma client
-const prisma = new PrismaClient();
+// Initialize Prisma client with connection pooling
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  },
+  log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
+});
 
 // Middleware
 app.use(helmet({
   crossOriginEmbedderPolicy: false,
   contentSecurityPolicy: false
 }));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: process.env.NODE_ENV === 'production' ? 100 : 1000, // limit each IP to 100 requests per windowMs in production
+  message: {
+    success: false,
+    error: 'Too many requests from this IP, please try again later.',
+    timestamp: new Date().toISOString()
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use(limiter);
 
 // CORS configuration
 const corsOptions = {
@@ -61,15 +84,16 @@ const corsOptions = {
       allowedOrigins.push(...envOrigins);
     }
 
-    console.log('CORS request from origin:', origin);
-    console.log('Allowed origins:', allowedOrigins);
-
     if (allowedOrigins.includes(origin)) {
-      console.log('✅ CORS allowed for origin:', origin);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ CORS allowed for origin:', origin);
+      }
       return callback(null, true);
     }
     
-    console.log('❌ CORS blocked origin:', origin);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('❌ CORS blocked origin:', origin);
+    }
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
@@ -90,15 +114,33 @@ app.use(morgan('combined'));
 console.log('✅ Middleware configured');
 
 // Health endpoint
-app.get('/health', (req, res) => {
-  console.log('Health check requested');
-  res.json({
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development',
-    cors_origin: process.env.CORS_ORIGIN || 'Not set'
-  });
+app.get('/health', async (req, res) => {
+  try {
+    // Test database connection
+    await prisma.$queryRaw`SELECT 1`;
+    
+    res.json({
+      status: 'OK',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV || 'development',
+      database: 'connected',
+      memory: {
+        used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB',
+        total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + ' MB'
+      },
+      cors_origin: process.env.CORS_ORIGIN || 'Not set'
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'ERROR',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV || 'development',
+      database: 'disconnected',
+      error: 'Database connection failed'
+    });
+  }
 });
 
 // Simple test endpoint
@@ -164,6 +206,21 @@ app.use('*', (req, res) => {
   });
 });
 
+// Global error handler
+app.use((error: any, req: any, res: any, next: any) => {
+  console.error('Global error handler:', error);
+  
+  const statusCode = error.statusCode || 500;
+  const message = error.message || 'Internal server error';
+  
+  res.status(statusCode).json({
+    success: false,
+    error: message,
+    timestamp: new Date().toISOString(),
+    ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
+  });
+});
+
 // Start server
 const startServer = async () => {
   try {
@@ -190,6 +247,43 @@ const startServer = async () => {
     process.exit(1);
   }
 };
+
+// Graceful shutdown
+const gracefulShutdown = async (signal: string) => {
+  console.log(`\n🛑 Received ${signal}. Starting graceful shutdown...`);
+  
+  try {
+    // Close HTTP server
+    server.close(() => {
+      console.log('✅ HTTP server closed');
+    });
+    
+    // Close database connection
+    await prisma.$disconnect();
+    console.log('✅ Database connection closed');
+    
+    console.log('✅ Graceful shutdown completed');
+    process.exit(0);
+  } catch (error) {
+    console.error('❌ Error during graceful shutdown:', error);
+    process.exit(1);
+  }
+};
+
+// Handle shutdown signals
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+  gracefulShutdown('UNCAUGHT_EXCEPTION');
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  gracefulShutdown('UNHANDLED_REJECTION');
+});
 
 startServer();
 
