@@ -193,9 +193,13 @@ app.use('/api/notifications', notificationRoutes);
 import googleAuthRoutes from './src/routes/googleAuth';
 app.use('/api/google', googleAuthRoutes);
 
+// Import and use dispute routes
+import disputeRoutes from './src/routes/disputes';
+app.use('/api/disputes', disputeRoutes);
+
 // Lemu routes removed - file doesn't exist
 
-console.log('✅ Auth, transaction, message, notification, and Google auth routes configured');
+console.log('✅ Auth, transaction, message, notification, Google auth, and dispute routes configured');
 
 // 404 handler
 app.use('*', (req, res) => {
