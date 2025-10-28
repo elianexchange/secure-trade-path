@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { formatCurrency } from '@/utils/currency';
 import sharedTransactionStore from '@/utils/sharedTransactionStore';
 import { transactionsAPI } from '@/services/api';
+import { disputeService } from '@/services/disputeService';
 import { OnboardingGuide } from '@/components/OnboardingGuide';
 
 export default function Dashboard() {
@@ -62,6 +63,23 @@ export default function Dashboard() {
         const transactionsArray = Array.isArray(transactions) ? transactions : [];
         setUserTransactions(transactionsArray);
         
+        // Load dispute data from API
+        let disputeStats = { openDisputes: 0, resolvedDisputes: 0 };
+        try {
+          console.log('Dashboard: Loading disputes from API...');
+          const disputeResponse = await disputeService.getUserDisputes();
+          if (disputeResponse.success) {
+            const disputes = disputeResponse.data;
+            disputeStats = {
+              openDisputes: disputes.filter((d: any) => d.status === 'OPEN' || d.status === 'IN_REVIEW').length,
+              resolvedDisputes: disputes.filter((d: any) => d.status === 'RESOLVED' || d.status === 'CLOSED').length
+            };
+            console.log('Dashboard: Loaded dispute stats:', disputeStats);
+          }
+        } catch (disputeError) {
+          console.warn('Dashboard: Failed to load disputes:', disputeError);
+        }
+        
         // Calculate stats efficiently
         const stats = transactionsArray.reduce((acc, tx: any) => {
           acc.totalTransactions++;
@@ -80,8 +98,8 @@ export default function Dashboard() {
           completedTransactions: 0,
           totalValue: 0,
           disputedTransactions: 0,
-          openDisputes: 0,
-          resolvedDisputes: 0,
+          openDisputes: disputeStats.openDisputes,
+          resolvedDisputes: disputeStats.resolvedDisputes,
         });
 
         setStats(stats);

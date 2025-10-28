@@ -226,15 +226,31 @@ class DisputeService {
       queryParams.append('endDate', filters.dateRange.end);
     }
 
-    const response = await fetch(`${API_BASE_URL}/disputes?${queryParams.toString()}`, {
+    const url = `${API_BASE_URL}/disputes?${queryParams.toString()}`;
+    const token = getAuthToken();
+    
+    console.log('🔍 DisputeService.getUserDisputes - Debug Info:');
+    console.log('  - API URL:', url);
+    console.log('  - Has Auth Token:', !!token);
+    console.log('  - Token Preview:', token ? `${token.substring(0, 20)}...` : 'null');
+    console.log('  - Filters:', filters);
+
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${getAuthToken()}`,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
     });
 
-    return await handleApiResponse(response);
+    console.log('🔍 DisputeService.getUserDisputes - Response:');
+    console.log('  - Status:', response.status, response.statusText);
+    console.log('  - Headers:', Object.fromEntries(response.headers.entries()));
+
+    const result = await handleApiResponse(response);
+    console.log('🔍 DisputeService.getUserDisputes - Result:', result);
+    
+    return result;
   }
 
   // Get dispute by ID

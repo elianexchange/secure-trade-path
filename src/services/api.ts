@@ -34,31 +34,35 @@ export const getAuthToken = (): string | null => {
 
 // Helper function to handle API responses
 export const handleApiResponse = async <T>(response: Response): Promise<T> => {
-  console.log('API Response status:', response.status, response.statusText);
+  console.log('🔍 handleApiResponse - Debug Info:');
+  console.log('  - Response status:', response.status, response.statusText);
+  console.log('  - Response ok:', response.ok);
+  console.log('  - Response headers:', Object.fromEntries(response.headers.entries()));
   
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ error: 'Network error' }));
-    console.error('API Error:', errorData);
+    console.error('❌ API Error:', errorData);
     throw new Error(errorData.error || `HTTP ${response.status}`);
   }
   
   const data = await response.json();
-  console.log('API Response data:', data);
+  console.log('🔍 handleApiResponse - Response data:', data);
   
   if (!data.success) {
+    console.error('❌ API returned success: false:', data);
     throw new Error(data.error || 'API request failed');
   }
   
   // For endpoints that return data in { success: true, data: ... } format
   if (data.data !== undefined) {
-    console.log('Returning data.data:', data.data);
+    console.log('✅ Returning data.data:', data.data);
     return data.data as T;
   }
   
   // For endpoints that return data directly in { success: true, ... } format
   // Remove success field and return the rest
   const { success, ...rest } = data;
-  console.log('Returning rest (without success):', rest);
+  console.log('✅ Returning rest (without success):', rest);
   return rest as T;
 };
 
