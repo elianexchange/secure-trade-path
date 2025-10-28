@@ -250,7 +250,11 @@ class DisputeService {
     const result = await handleApiResponse(response);
     console.log('🔍 DisputeService.getUserDisputes - Result:', result);
     
-    return result;
+    // handleApiResponse returns the data directly, but we need to wrap it in success/data format
+    return {
+      success: true,
+      data: result
+    };
   }
 
   // Get dispute by ID
@@ -266,7 +270,13 @@ class DisputeService {
       }
     });
 
-    return await handleApiResponse(response);
+    const result = await handleApiResponse(response);
+    
+    // handleApiResponse returns the data directly, but we need to wrap it in success/data format
+    return {
+      success: true,
+      data: result
+    };
   }
 
   // Create dispute
