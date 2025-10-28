@@ -1498,10 +1498,10 @@ export default function TransactionDetailsNew() {
           <ReceiptConfirmation 
             onConfirm={handleReceiptConfirmationWithWarning}
             onCancel={() => setShowReceiptConfirmation(false)}
-            onRaiseDispute={() => {
+            onRaiseDispute={transaction?.status === 'ACTIVE' && transaction?.status !== 'DISPUTED' && transaction?.status !== 'COMPLETED' ? () => {
               setShowReceiptConfirmation(false);
               setShowDisputeForm(true);
-            }}
+            } : undefined}
             isLoading={isLoading}
             shipmentData={shipmentData}
             transactionAmount={transaction?.total}

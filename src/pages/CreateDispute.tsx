@@ -166,6 +166,10 @@ const CreateDispute: React.FC = () => {
 
       if (response.success) {
         toast.success('Dispute created successfully');
+        
+        // Refresh transaction data to update status
+        await loadUserTransactions();
+        
         navigate(`/app/disputes/${response.data.id}`);
       } else {
         toast.error('Failed to create dispute');
@@ -248,9 +252,13 @@ const CreateDispute: React.FC = () => {
                       <SelectItem value="no-transactions" disabled>
                         No transactions available
                       </SelectItem>
+                    ) : userTransactions.filter(t => t.status === 'ACTIVE' && t.status !== 'DISPUTED' && t.status !== 'COMPLETED').length === 0 ? (
+                      <SelectItem value="no-disputable-transactions" disabled>
+                        No disputable transactions available (Completed and disputed transactions cannot be disputed)
+                      </SelectItem>
                     ) : (
                       userTransactions
-                        .filter(t => t.status === 'ACTIVE' || t.status === 'COMPLETED')
+                        .filter(t => t.status === 'ACTIVE' && t.status !== 'DISPUTED' && t.status !== 'COMPLETED')
                         .map((transaction) => (
                         <SelectItem key={transaction.id} value={transaction.id}>
                           <div className="flex flex-col">

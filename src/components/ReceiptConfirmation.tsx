@@ -262,14 +262,22 @@ export default function ReceiptConfirmation({
               <CreditCard className="h-4 w-4 mr-2" />
               {isLoading ? 'Confirming Receipt...' : 'Confirm Receipt & Release Funds'}
             </Button>
-            <Button
-              variant="outline"
-              onClick={onRaiseDispute}
-              disabled={isLoading}
-              className="border-yellow-500 text-yellow-600 hover:bg-yellow-50"
-            >
-              Raise Dispute
-            </Button>
+            {onRaiseDispute ? (
+              <Button
+                variant="outline"
+                onClick={onRaiseDispute}
+                disabled={isLoading}
+                className="border-yellow-500 text-yellow-600 hover:bg-yellow-50"
+              >
+                Raise Dispute
+              </Button>
+            ) : (
+              <div className="text-center p-3 bg-gray-50 rounded-lg border">
+                <p className="text-sm text-gray-600">
+                  Disputes cannot be raised for completed or disputed transactions
+                </p>
+              </div>
+            )}
             <Button
               variant="outline"
               onClick={onCancel}
