@@ -108,7 +108,7 @@ const DisputeDetails: React.FC = () => {
   };
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || !disputeId) return;
+    if (!newMessage.trim() || !disputeId || !dispute) return;
 
     try {
       setSendingMessage(true);
@@ -118,8 +118,25 @@ const DisputeDetails: React.FC = () => {
       });
 
       if (response.success) {
+        // Add the new message to the dispute state instead of reloading
+        const newMessageObj = {
+          id: response.data.id,
+          content: newMessage.trim(),
+          sender: {
+            id: user?.id || '',
+            firstName: user?.firstName || '',
+            lastName: user?.lastName || ''
+          },
+          createdAt: response.data.createdAt || new Date().toISOString(),
+          isInternal: false
+        };
+
+        setDispute(prev => prev ? {
+          ...prev,
+          messages: [...prev.messages, newMessageObj]
+        } : null);
+
         setNewMessage('');
-        await loadDispute(); // Reload to get new message
         toast.success('Message sent successfully');
       } else {
         toast.error('Failed to send message');

@@ -28,6 +28,11 @@ export default function ConversationsList({
   const { user } = useAuth();
   const [showAll, setShowAll] = useState(false);
 
+  // Debug logging
+  console.log('ConversationsList: conversations:', conversations);
+  console.log('ConversationsList: unreadCount:', unreadCount);
+  console.log('ConversationsList: user:', user);
+
   const getAvatarFallback = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
