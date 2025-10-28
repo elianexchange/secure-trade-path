@@ -48,8 +48,11 @@ export default function Messages() {
     }
   }, [location.state, loadConversation]);
 
-  const handleSelectConversation = (transactionId: string) => {
+  const handleSelectConversation = async (transactionId: string) => {
     setSelectedTransactionId(transactionId);
+    
+    // Load the conversation and messages
+    await loadConversation(transactionId);
     
     // Find conversation to get participant details
     const conversation = conversations.find(c => c.transactionId === transactionId);

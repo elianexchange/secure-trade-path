@@ -349,63 +349,74 @@ const DisputeDetails: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MessageSquare className="h-5 w-5" />
-                Messages
+                Messages ({dispute.messages.length})
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4 mb-4 max-h-96 overflow-y-auto">
-                {dispute.messages.length === 0 ? (
-                  <p className="text-gray-500 text-center py-4">No messages yet</p>
-                ) : (
-                  dispute.messages.map((message) => (
-                    <div key={message.id} className="flex gap-3">
-                      <div className="flex-shrink-0">
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                          <span className="text-sm font-medium text-blue-600">
-                            {message.sender?.firstName?.[0] || 'S'}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium text-sm">
-                            {message.sender?.firstName} {message.sender?.lastName}
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            {formatDate(message.createdAt)}
-                          </span>
-                          {message.isInternal && (
-                            <Badge variant="secondary" className="text-xs">System</Badge>
-                          )}
-                        </div>
-                        <p className="text-gray-900 text-sm">{message.content}</p>
-                      </div>
+            <CardContent className="p-0">
+              <div className="h-80 overflow-y-auto border-t">
+                <div className="p-4 space-y-4">
+                  {dispute.messages.length === 0 ? (
+                    <div className="text-center py-8">
+                      <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                      <p className="text-gray-500">No messages yet</p>
+                      <p className="text-sm text-gray-400 mt-1">Start the conversation below</p>
                     </div>
-                  ))
-                )}
+                  ) : (
+                    dispute.messages.map((message) => (
+                      <div key={message.id} className="flex gap-3 group">
+                        <div className="flex-shrink-0">
+                          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
+                            <span className="text-sm font-medium text-white">
+                              {message.sender?.firstName?.[0] || 'S'}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-medium text-sm text-gray-900">
+                              {message.sender?.firstName} {message.sender?.lastName}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {formatDate(message.createdAt)}
+                            </span>
+                            {message.isInternal && (
+                              <Badge variant="secondary" className="text-xs">System</Badge>
+                            )}
+                          </div>
+                          <div className="bg-gray-50 rounded-lg px-3 py-2">
+                            <p className="text-gray-900 text-sm leading-relaxed">{message.content}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
 
               {isUserInvolved && dispute.status !== 'CLOSED' && (
-                <div className="border-t pt-4">
-                  <div className="flex gap-2">
-                    <Textarea
-                      placeholder="Type your message..."
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          sendMessage();
-                        }
-                      }}
-                      rows={3}
-                      className="flex-1"
-                    />
+                <div className="border-t bg-gray-50 p-4">
+                  <div className="flex gap-3">
+                    <div className="flex-1">
+                      <Textarea
+                        placeholder="Type your message..."
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            sendMessage();
+                          }
+                        }}
+                        rows={3}
+                        className="resize-none border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Press Enter to send, Shift+Enter for new line</p>
+                    </div>
                     <Button 
                       type="button"
                       onClick={sendMessage}
                       disabled={sendingMessage || !newMessage.trim()}
-                      className="self-end"
+                      className="self-end bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-sm"
                     >
                       {sendingMessage ? (
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>

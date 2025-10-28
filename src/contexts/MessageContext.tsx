@@ -231,7 +231,7 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
       setCurrentConversation(null);
       setMessages([]);
     }
-  }, [user?.id]); // Only depend on user.id to prevent infinite loops
+  }, [user?.id, loadConversationsFromAPI]); // Include loadConversationsFromAPI but it's memoized
 
   // Update refs when state changes
   const conversationsRef = useRef<Conversation[]>([]);
