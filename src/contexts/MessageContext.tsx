@@ -129,15 +129,18 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
     }
   };
 
-  // Load conversations from backend
-  const loadConversationsFromAPI = async () => {
+  // Load conversations from backend with retry logic
+  const loadConversationsFromAPI = async (retryCount = 0) => {
     if (!user || !user.id) {
       console.log('No user or user ID, skipping conversation load');
       return;
     }
     
     try {
+      console.log('MessageContext: Loading conversations from API, attempt:', retryCount + 1);
       const apiConversations = await messageAPI.getConversations();
+      console.log('MessageContext: Loaded conversations:', apiConversations.length);
+      
       setConversations(apiConversations);
       
       // Calculate total unread count
@@ -149,9 +152,19 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
       
       // Save to localStorage for offline access
       localStorage.setItem(`tranzio_conversations_${user.id}`, JSON.stringify(apiConversations));
+      console.log('MessageContext: Conversations saved to localStorage');
     } catch (error) {
       console.error('Failed to load conversations from API:', error);
+      
+      // Retry logic for network errors
+      if (retryCount < 2 && (error instanceof TypeError || error.message.includes('fetch'))) {
+        console.log('MessageContext: Retrying conversation load in 2 seconds...');
+        setTimeout(() => loadConversationsFromAPI(retryCount + 1), 2000);
+        return;
+      }
+      
       // Fallback to localStorage
+      console.log('MessageContext: Falling back to localStorage conversations');
       const storedConversations = JSON.parse(
         localStorage.getItem(`tranzio_conversations_${user.id}`) || '[]'
       );
@@ -168,6 +181,7 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
       }));
       
       setConversations(conversationsWithProperDates);
+      console.log('MessageContext: Loaded conversations from localStorage:', conversationsWithProperDates.length);
     }
   };
 
@@ -206,12 +220,18 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
     }
   };
 
-  // Load conversations from localStorage on mount
+  // Load conversations when user logs in
   useEffect(() => {
     if (user && user.id) {
+      console.log('MessageContext: User logged in, loading conversations for user:', user.id);
       loadConversationsFromAPI();
+    } else {
+      console.log('MessageContext: No user, clearing conversations');
+      setConversations([]);
+      setCurrentConversation(null);
+      setMessages([]);
     }
-  }, [user]);
+  }, [user?.id]); // Only depend on user.id to avoid unnecessary reloads
 
   // Update refs when state changes
   const conversationsRef = useRef<Conversation[]>([]);

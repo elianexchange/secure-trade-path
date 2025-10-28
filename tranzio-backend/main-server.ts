@@ -38,10 +38,10 @@ app.use(helmet({
   contentSecurityPolicy: false
 }));
 
-// Rate limiting
+// Rate limiting - more generous for messaging app
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'production' ? 100 : 1000, // limit each IP to 100 requests per windowMs in production
+  max: process.env.NODE_ENV === 'production' ? 500 : 1000, // limit each IP to 500 requests per windowMs in production
   message: {
     success: false,
     error: 'Too many requests from this IP, please try again later.',
@@ -49,9 +49,30 @@ const limiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  // Skip rate limiting for certain endpoints
+  skip: (req) => {
+    // Skip rate limiting for health checks and static assets
+    return req.path === '/health' || req.path.startsWith('/static/');
+  }
 });
 
 app.use(limiter);
+
+// More generous rate limiting for message endpoints
+const messageLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: process.env.NODE_ENV === 'production' ? 1000 : 2000, // More generous for messaging
+  message: {
+    success: false,
+    error: 'Too many message requests from this IP, please try again later.',
+    timestamp: new Date().toISOString()
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Apply message-specific rate limiting to message routes
+app.use('/api/messages', messageLimiter);
 
 // CORS configuration
 const corsOptions = {
