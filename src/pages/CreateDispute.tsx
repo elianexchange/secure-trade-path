@@ -19,7 +19,7 @@ import {
   HelpCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { disputesAPI } from '@/services/api';
+import { disputesAPI, transactionsAPI } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useChatbot } from '@/contexts/ChatbotContext';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -85,48 +85,43 @@ const CreateDispute: React.FC = () => {
 
   const loadUserTransactions = async () => {
     try {
-      // Mock user transactions - in real app, this would come from API
-      const mockTransactions: Transaction[] = [
-        {
-          id: 'txn_1',
-          description: 'iPhone 15 Pro Max 256GB',
-          price: 650000,
-          currency: 'NGN',
-          status: 'ACTIVE',
-          counterparty: {
-            id: 'user_2',
-            firstName: 'Jane',
-            lastName: 'Smith'
-          }
-        },
-        {
-          id: 'txn_2',
-          description: 'MacBook Pro M3 14-inch',
-          price: 1200000,
-          currency: 'NGN',
-          status: 'ACTIVE',
-          counterparty: {
-            id: 'user_3',
-            firstName: 'Mike',
-            lastName: 'Johnson'
-          }
-        },
-        {
-          id: 'txn_3',
-          description: 'Samsung Galaxy S24 Ultra',
-          price: 450000,
-          currency: 'NGN',
-          status: 'COMPLETED',
-          counterparty: {
-            id: 'user_4',
-            firstName: 'Sarah',
-            lastName: 'Wilson'
-          }
-        }
-      ];
-      setUserTransactions(mockTransactions);
+      if (!user?.id) {
+        console.log('CreateDispute: No authenticated user, skipping transaction load');
+        setUserTransactions([]);
+        return;
+      }
+
+      console.log('CreateDispute: Loading transactions for user:', user.id);
+      
+      // Fetch real transactions from API
+      const transactions = await transactionsAPI.getMyTransactions();
+      console.log('CreateDispute: Received transactions from API:', transactions?.length || 0);
+      
+      if (transactions && Array.isArray(transactions)) {
+        // Transform API data to match the expected format
+        const formattedTransactions: Transaction[] = transactions.map((tx: any) => ({
+          id: tx.id,
+          description: tx.description || 'No description',
+          price: tx.total || tx.price || 0,
+          currency: tx.currency || 'NGN',
+          status: tx.status || 'ACTIVE',
+          counterparty: tx.counterparty ? {
+            id: tx.counterparty.id,
+            firstName: tx.counterparty.firstName || 'Unknown',
+            lastName: tx.counterparty.lastName || 'User'
+          } : null
+        }));
+        
+        console.log('CreateDispute: Formatted transactions:', formattedTransactions);
+        setUserTransactions(formattedTransactions);
+      } else {
+        console.log('CreateDispute: No transactions found or invalid format');
+        setUserTransactions([]);
+      }
     } catch (error) {
-      console.error('Error loading transactions:', error);
+      console.error('CreateDispute: Error loading transactions:', error);
+      toast.error('Failed to load transactions. Please try again.');
+      setUserTransactions([]);
     }
   };
 
