@@ -6,7 +6,7 @@ import {
 } from './realDataService';
 
 // API Configuration
-const API_BASE_URL =
+export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || 'https://tranzio-backend.onrender.com/api';
 
 // API Response interface
@@ -28,12 +28,12 @@ interface PaginatedResponse<T> extends ApiResponse<T[]> {
 }
 
 // Helper function to get auth token
-const getAuthToken = (): string | null => {
+export const getAuthToken = (): string | null => {
   return localStorage.getItem('authToken');
 };
 
 // Helper function to handle API responses
-const handleApiResponse = async <T>(response: Response): Promise<T> => {
+export const handleApiResponse = async <T>(response: Response): Promise<T> => {
   console.log('API Response status:', response.status, response.statusText);
   
   if (!response.ok) {
