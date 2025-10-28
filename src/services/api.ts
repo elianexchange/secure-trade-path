@@ -1426,7 +1426,14 @@ export const disputesAPI = {
         body: JSON.stringify(data)
       });
 
-      return await handleApiResponse(response);
+      const result = await handleApiResponse(response);
+      
+      // handleApiResponse returns the data directly, but we need to wrap it in success/data format
+      return {
+        success: true,
+        data: result,
+        message: 'Message added successfully'
+      };
     } catch (error) {
       console.warn('Backend unavailable, using mock message');
       

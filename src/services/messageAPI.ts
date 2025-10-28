@@ -34,17 +34,17 @@ class MessageAPI {
 
   // Get conversations for a user
   async getConversations(): Promise<Conversation[]> {
-    return this.request<Conversation[]>('/api/messages/conversations');
+    return this.request<Conversation[]>('/messages/conversations');
   }
 
   // Get messages for a specific transaction
   async getMessages(transactionId: string): Promise<Message[]> {
-    return this.request<Message[]>(`/api/messages/transactions/${transactionId}`);
+    return this.request<Message[]>(`/messages/transactions/${transactionId}`);
   }
 
   // Send a message
   async sendMessage(message: { transactionId: string; content: string }): Promise<Message> {
-    return this.request<Message>('/api/messages', {
+    return this.request<Message>('/messages', {
       method: 'POST',
       body: JSON.stringify(message),
     });
@@ -52,21 +52,21 @@ class MessageAPI {
 
   // Mark message as read
   async markAsRead(messageId: string): Promise<void> {
-    return this.request<void>(`/api/messages/${messageId}/read`, {
+    return this.request<void>(`/messages/${messageId}/read`, {
       method: 'PUT',
     });
   }
 
   // Mark all messages in a conversation as read
   async markConversationAsRead(transactionId: string): Promise<void> {
-    return this.request<void>(`/api/messages/conversations/${transactionId}/read`, {
+    return this.request<void>(`/messages/conversations/${transactionId}/read`, {
       method: 'PUT',
     });
   }
 
   // Get participant details for a transaction
   async getParticipantDetails(transactionId: string): Promise<ParticipantDetail[]> {
-    return this.request<ParticipantDetail[]>(`/api/transactions/${transactionId}/participants`);
+    return this.request<ParticipantDetail[]>(`/transactions/${transactionId}/participants`);
   }
 
   // Upload file attachment
@@ -121,18 +121,18 @@ class MessageAPI {
       params.append('transactionId', transactionId);
     }
     
-    return this.request<Message[]>(`/api/messages/search?${params}`);
+    return this.request<Message[]>(`/messages/search?${params}`);
   }
 
   // Get unread message count
   async getUnreadCount(): Promise<number> {
-    const response = await this.request<{ count: number }>('/api/messages/unread-count');
+    const response = await this.request<{ count: number }>('/messages/unread-count');
     return response.count;
   }
 
   // Delete message (only for sender)
   async deleteMessage(messageId: string): Promise<void> {
-    return this.request<void>(`/api/messages/${messageId}`, {
+    return this.request<void>(`/messages/${messageId}`, {
       method: 'DELETE',
     });
   }
@@ -143,7 +143,7 @@ class MessageAPI {
     unreadMessages: number;
     conversationsCount: number;
   }> {
-    return this.request('/api/messages/stats');
+    return this.request('/messages/stats');
   }
 }
 
