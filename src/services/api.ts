@@ -1296,7 +1296,14 @@ export const disputesAPI = {
         body: JSON.stringify(data)
       });
 
-      return await handleApiResponse(response);
+      const result = await handleApiResponse<{ success: boolean; data: any; message: string }>(response);
+      
+      // The handleApiResponse already extracts data.data, so we need to wrap it back
+      return {
+        success: true,
+        data: result,
+        message: 'Dispute created successfully'
+      };
     } catch (error) {
       console.warn('Backend unavailable, using mock dispute creation');
       
@@ -1332,7 +1339,13 @@ export const disputesAPI = {
         }
       });
 
-      return await handleApiResponse(response);
+      const result = await handleApiResponse<{ success: boolean; data: any }>(response);
+      
+      // The handleApiResponse already extracts data.data, so we need to wrap it back
+      return {
+        success: true,
+        data: result
+      };
     } catch (error) {
       console.warn('Backend unavailable, using mock dispute data');
       
@@ -1386,7 +1399,13 @@ export const disputesAPI = {
         }
       });
 
-      return await handleApiResponse(response);
+      const result = await handleApiResponse<{ success: boolean; data: any[] }>(response);
+      
+      // The handleApiResponse already extracts data.data, so we need to wrap it back
+      return {
+        success: true,
+        data: result
+      };
     } catch (error) {
       console.warn('Backend unavailable, using mock disputes list');
       
