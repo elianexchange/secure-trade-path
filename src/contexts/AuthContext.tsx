@@ -2,6 +2,12 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { authAPI } from '@/services/api';
 import { User } from '@/types';
 
+// Helper function to detect mobile devices
+const isMobileDevice = (): boolean => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+         (typeof window !== 'undefined' && window.innerWidth <= 768);
+};
+
 interface AuthState {
   user: User | null;
   token: string | null;
@@ -64,9 +70,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             isLoading: false,
           });
         } else {
-          // For development: Auto-login test user if no token exists
-          if (process.env.NODE_ENV === 'development') {
-            console.log('AuthContext: No auth token found, attempting auto-login for development...');
+          // For development: Auto-login test user if no token exists (desktop only)
+          if (process.env.NODE_ENV === 'development' && !isMobileDevice()) {
+            console.log('AuthContext: No auth token found, attempting auto-login for development (desktop only)...');
             try {
               const { user, token } = await authAPI.login('test@example.com', 'password123');
               console.log('AuthContext: Auto-login successful, storing token and user data');
@@ -107,12 +113,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setAuthState(prev => ({ ...prev, isLoading: true }));
       
       console.log('🔍 AuthContext.login - Starting login for:', email);
+      console.log('🔍 AuthContext.login - Device info:', {
+        userAgent: navigator.userAgent,
+        isMobile: isMobileDevice(),
+        screenWidth: window.innerWidth,
+        screenHeight: window.innerHeight
+      });
       
       const { user, token } = await authAPI.login(email, password);
       console.log('🔍 AuthContext.login - Login API result:', { user: user?.email, hasToken: !!token });
       
       // Store token in localStorage
-      localStorage.setItem('authToken', token);
+      try {
+        localStorage.setItem('authToken', token);
+        console.log('🔍 AuthContext.login - Token stored in localStorage successfully');
+      } catch (storageError) {
+        console.error('❌ AuthContext.login - Failed to store token in localStorage:', storageError);
+        throw new Error('Failed to store authentication token. Please try again.');
+      }
       
       setAuthState({
         user,

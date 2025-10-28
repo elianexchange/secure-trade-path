@@ -38,14 +38,32 @@ export const handleApiResponse = async <T>(response: Response): Promise<T> => {
   console.log('  - Response status:', response.status, response.statusText);
   console.log('  - Response ok:', response.ok);
   console.log('  - Response headers:', Object.fromEntries(response.headers.entries()));
+  console.log('  - Device info:', {
+    userAgent: navigator.userAgent,
+    isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
+    screenWidth: window.innerWidth
+  });
   
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ error: 'Network error' }));
+    let errorData;
+    try {
+      errorData = await response.json();
+    } catch (jsonError) {
+      console.error('❌ Failed to parse error response as JSON:', jsonError);
+      errorData = { error: `Network error: ${response.status} ${response.statusText}` };
+    }
     console.error('❌ API Error:', errorData);
     throw new Error(errorData.error || `HTTP ${response.status}`);
   }
   
-  const data = await response.json();
+  let data;
+  try {
+    data = await response.json();
+  } catch (jsonError) {
+    console.error('❌ Failed to parse response as JSON:', jsonError);
+    throw new Error('Invalid response format from server');
+  }
+  
   console.log('🔍 handleApiResponse - Response data:', data);
   
   if (!data.success) {
@@ -99,7 +117,15 @@ const apiRequest = async <T>(
     return handleApiResponse<T>(response);
   } catch (error) {
     console.error('❌ apiRequest - Fetch Error:', error);
-    throw error;
+    
+    // Provide more specific error messages for mobile devices
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new Error('Network connection failed. Please check your internet connection and try again.');
+    } else if (error instanceof Error) {
+      throw new Error(error.message);
+    } else {
+      throw new Error('An unexpected error occurred. Please try again.');
+    }
   }
 };
 

@@ -65,8 +65,22 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [currentFeature, setCurrentFeature] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                     window.innerWidth <= 768;
+      setIsMobile(mobile);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const {
     register,
@@ -87,11 +101,30 @@ export default function Login() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setIsLoading(true);
+      console.log('Login attempt - Device info:', {
+        isMobile,
+        userAgent: navigator.userAgent,
+        screenWidth: window.innerWidth
+      });
+      
       await login(data.email, data.password);
       toast.success('Successfully signed in!');
       navigate('/app/dashboard');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to sign in');
+      console.error('Login error:', error);
+      
+      // Provide mobile-specific error messages
+      let errorMessage = error.message || 'Failed to sign in';
+      
+      if (isMobile && error.message?.includes('Network connection failed')) {
+        errorMessage = 'Please check your internet connection and try again. If the problem persists, try refreshing the page.';
+      } else if (isMobile && error.message?.includes('fetch')) {
+        errorMessage = 'Unable to connect to the server. Please check your internet connection.';
+      } else if (isMobile && error.message?.includes('Invalid response format')) {
+        errorMessage = 'Server response error. Please try again or refresh the page.';
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -187,6 +220,13 @@ export default function Login() {
                 <p className="text-sm text-muted-foreground mt-1">
                   Access your secure escrow account
                 </p>
+                {isMobile && (
+                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-xs text-blue-700">
+                      <strong>Mobile users:</strong> If you're having trouble logging in, try refreshing the page or check your internet connection.
+                    </p>
+                  </div>
+                )}
               </div>
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

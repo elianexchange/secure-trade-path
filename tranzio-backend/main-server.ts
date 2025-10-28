@@ -95,6 +95,10 @@ const corsOptions = {
       'https://www.tranzzio.com/',
       'https://tranzzio.com',
       'https://tranzzio.com/',
+      // Mobile app origins (for PWA)
+      'https://tranzzio.netlify.app',
+      'https://www.tranzzio.com',
+      'https://tranzzio.com',
       process.env.FRONTEND_URL,
       process.env.CORS_ORIGIN
     ].filter(Boolean);
@@ -106,15 +110,12 @@ const corsOptions = {
     }
 
     if (allowedOrigins.includes(origin)) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('✅ CORS allowed for origin:', origin);
-      }
+      console.log('✅ CORS allowed for origin:', origin);
       return callback(null, true);
     }
     
-    if (process.env.NODE_ENV === 'development') {
-      console.log('❌ CORS blocked origin:', origin);
-    }
+    console.log('❌ CORS blocked origin:', origin);
+    console.log('❌ Allowed origins:', allowedOrigins);
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
