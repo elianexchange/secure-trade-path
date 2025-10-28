@@ -382,7 +382,7 @@ export const transactionsAPI = {
 
   // Get user's transactions
   getMyTransactions: async (): Promise<EscrowTransaction[]> => {
-    const response = await apiRequest<{ transactions: EscrowTransaction[] }>('/transactions/my-transactions');
+    const response = await apiRequest<{ success: boolean; transactions: EscrowTransaction[] }>('/transactions/my-transactions');
     return response.transactions || [];
   },
 

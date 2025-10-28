@@ -135,10 +135,10 @@ export class DisputeResolutionService {
         }
       });
 
-      // Create initial system message
+      // Create initial system message using the dispute creator
       await this.addMessage({
         disputeId: dispute.id,
-        senderId: 'SYSTEM',
+        senderId: data.raisedBy,
         content: `Dispute created: ${data.disputeType} - ${data.reason}`,
         isInternal: true
       });
