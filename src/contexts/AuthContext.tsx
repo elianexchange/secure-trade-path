@@ -106,7 +106,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setAuthState(prev => ({ ...prev, isLoading: true }));
       
+      console.log('🔍 AuthContext.login - Starting login for:', email);
+      
       const { user, token } = await authAPI.login(email, password);
+      console.log('🔍 AuthContext.login - Login API result:', { user: user?.email, hasToken: !!token });
       
       // Store token in localStorage
       localStorage.setItem('authToken', token);
@@ -121,7 +124,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Check if user has completed onboarding
       const onboardingCompleted = localStorage.getItem('onboardingCompleted');
       setShowOnboarding(onboardingCompleted !== 'true');
+      
+      console.log('✅ AuthContext.login - Login completed successfully');
     } catch (error) {
+      console.error('❌ AuthContext.login - Login failed:', error);
       setAuthState(prev => ({ ...prev, isLoading: false }));
       throw error;
     }
@@ -131,8 +137,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setAuthState(prev => ({ ...prev, isLoading: true }));
       
+      console.log('🔍 AuthContext.signup - Starting signup for:', userData.email);
+      
       // Call signup API but don't auto-login
-      await authAPI.signup(userData.email, userData.password, userData.firstName, userData.lastName);
+      const result = await authAPI.signup(userData.email, userData.password, userData.firstName, userData.lastName);
+      console.log('🔍 AuthContext.signup - Signup API result:', result);
       
       // Clear any existing transaction data for new users
       localStorage.removeItem('tranzio_transactions');
@@ -150,7 +159,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Don't show onboarding yet - user needs to login first
       setShowOnboarding(false);
+      
+      console.log('✅ AuthContext.signup - Signup completed successfully');
     } catch (error) {
+      console.error('❌ AuthContext.signup - Signup failed:', error);
       setAuthState(prev => ({ ...prev, isLoading: false }));
       throw error;
     }

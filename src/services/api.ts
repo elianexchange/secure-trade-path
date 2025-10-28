@@ -72,10 +72,14 @@ const apiRequest = async <T>(
   options: RequestInit = {}
 ): Promise<T> => {
   const token = getAuthToken();
-  console.log('API Request:', { endpoint, hasToken: !!token, options });
+  console.log('🔍 apiRequest - Debug Info:');
+  console.log('  - Endpoint:', endpoint);
+  console.log('  - Has Token:', !!token);
+  console.log('  - Options:', options);
   
   // Use production API URL only
   const url = `${API_BASE_URL}${endpoint}`;
+  console.log('  - Full URL:', url);
   
   const config: RequestInit = {
     headers: {
@@ -86,8 +90,17 @@ const apiRequest = async <T>(
     ...options,
   };
 
-  const response = await fetch(url, config);
-  return handleApiResponse<T>(response);
+  console.log('  - Request Config:', config);
+
+  try {
+    console.log('  - Making fetch request...');
+    const response = await fetch(url, config);
+    console.log('  - Fetch completed, status:', response.status);
+    return handleApiResponse<T>(response);
+  } catch (error) {
+    console.error('❌ apiRequest - Fetch Error:', error);
+    throw error;
+  }
 };
 
 
