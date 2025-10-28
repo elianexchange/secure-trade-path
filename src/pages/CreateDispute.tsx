@@ -58,6 +58,7 @@ const CreateDispute: React.FC = () => {
   });
 
   useEffect(() => {
+    console.log('CreateDispute: Component mounted, loading data...');
     loadDisputeMeta();
     loadUserTransactions();
   }, []);
@@ -74,12 +75,17 @@ const CreateDispute: React.FC = () => {
 
   const loadDisputeMeta = async () => {
     try {
+      console.log('CreateDispute: Loading dispute metadata...');
       const response = await disputesAPI.getDisputeMeta();
+      console.log('CreateDispute: Dispute metadata response:', response);
       if (response.success) {
         setDisputeMeta(response.data);
+        console.log('CreateDispute: Dispute metadata loaded successfully');
+      } else {
+        console.error('CreateDispute: Failed to load dispute metadata:', response.error);
       }
     } catch (error) {
-      console.error('Error loading dispute metadata:', error);
+      console.error('CreateDispute: Error loading dispute metadata:', error);
     }
   };
 
@@ -237,9 +243,14 @@ const CreateDispute: React.FC = () => {
                     <SelectValue placeholder="Select a transaction" />
                   </SelectTrigger>
                   <SelectContent>
-                    {userTransactions
-                      .filter(t => t.status === 'ACTIVE' || t.status === 'COMPLETED')
-                      .map((transaction) => (
+                    {userTransactions.length === 0 ? (
+                      <SelectItem value="no-transactions" disabled>
+                        No transactions available
+                      </SelectItem>
+                    ) : (
+                      userTransactions
+                        .filter(t => t.status === 'ACTIVE' || t.status === 'COMPLETED')
+                        .map((transaction) => (
                         <SelectItem key={transaction.id} value={transaction.id}>
                           <div className="flex flex-col">
                             <span className="font-medium">{transaction.description}</span>
@@ -252,7 +263,8 @@ const CreateDispute: React.FC = () => {
                             </span>
                           </div>
                         </SelectItem>
-                      ))}
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -297,7 +309,12 @@ const CreateDispute: React.FC = () => {
                     <SelectValue placeholder="Select dispute type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {disputeMeta?.disputeTypes?.map((type: any) => (
+                    {!disputeMeta?.disputeTypes ? (
+                      <SelectItem value="loading" disabled>
+                        Loading dispute types...
+                      </SelectItem>
+                    ) : (
+                      disputeMeta.disputeTypes.map((type: any) => (
                       <SelectItem key={type.value} value={type.value}>
                         <div className="flex items-center gap-2">
                           {getDisputeTypeIcon(type.value)}
@@ -307,7 +324,8 @@ const CreateDispute: React.FC = () => {
                           </div>
                         </div>
                       </SelectItem>
-                    ))}
+                    ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
