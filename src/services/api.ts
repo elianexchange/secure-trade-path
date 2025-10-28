@@ -1286,45 +1286,23 @@ export const disputesAPI = {
     data: any;
     message: string;
   }> => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/disputes`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${getAuthToken()}`
-        },
-        body: JSON.stringify(data)
-      });
+    const response = await fetch(`${API_BASE_URL}/disputes`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getAuthToken()}`
+      },
+      body: JSON.stringify(data)
+    });
 
-      const result = await handleApiResponse<{ success: boolean; data: any; message: string }>(response);
-      
-      // The handleApiResponse already extracts data.data, so we need to wrap it back
-      return {
-        success: true,
-        data: result,
-        message: 'Dispute created successfully'
-      };
-    } catch (error) {
-      console.warn('Backend unavailable, using mock dispute creation');
-      
-      // Mock dispute creation
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      return {
-        success: true,
-        data: {
-          id: `dispute_${Date.now()}`,
-          transactionId: data.transactionId,
-          disputeType: data.disputeType,
-          reason: data.reason,
-          description: data.description,
-          status: 'OPEN',
-          priority: data.priority || 'MEDIUM',
-          createdAt: new Date().toISOString()
-        },
-        message: 'Dispute created successfully (mock)'
-      };
-    }
+    const result = await handleApiResponse<{ success: boolean; data: any; message: string }>(response);
+    
+    // The handleApiResponse already extracts data.data, so we need to wrap it back
+    return {
+      success: true,
+      data: result,
+      message: 'Dispute created successfully'
+    };
   },
 
   // Get dispute by ID
@@ -1332,59 +1310,19 @@ export const disputesAPI = {
     success: boolean;
     data: any;
   }> => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/disputes/${disputeId}`, {
-        headers: {
-          'Authorization': `Bearer ${getAuthToken()}`
-        }
-      });
+    const response = await fetch(`${API_BASE_URL}/disputes/${disputeId}`, {
+      headers: {
+        'Authorization': `Bearer ${getAuthToken()}`
+      }
+    });
 
-      const result = await handleApiResponse<{ success: boolean; data: any }>(response);
-      
-      // The handleApiResponse already extracts data.data, so we need to wrap it back
-      return {
-        success: true,
-        data: result
-      };
-    } catch (error) {
-      console.warn('Backend unavailable, using mock dispute data');
-      
-      // Mock dispute data
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      return {
-        success: true,
-        data: {
-          id: disputeId,
-          transactionId: 'txn_123',
-          disputeType: 'PAYMENT',
-          reason: 'Payment not received',
-          description: 'I have not received the payment for this transaction',
-          status: 'OPEN',
-          priority: 'MEDIUM',
-          createdAt: new Date().toISOString(),
-          transaction: {
-            id: 'txn_123',
-            description: 'Sample Transaction',
-            price: 50000,
-            currency: 'NGN'
-          },
-          raiser: {
-            id: 'user_123',
-            firstName: 'John',
-            lastName: 'Doe'
-          },
-          accused: {
-            id: 'user_456',
-            firstName: 'Jane',
-            lastName: 'Smith'
-          },
-          evidence: [],
-          messages: [],
-          resolutions: []
-        }
-      };
-    }
+    const result = await handleApiResponse<{ success: boolean; data: any }>(response);
+    
+    // The handleApiResponse already extracts data.data, so we need to wrap it back
+    return {
+      success: true,
+      data: result
+    };
   },
 
   // Get user's disputes
@@ -1392,62 +1330,19 @@ export const disputesAPI = {
     success: boolean;
     data: any[];
   }> => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/disputes`, {
-        headers: {
-          'Authorization': `Bearer ${getAuthToken()}`
-        }
-      });
+    const response = await fetch(`${API_BASE_URL}/disputes`, {
+      headers: {
+        'Authorization': `Bearer ${getAuthToken()}`
+      }
+    });
 
-      const result = await handleApiResponse<{ success: boolean; data: any[] }>(response);
-      
-      // The handleApiResponse already extracts data.data, so we need to wrap it back
-      return {
-        success: true,
-        data: result
-      };
-    } catch (error) {
-      console.warn('Backend unavailable, using mock disputes list');
-      
-      // Mock disputes list
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      return {
-        success: true,
-        data: [
-          {
-            id: 'dispute_1',
-            transactionId: 'txn_123',
-            disputeType: 'PAYMENT',
-            reason: 'Payment not received',
-            status: 'OPEN',
-            priority: 'HIGH',
-            createdAt: new Date().toISOString(),
-            transaction: {
-              id: 'txn_123',
-              description: 'iPhone 15 Pro',
-              price: 500000,
-              currency: 'NGN'
-            }
-          },
-          {
-            id: 'dispute_2',
-            transactionId: 'txn_456',
-            disputeType: 'QUALITY',
-            reason: 'Item not as described',
-            status: 'RESOLVED',
-            priority: 'MEDIUM',
-            createdAt: new Date(Date.now() - 86400000).toISOString(),
-            transaction: {
-              id: 'txn_456',
-              description: 'MacBook Pro',
-              price: 800000,
-              currency: 'NGN'
-            }
-          }
-        ]
-      };
-    }
+    const result = await handleApiResponse<{ success: boolean; data: any[] }>(response);
+    
+    // The handleApiResponse already extracts data.data, so we need to wrap it back
+    return {
+      success: true,
+      data: result
+    };
   },
 
   // Add evidence to dispute

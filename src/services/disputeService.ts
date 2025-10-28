@@ -216,37 +216,25 @@ class DisputeService {
     success: boolean;
     data: Dispute[];
   }> {
-    try {
-      const queryParams = new URLSearchParams();
-      if (filters?.status) queryParams.append('status', filters.status);
-      if (filters?.type) queryParams.append('type', filters.type);
-      if (filters?.priority) queryParams.append('priority', filters.priority);
-      if (filters?.search) queryParams.append('search', filters.search);
-      if (filters?.dateRange) {
-        queryParams.append('startDate', filters.dateRange.start);
-        queryParams.append('endDate', filters.dateRange.end);
-      }
-
-      const response = await fetch(`${API_BASE_URL}/disputes?${queryParams.toString()}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${getAuthToken()}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      return await handleApiResponse(response);
-    } catch (error) {
-      console.warn('Backend unavailable, using mock user disputes');
-      
-      // Mock user disputes
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      return {
-        success: true,
-        data: []
-      };
+    const queryParams = new URLSearchParams();
+    if (filters?.status) queryParams.append('status', filters.status);
+    if (filters?.type) queryParams.append('type', filters.type);
+    if (filters?.priority) queryParams.append('priority', filters.priority);
+    if (filters?.search) queryParams.append('search', filters.search);
+    if (filters?.dateRange) {
+      queryParams.append('startDate', filters.dateRange.start);
+      queryParams.append('endDate', filters.dateRange.end);
     }
+
+    const response = await fetch(`${API_BASE_URL}/disputes?${queryParams.toString()}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${getAuthToken()}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    return await handleApiResponse(response);
   }
 
   // Get dispute by ID
@@ -254,46 +242,15 @@ class DisputeService {
     success: boolean;
     data: Dispute;
   }> {
-    try {
-      const response = await fetch(`${API_BASE_URL}/disputes/${disputeId}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${getAuthToken()}`,
-          'Content-Type': 'application/json'
-        }
-      });
+    const response = await fetch(`${API_BASE_URL}/disputes/${disputeId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${getAuthToken()}`,
+        'Content-Type': 'application/json'
+      }
+    });
 
-      return await handleApiResponse(response);
-    } catch (error) {
-      console.warn('Backend unavailable, using mock dispute');
-      
-      // Mock dispute
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      return {
-        success: true,
-        data: {
-          id: disputeId,
-          transactionId: 'mock-transaction',
-          disputeType: 'PAYMENT',
-          reason: 'Mock dispute',
-          description: 'This is a mock dispute for testing',
-          status: 'OPEN',
-          priority: 'MEDIUM',
-          raisedBy: 'mock-user',
-          raisedAgainst: 'mock-counterparty',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          transaction: {
-            id: 'mock-transaction',
-            description: 'Mock transaction',
-            price: 1000,
-            currency: 'USD',
-            status: 'ACTIVE'
-          }
-        }
-      };
-    }
+    return await handleApiResponse(response);
   }
 
   // Create dispute

@@ -172,7 +172,8 @@ const CreateDispute: React.FC = () => {
       }
     } catch (error) {
       console.error('Error creating dispute:', error);
-      toast.error('Failed to create dispute');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create dispute';
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
