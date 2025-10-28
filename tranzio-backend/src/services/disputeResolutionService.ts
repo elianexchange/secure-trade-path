@@ -135,13 +135,8 @@ export class DisputeResolutionService {
         }
       });
 
-      // Create initial system message using the dispute creator
-      await this.addMessage({
-        disputeId: dispute.id,
-        senderId: data.raisedBy,
-        content: `Dispute created: ${data.disputeType} - ${data.reason}`,
-        isInternal: true
-      });
+      // Note: Initial message creation removed to avoid foreign key constraint issues
+      // Messages can be added later when users interact with the dispute
 
       // Update transaction status if needed
       if (transaction.status === 'ACTIVE') {
