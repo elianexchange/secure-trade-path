@@ -9,6 +9,7 @@ import {
   MessageData 
 } from '../services/disputeResolutionService';
 import { prisma } from '../lib/prisma';
+import { backendNotificationService } from '../services/notificationService';
 
 const router = express.Router();
 
@@ -100,6 +101,19 @@ router.post('/', authenticateToken, async (req, res) => {
     };
 
     const dispute = await DisputeResolutionService.createDispute(disputeData);
+
+    // Send notification to the other party
+    try {
+      await backendNotificationService.createDisputeNotification(
+        raisedAgainst,
+        validatedData.transactionId,
+        'OPENED',
+        `${dispute.raiser.firstName} ${dispute.raiser.lastName}`
+      );
+    } catch (notificationError) {
+      console.error('Failed to send dispute notification:', notificationError);
+      // Don't fail the dispute creation if notification fails
+    }
 
     return res.status(201).json({
       success: true,
