@@ -1635,7 +1635,13 @@ export const disputesAPI = {
   }> => {
     try {
       const response = await fetch(`${API_BASE_URL}/disputes/meta/types`);
-      return await handleApiResponse(response);
+      const data = await handleApiResponse<{ success: boolean; data: any }>(response);
+      
+      // The handleApiResponse already extracts data.data, so we need to wrap it back
+      return {
+        success: true,
+        data: data
+      };
     } catch (error) {
       console.warn('Backend unavailable, using mock dispute metadata');
       
