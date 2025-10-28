@@ -130,7 +130,7 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
   };
 
   // Load conversations from backend with retry logic
-  const loadConversationsFromAPI = async (retryCount = 0) => {
+  const loadConversationsFromAPI = useCallback(async (retryCount = 0) => {
     if (!user || !user.id) {
       console.log('No user or user ID, skipping conversation load');
       return;
@@ -183,7 +183,7 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
       setConversations(conversationsWithProperDates);
       console.log('MessageContext: Loaded conversations from localStorage:', conversationsWithProperDates.length);
     }
-  };
+  }, [user?.id]); // Only depend on user.id to prevent infinite loops
 
   // Load participant details for a transaction
   const loadParticipantDetails = async (transactionId: string) => {
@@ -231,7 +231,7 @@ export const MessageProvider: React.FC<MessageProviderProps> = ({ children }) =>
       setCurrentConversation(null);
       setMessages([]);
     }
-  }, [user?.id]); // Only depend on user.id to avoid unnecessary reloads
+  }, [user?.id, loadConversationsFromAPI]); // Include loadConversationsFromAPI in dependencies
 
   // Update refs when state changes
   const conversationsRef = useRef<Conversation[]>([]);

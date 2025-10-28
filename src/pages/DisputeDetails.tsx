@@ -375,10 +375,17 @@ const DisputeDetails: React.FC = () => {
                       placeholder="Type your message..."
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          sendMessage();
+                        }
+                      }}
                       rows={3}
                       className="flex-1"
                     />
                     <Button 
+                      type="button"
                       onClick={sendMessage}
                       disabled={sendingMessage || !newMessage.trim()}
                       className="self-end"
