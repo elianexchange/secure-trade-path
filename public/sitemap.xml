@@ -21,6 +21,35 @@
     </image:image>
   </url>
   
+  <!-- Key Landing Pages for Sitelinks -->
+  <url>
+    <loc>https://tranzzio.netlify.app/login</loc>
+    <lastmod>2024-12-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://tranzzio.netlify.app/signup</loc>
+    <lastmod>2024-12-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://tranzzio.netlify.app/app/create-transaction</loc>
+    <lastmod>2024-12-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://tranzzio.netlify.app/app/join-transaction</loc>
+    <lastmod>2024-12-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
   <!-- Public Pages -->
   <url>
     <loc>https://tranzzio.netlify.app/login</loc>
@@ -108,3 +137,4 @@
   </url>
   
 </urlset>
+

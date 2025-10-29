@@ -13,6 +13,7 @@ import { useWebSocket } from '@/contexts/WebSocketContext';
 import { transactionsAPI } from '@/services/api';
 import { toast } from 'sonner';
 import sharedTransactionStore from '@/utils/sharedTransactionStore';
+import { useSEO } from '@/hooks/useSEO';
 
 interface TransactionData {
   role: 'BUYER' | 'SELLER';
@@ -84,6 +85,9 @@ const itemConditions = [
 ];
 
 export default function CreateTransaction() {
+  // SEO optimization
+  useSEO();
+  
   const navigate = useNavigate();
   const { user } = useAuth();
   const { emitTransactionCreated } = useWebSocket();

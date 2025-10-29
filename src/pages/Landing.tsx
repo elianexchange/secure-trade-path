@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { useSEO } from '@/hooks/useSEO';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -40,6 +41,9 @@ import {
 } from 'lucide-react';
 
 export default function Landing() {
+  // SEO optimization
+  useSEO();
+  
   const [transactionAmount, setTransactionAmount] = useState('');
   const [calculatedFee, setCalculatedFee] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

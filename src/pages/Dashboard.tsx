@@ -15,8 +15,13 @@ import { disputeService } from '@/services/disputeService';
 import { OnboardingGuide } from '@/components/OnboardingGuide';
 import { MobileTransactionCard } from '@/components/MobileTransactionCard';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useSEO } from '@/hooks/useSEO';
+import { Breadcrumbs } from '@/components/SEOLinks';
 
 export default function Dashboard() {
+  // SEO optimization
+  useSEO();
+  
   const navigate = useNavigate();
   const { user, showOnboarding, setShowOnboarding } = useAuth();
   const { isConnected } = useWebSocket();
@@ -271,6 +276,12 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-4 pb-20" id="dashboard-main">
+      {/* Breadcrumbs for SEO */}
+      <Breadcrumbs items={[
+        { label: 'Home', href: '/' },
+        { label: 'Dashboard' }
+      ]} />
+      
       {/* Header */}
       <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-8 shadow-sm">
         <div className="flex flex-col space-y-4 sm:flex-row sm:items-start sm:justify-between sm:space-y-0">

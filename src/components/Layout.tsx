@@ -40,6 +40,7 @@ import { PWAStatus } from '@/components/PWAInstallPrompt';
 import AIChatbot from '@/components/AIChatbot';
 import { useChatbot } from '@/contexts/ChatbotContext';
 import { DebugInfo } from '@/components/DebugInfo';
+import { SEOLinks } from '@/components/SEOLinks';
 
 const navigationItems = [
   { name: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard },
@@ -186,6 +187,7 @@ export function Layout() {
   return (
     <div className="min-h-screen bg-background">
       <DebugInfo />
+      <SEOLinks />
       {/* Sticky Header */}
       <header className="sticky top-0 z-50 border-b border-gray-200 bg-white shadow-sm">
         <div className={`flex items-center justify-between ${isMobile ? 'h-12 px-3' : 'h-16 px-4 sm:px-6'}`}>
