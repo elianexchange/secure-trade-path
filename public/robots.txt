@@ -1,3 +1,7 @@
+# Tranzio - Secure Escrow Platform
+# Robots.txt for SEO optimization
+
+# Allow all major search engines
 User-agent: Googlebot
 Allow: /
 Crawl-delay: 1
@@ -6,6 +10,15 @@ User-agent: Bingbot
 Allow: /
 Crawl-delay: 1
 
+User-agent: Slurp
+Allow: /
+Crawl-delay: 1
+
+User-agent: DuckDuckBot
+Allow: /
+Crawl-delay: 1
+
+# Social media crawlers
 User-agent: Twitterbot
 Allow: /
 
@@ -18,20 +31,54 @@ Allow: /
 User-agent: WhatsApp
 Allow: /
 
+User-agent: TelegramBot
+Allow: /
+
+# General crawler rules
 User-agent: *
 Allow: /
 Crawl-delay: 2
 
-# Sitemap
-Sitemap: https://tranzio.com/sitemap.xml
+# Sitemap location
+Sitemap: https://tranzzio.netlify.app/sitemap.xml
 
-# Disallow admin and private areas
+# Disallow sensitive areas
 Disallow: /admin/
 Disallow: /api/
 Disallow: /_next/
 Disallow: /static/
 Disallow: /private/
-Disallow: /dashboard/
+Disallow: /uploads/
+Disallow: /temp/
+Disallow: /backup/
+
+# Disallow app pages that require authentication
 Disallow: /app/dashboard/
 Disallow: /app/settings/
 Disallow: /app/profile/
+Disallow: /app/wallet/
+Disallow: /app/transactions/
+Disallow: /app/messages/
+Disallow: /app/notifications/
+
+# Allow public app pages
+Allow: /app/create-transaction
+Allow: /app/join-transaction
+
+# Disallow search parameters
+Disallow: /*?*
+Disallow: /*&*
+
+# Allow important files
+Allow: /favicon.ico
+Allow: /robots.txt
+Allow: /sitemap.xml
+Allow: /manifest.json
+Allow: /*.css
+Allow: /*.js
+Allow: /*.png
+Allow: /*.jpg
+Allow: /*.jpeg
+Allow: /*.gif
+Allow: /*.svg
+Allow: /*.webp
