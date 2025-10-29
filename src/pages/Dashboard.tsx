@@ -21,6 +21,7 @@ export default function Dashboard() {
   const { user, showOnboarding, setShowOnboarding } = useAuth();
   const { isConnected } = useWebSocket();
   const isMobile = useIsMobile();
+  
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [stats, setStats] = useState({
     totalTransactions: 0,
@@ -32,6 +33,9 @@ export default function Dashboard() {
     resolvedDisputes: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Debug logging
+  console.log('Dashboard: Component rendering', { user, isLoading, showOnboarding });
   const [userTransactions, setUserTransactions] = useState<any[]>([]);
   const [transactionFilter, setTransactionFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -250,44 +254,17 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary">        </div>
-      </div>
-
-      {/* Logout Confirmation Modal */}
-      <Dialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Confirm Logout</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <p className="text-muted-foreground">
-              Are you sure you want to log out? You'll need to sign in again to access your account.
-            </p>
-            <div className="flex gap-3">
-              <Button 
-                variant="outline" 
-                onClick={() => setShowLogoutConfirm(false)}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button 
-                onClick={() => {
-                  localStorage.removeItem('authToken');
-                  window.location.href = '/login';
-                }}
-                className="flex-1"
-              >
-                Log Out
-              </Button>
-            </div>
-        </div>
-        </DialogContent>
-      </Dialog>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
       </div>
     );
+  }
+
+  // If no user, redirect to login
+  if (!user) {
+    console.log('Dashboard: No user, redirecting to login');
+    navigate('/login');
+    return null;
   }
 
   return (
@@ -705,6 +682,37 @@ export default function Dashboard() {
         </DialogContent>
       </Dialog>
 
+      {/* Logout Confirmation Modal */}
+      <Dialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Logout</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-muted-foreground">
+              Are you sure you want to log out? You'll need to sign in again to access your account.
+            </p>
+            <div className="flex gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => {
+                  localStorage.removeItem('authToken');
+                  window.location.href = '/login';
+                }}
+                className="flex-1"
+              >
+                Log Out
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Onboarding Guide */}
       <OnboardingGuide
