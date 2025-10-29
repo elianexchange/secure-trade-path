@@ -61,8 +61,10 @@ const getStatusDisplayName = (status: string) => {
       return 'Cancelled';
     case 'DISPUTED':
       return 'Disputed';
+    case 'UNKNOWN':
+      return 'Unknown';
     default:
-      return status;
+      return status || 'Unknown';
   }
 };
 
@@ -84,6 +86,8 @@ const getStatusIcon = (status: string) => {
       return XCircle;
     case 'DISPUTED':
       return AlertTriangle;
+    case 'UNKNOWN':
+      return Package;
     default:
       return Package;
   }
@@ -106,18 +110,18 @@ export function MobileTransactionCard({
               <div className="flex items-center space-x-2 mb-1">
                 <StatusIcon className="h-4 w-4 text-gray-600 flex-shrink-0" />
                 <Badge 
-                  className={`text-xs ${getStatusColor(transaction.status)}`}
+                  className={`text-xs ${getStatusColor(transaction.status || 'UNKNOWN')}`}
                 >
-                  {getStatusDisplayName(transaction.status)}
+                  {getStatusDisplayName(transaction.status || 'UNKNOWN')}
                 </Badge>
               </div>
               <h3 className="font-medium text-gray-900 text-sm leading-tight line-clamp-2">
-                {transaction.itemDescription || 'Transaction'}
+                {transaction.itemDescription || transaction.description || 'Transaction'}
               </h3>
             </div>
             <div className="text-right flex-shrink-0 ml-2">
               <div className="text-lg font-bold text-gray-900">
-                {formatCurrency(transaction.amount)}
+                {formatCurrency(transaction.amount || transaction.total || 0)}
               </div>
             </div>
           </div>
@@ -143,11 +147,11 @@ export function MobileTransactionCard({
             <div className="flex items-center text-xs text-gray-500">
               <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
               <span>
-                {new Date(transaction.createdAt).toLocaleDateString('en-NG', {
+                {transaction.createdAt ? new Date(transaction.createdAt).toLocaleDateString('en-NG', {
                   month: 'short',
                   day: 'numeric',
                   year: 'numeric'
-                })}
+                }) : 'N/A'}
               </span>
             </div>
           </div>

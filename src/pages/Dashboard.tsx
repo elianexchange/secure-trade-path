@@ -247,8 +247,10 @@ export default function Dashboard() {
         return 'Cancelled';
       case 'DISPUTED':
         return 'Disputed';
+      case 'UNKNOWN':
+        return 'Unknown';
       default:
-        return status;
+        return status || 'Unknown';
     }
   };
 
@@ -507,7 +509,7 @@ export default function Dashboard() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-900 truncate">
-                            Transaction #{tx.id.slice(-8)}
+                            Transaction #{tx.id ? tx.id.slice(-8) : 'N/A'}
                           </p>
                           <div className="flex items-center space-x-2 text-sm text-gray-600">
                             <span>{formatCurrency(tx.total || 0)}</span>
@@ -528,16 +530,16 @@ export default function Dashboard() {
                         </div>
                       </div>
                       <div className="flex items-center space-x-3">
-                        <Badge className={`${getStatusColor(tx.status)} px-2 py-1 text-xs font-medium rounded`}>
-                          {getStatusDisplayName(tx.status)}
+                        <Badge className={`${getStatusColor(tx.status || 'UNKNOWN')} px-2 py-1 text-xs font-medium rounded`}>
+                          {getStatusDisplayName(tx.status || 'UNKNOWN')}
                         </Badge>
                         <div className="text-right">
                           <span className="text-sm text-gray-500 block">
-                          {new Date(tx.createdAt).toLocaleDateString()}
+                          {tx.createdAt ? new Date(tx.createdAt).toLocaleDateString() : 'N/A'}
                         </span>
                           {tx.updatedAt && tx.updatedAt !== tx.createdAt && (
                             <span className="text-xs text-gray-400">
-                              Updated {new Date(tx.updatedAt).toLocaleDateString()}
+                              Updated {tx.updatedAt ? new Date(tx.updatedAt).toLocaleDateString() : 'N/A'}
                             </span>
                           )}
                         </div>
