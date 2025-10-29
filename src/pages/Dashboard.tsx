@@ -13,11 +13,14 @@ import sharedTransactionStore from '@/utils/sharedTransactionStore';
 import { transactionsAPI } from '@/services/api';
 import { disputeService } from '@/services/disputeService';
 import { OnboardingGuide } from '@/components/OnboardingGuide';
+import { MobileTransactionCard } from '@/components/MobileTransactionCard';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, showOnboarding, setShowOnboarding } = useAuth();
   const { isConnected } = useWebSocket();
+  const isMobile = useIsMobile();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [stats, setStats] = useState({
     totalTransactions: 0,
@@ -334,8 +337,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-2 grid-cols-2 lg:grid-cols-5">
+      {/* Stats Grid - Mobile Optimized */}
+      <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
         {/* Total Transactions */}
         <div className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-2">
@@ -504,55 +507,67 @@ export default function Dashboard() {
             
             return filteredTransactions.length > 0 ? (
               <div className="space-y-3">
-                {filteredTransactions.map((tx: any) => (
-                  <div 
-                    key={tx.id} 
-                    className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 p-4 border border-gray-100 rounded-md hover:bg-gray-50 transition-colors cursor-pointer"
-                    onClick={() => navigate(`/app/transactions/${tx.id}`)}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="flex-shrink-0 p-2 rounded-md bg-gray-100">
-                        <Package className="h-5 w-5 text-gray-600" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          Transaction #{tx.id.slice(-8)}
-                        </p>
-                        <div className="flex items-center space-x-2 text-sm text-gray-600">
-                          <span>{formatCurrency(tx.total || 0)}</span>
-                          <span>•</span>
-                          <span>{tx.creatorId === user?.id ? 'Created' : 'Joined'}</span>
-                          {tx.counterpartyName && (
-                            <>
-                              <span>•</span>
-                              <span className="truncate">with {tx.counterpartyName}</span>
-                            </>
+                {isMobile ? (
+                  // Mobile-optimized cards
+                  filteredTransactions.map((tx: any) => (
+                    <MobileTransactionCard
+                      key={tx.id}
+                      transaction={tx}
+                      onViewDetails={(id) => navigate(`/app/transactions/${id}`)}
+                    />
+                  ))
+                ) : (
+                  // Desktop layout
+                  filteredTransactions.map((tx: any) => (
+                    <div 
+                      key={tx.id} 
+                      className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 p-4 border border-gray-100 rounded-md hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => navigate(`/app/transactions/${tx.id}`)}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="flex-shrink-0 p-2 rounded-md bg-gray-100">
+                          <Package className="h-5 w-5 text-gray-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            Transaction #{tx.id.slice(-8)}
+                          </p>
+                          <div className="flex items-center space-x-2 text-sm text-gray-600">
+                            <span>{formatCurrency(tx.total || 0)}</span>
+                            <span>•</span>
+                            <span>{tx.creatorId === user?.id ? 'Created' : 'Joined'}</span>
+                            {tx.counterpartyName && (
+                              <>
+                                <span>•</span>
+                                <span className="truncate">with {tx.counterpartyName}</span>
+                              </>
+                            )}
+                          </div>
+                          {tx.description && (
+                            <p className="text-xs text-gray-500 truncate mt-1">
+                              {tx.description}
+                            </p>
                           )}
                         </div>
-                        {tx.description && (
-                          <p className="text-xs text-gray-500 truncate mt-1">
-                            {tx.description}
-                          </p>
-                        )}
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <Badge className={`${getStatusColor(tx.status)} px-2 py-1 text-xs font-medium rounded`}>
+                          {getStatusDisplayName(tx.status)}
+                        </Badge>
+                        <div className="text-right">
+                          <span className="text-sm text-gray-500 block">
+                          {new Date(tx.createdAt).toLocaleDateString()}
+                        </span>
+                          {tx.updatedAt && tx.updatedAt !== tx.createdAt && (
+                            <span className="text-xs text-gray-400">
+                              Updated {new Date(tx.updatedAt).toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-3">
-                      <Badge className={`${getStatusColor(tx.status)} px-2 py-1 text-xs font-medium rounded`}>
-                        {getStatusDisplayName(tx.status)}
-                      </Badge>
-                      <div className="text-right">
-                        <span className="text-sm text-gray-500 block">
-                        {new Date(tx.createdAt).toLocaleDateString()}
-                      </span>
-                        {tx.updatedAt && tx.updatedAt !== tx.createdAt && (
-                          <span className="text-xs text-gray-400">
-                            Updated {new Date(tx.updatedAt).toLocaleDateString()}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             ) : (
               <div className="text-center py-8">
@@ -583,58 +598,58 @@ export default function Dashboard() {
             Access your most important features
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-6">
-          <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
+        <CardContent className="p-4 sm:p-6">
+          <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-3">
             {/* Row 1 */}
             <Button 
               variant="outline" 
-              className="h-20 flex-col gap-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-md"
+              className="h-16 sm:h-20 flex-col gap-1 sm:gap-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-md"
               onClick={() => navigate('/app/transactions')}
             >
-              <Package className="h-5 w-5" />
-              <span className="font-medium text-sm">View Transactions</span>
+              <Package className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="font-medium text-xs sm:text-sm text-center">View Transactions</span>
             </Button>
             <Button 
               variant="outline" 
-              className="h-20 flex-col gap-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-md"
+              className="h-16 sm:h-20 flex-col gap-1 sm:gap-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-md"
               onClick={() => navigate('/app/create-transaction')}
             >
-              <FileText className="h-5 w-5" />
-              <span className="font-medium text-sm">Create New</span>
+              <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="font-medium text-xs sm:text-sm text-center">Create New</span>
             </Button>
             <Button 
               variant="outline" 
-              className="h-20 flex-col gap-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-md"
+              className="h-16 sm:h-20 flex-col gap-1 sm:gap-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-md"
               onClick={() => navigate('/app/disputes')}
             >
-              <Gavel className="h-5 w-5" />
-              <span className="font-medium text-sm">Disputes</span>
+              <Gavel className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="font-medium text-xs sm:text-sm text-center">Disputes</span>
             </Button>
             
             {/* Row 2 */}
             <Button 
               variant="outline" 
-              className="h-20 flex-col gap-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-md"
+              className="h-16 sm:h-20 flex-col gap-1 sm:gap-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-md"
               onClick={() => navigate('/app/join-transaction')}
             >
-              <Users className="h-5 w-5" />
-              <span className="font-medium text-sm">Join Transaction</span>
+              <Users className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="font-medium text-xs sm:text-sm text-center">Join Transaction</span>
             </Button>
             <Button 
               variant="outline" 
-              className="h-20 flex-col gap-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-md"
+              className="h-16 sm:h-20 flex-col gap-1 sm:gap-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-md"
               onClick={() => navigate('/app/profile')}
             >
-              <Shield className="h-5 w-5" />
-              <span className="font-medium text-sm">Security Settings</span>
+              <Shield className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="font-medium text-xs sm:text-sm text-center">Security Settings</span>
             </Button>
             <Button 
               variant="outline" 
-              className="h-20 flex-col gap-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-md"
+              className="h-16 sm:h-20 flex-col gap-1 sm:gap-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-md"
               onClick={() => navigate('/app/notifications')}
             >
-              <MessageCircle className="h-5 w-5" />
-              <span className="font-medium text-sm">Notifications</span>
+              <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="font-medium text-xs sm:text-sm text-center">Notifications</span>
             </Button>
           </div>
         </CardContent>

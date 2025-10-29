@@ -835,26 +835,26 @@ export default function TransactionDetails() {
   return (
     <>
     <div className="min-h-screen bg-background">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-3">
+      <div className="max-w-6xl mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6">
+        {/* Header - Mobile Optimized */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 space-y-3 sm:space-y-0">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate('/app/transactions')}
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground p-2"
             >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
+              <ArrowLeft className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Back</span>
+            </Button>
             <div className="flex items-center space-x-2">
-              <FileText className="h-6 w-6 text-primary" />
-              <h1 className="text-xl font-semibold text-foreground">Transaction Details</h1>
+              <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+              <h1 className="text-lg sm:text-xl font-semibold text-foreground">Transaction Details</h1>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             {/* Refresh Button */}
             <Button
               variant="outline"
@@ -871,15 +871,16 @@ export default function TransactionDetails() {
 
             {/* Copy Invitation Link - Only show if invitation code exists and transaction is pending */}
             {invitationCode && transaction?.status === 'PENDING' && (
-              <div className="flex space-x-2">
+              <div className="flex space-x-2 w-full sm:w-auto">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={shareTransaction}
-                  className="flex-1"
+                  className="flex-1 sm:flex-none"
                 >
                   <Share2 className="h-4 w-4 mr-2" />
-                  Share Link
+                  <span className="hidden sm:inline">Share Link</span>
+                  <span className="sm:hidden">Share</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -887,13 +888,14 @@ export default function TransactionDetails() {
                   onClick={() => copyToClipboard(getTransactionLink())}
                 >
                   <Copy className="h-4 w-4 mr-2" />
-                  Copy Link
+                  <span className="hidden sm:inline">Copy Link</span>
+                  <span className="sm:hidden">Copy</span>
                 </Button>
               </div>
             )}
 
-          {/* WebSocket Connection Status */}
-            <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-muted/30">
+          {/* WebSocket Connection Status - Hidden on mobile to save space */}
+            <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-md bg-muted/30">
             <div className={`w-2 h-2 rounded-full ${
               connectionStatus === 'connected' ? 'bg-green-500' : 
               connectionStatus === 'connecting' ? 'bg-yellow-500' : 
@@ -955,14 +957,15 @@ export default function TransactionDetails() {
             const showConfirmationTab = isBuyer;
             
             return (
-              <TabsList className="grid w-full" style={{
-                gridTemplateColumns: `repeat(${3 + (showShippingTab ? 1 : 0) + (showConfirmationTab ? 1 : 0)}, 1fr)`
+              <TabsList className="grid w-full overflow-x-auto" style={{
+                gridTemplateColumns: `repeat(${3 + (showShippingTab ? 1 : 0) + (showConfirmationTab ? 1 : 0)}, 1fr)`,
+                minWidth: 'max-content'
               }}>
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                {showShippingTab && <TabsTrigger value="shipping">Shipping</TabsTrigger>}
-                {showConfirmationTab && <TabsTrigger value="confirmation">Confirmation</TabsTrigger>}
-                <TabsTrigger value="payment">Payment</TabsTrigger>
-                <TabsTrigger value="activity">Activity</TabsTrigger>
+                <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
+                {showShippingTab && <TabsTrigger value="shipping" className="text-xs sm:text-sm">Shipping</TabsTrigger>}
+                {showConfirmationTab && <TabsTrigger value="confirmation" className="text-xs sm:text-sm">Confirm</TabsTrigger>}
+                <TabsTrigger value="payment" className="text-xs sm:text-sm">Payment</TabsTrigger>
+                <TabsTrigger value="activity" className="text-xs sm:text-sm">Activity</TabsTrigger>
               </TabsList>
             );
           })()}

@@ -122,6 +122,17 @@ export function ProfessionalMobileNavigation() {
               )}
             </Button>
 
+            {/* Logout Button - Always visible on mobile */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-9 w-9 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+              onClick={handleLogout}
+              title="Sign Out"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
+
             {/* Hamburger Menu */}
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
@@ -253,8 +264,8 @@ export function ProfessionalMobileNavigation() {
         </div>
       </header>
 
-      {/* Spacer for fixed header */}
-      <div className="h-14" />
+      {/* Spacer for fixed header - Increased for better spacing */}
+      <div className="h-16" />
     </>
   );
 }

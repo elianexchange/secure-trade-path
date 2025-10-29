@@ -338,8 +338,8 @@ export function Layout() {
         </aside>
 
         {/* Main Content */}
-        <main className={`flex-1 p-2 sm:p-6 ${isMobile ? 'pb-20' : ''}`}>
-          <div className="space-y-4">
+        <main className={`flex-1 ${isMobile ? 'pt-6 px-4 pb-28' : 'p-2 sm:p-6'}`}>
+          <div className={`space-y-4 ${isMobile ? 'max-w-full' : ''}`}>
             <React.Suspense fallback={
               <div className="flex items-center justify-center h-64">
                 <div className="flex items-center space-x-2">
