@@ -971,17 +971,16 @@ export default function CreateTransaction() {
               className="flex items-center justify-center gap-2 w-full sm:w-auto"
             >
               <Calculator className="h-4 w-4" />
-              <span className="hidden sm:inline">Fee Calculator</span>
-              <span className="sm:hidden">Calculator</span>
+              Fee Calculator
             </Button>
           </div>
       </div>
 
       {/* Progress Indicator - Mobile Optimized */}
         <div className="flex justify-center mb-4 sm:mb-6">
-          <div className="flex items-center space-x-1 sm:space-x-2">
+          <div className="flex items-center justify-between w-full max-w-sm sm:max-w-none sm:w-auto sm:space-x-2">
             {[1, 2, 3, 4, 5].map((step) => (
-              <div key={step} className="flex items-center space-x-0.5 sm:space-x-1">
+              <div key={step} className="flex items-center flex-1 sm:flex-none">
                 <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-xs font-medium transition-all duration-200 ${
                   step <= currentStep 
                     ? 'bg-primary text-primary-foreground' 
@@ -990,7 +989,7 @@ export default function CreateTransaction() {
                   {step}
                 </div>
                 {step < 5 && (
-                  <div className={`w-4 sm:w-6 h-0.5 rounded-full transition-all duration-200 ${
+                  <div className={`flex-1 h-0.5 mx-1 sm:w-6 sm:mx-0 rounded-full transition-all duration-200 ${
                     step < currentStep ? 'bg-primary' : 'bg-muted'
                   }`} />
                 )}
