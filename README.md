@@ -1,111 +1,139 @@
-# Tranzio Frontend
+# Tranzio - Secure Escrow Platform
 
-The frontend application for Tranzio - Nigeria's leading secure escrow trading platform.
-
-## 🚀 Quick Start
-
-```bash
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
-```
-
-## 🛠️ Development
-
-### Prerequisites
-- Node.js 18+
-- npm or yarn
-
-### Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-
-### Environment Variables
-
-Create a `.env.local` file for local development:
-
-```env
-VITE_API_BASE_URL=http://localhost:3000/api
-VITE_WS_URL=http://localhost:3000
-VITE_APP_NAME=Tranzio
-```
-
-## 📱 Features
-
-- **Responsive Design**: Mobile-first approach
-- **Real-time Updates**: WebSocket integration
-- **Secure Authentication**: JWT-based auth
-- **Transaction Management**: Create and manage escrow transactions
-- **Dispute Resolution**: Built-in dispute handling
-- **PWA Support**: Progressive Web App capabilities
+A comprehensive secure escrow trading platform built with React and Node.js, designed to protect online transactions in Nigeria.
 
 ## 🏗️ Project Structure
 
 ```
-src/
-├── components/          # Reusable UI components
-├── pages/              # Page components
-├── contexts/           # React contexts
-├── hooks/              # Custom hooks
-├── services/           # API services
-├── utils/              # Utility functions
-├── types/              # TypeScript types
-└── lib/                # Library configurations
+secure-trade-path/
+├── tranzio-frontend/          # React frontend application
+│   ├── src/                   # Source code
+│   ├── public/                # Static assets
+│   ├── package.json           # Frontend dependencies
+│   └── README.md              # Frontend documentation
+├── tranzio-backend/           # Node.js backend API
+│   ├── src/                   # Source code
+│   ├── prisma/                # Database schema
+│   ├── package.json           # Backend dependencies
+│   └── README.md              # Backend documentation
+└── README.md                  # This file
 ```
 
-## 🎨 UI Components
+## 🚀 Quick Start
 
-Built with:
-- **React 18** - UI library
-- **TypeScript** - Type safety
-- **Tailwind CSS** - Styling
-- **Shadcn/ui** - Component library
-- **Lucide React** - Icons
+### Prerequisites
+- Node.js 18+
+- npm or yarn
+- PostgreSQL (for production)
 
-## 🔗 API Integration
+### Development Setup
 
-- **REST API**: Backend communication
-- **WebSocket**: Real-time updates
-- **File Upload**: Image and document handling
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/elianexchange/secure-trade-path.git
+   cd secure-trade-path
+   ```
+
+2. **Start Frontend**
+   ```bash
+   cd tranzio-frontend
+   npm install
+   npm run dev
+   ```
+
+3. **Start Backend** (in a new terminal)
+   ```bash
+   cd tranzio-backend
+   npm install
+   npm run dev
+   ```
+
+4. **Access the application**
+   - Frontend: http://localhost:5173
+   - Backend API: http://localhost:3000
+
+## 📱 Features
+
+- **Secure Escrow Trading**: Protect both buyers and sellers
+- **Real-time Communication**: WebSocket-powered messaging
+- **Mobile-First Design**: Optimized for mobile devices
+- **Dispute Resolution**: Built-in dispute management system
+- **Payment Protection**: Secure payment handling
+- **User Authentication**: JWT-based authentication
+
+## 🛠️ Technology Stack
+
+### Frontend
+- React 18
+- TypeScript
+- Vite
+- Tailwind CSS
+- Shadcn/ui
+- React Router
+- WebSocket
+
+### Backend
+- Node.js
+- Express.js
+- TypeScript
+- Prisma ORM
+- PostgreSQL
+- JWT Authentication
+- WebSocket
 
 ## 📦 Deployment
 
-The frontend is deployed on Netlify:
-- **URL**: https://tranzzio.netlify.app
-- **Build Command**: `npm run build`
-- **Publish Directory**: `dist`
-
-## 🧪 Testing
-
+### Frontend (Netlify)
 ```bash
-# Run tests (when implemented)
-npm run test
+cd tranzio-frontend
+npm run build
+# Deploy to Netlify
+```
 
-# Run tests in watch mode
-npm run test:watch
+### Backend (Render/Heroku)
+```bash
+cd tranzio-backend
+npm run build
+# Deploy to your preferred platform
+```
+
+## 🔧 Environment Variables
+
+### Frontend (.env.production)
+```env
+VITE_API_BASE_URL=https://your-backend-url.com/api
+VITE_WS_URL=https://your-backend-url.com
+VITE_APP_NAME=Tranzio
+```
+
+### Backend (.env)
+```env
+DATABASE_URL=postgresql://...
+JWT_SECRET=your-jwt-secret
+PORT=3000
 ```
 
 ## 📚 Documentation
 
-- [Component Documentation](./src/components/README.md)
-- [API Integration](./src/services/README.md)
-- [Deployment Guide](./DEPLOYMENT.md)
+- [Frontend Documentation](./tranzio-frontend/README.md)
+- [Backend Documentation](./tranzio-backend/README.md)
 
 ## 🤝 Contributing
 
-1. Follow the existing code style
-2. Add TypeScript types for new features
-3. Test on mobile devices
-4. Update documentation as needed
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
 
 ## 📄 License
 
-This project is part of Tranzio and is licensed under the MIT License.
+This project is licensed under the MIT License.
+
+## 🌐 Live Application
+
+- **Frontend**: https://tranzzio.netlify.app
+- **Backend API**: https://tranzio-backend.onrender.com
+
+## 📞 Support
+
+For support, email support@tranzio.com or create an issue in this repository.
