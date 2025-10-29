@@ -107,20 +107,6 @@ export function ProfessionalMobileNavigation() {
               )}
             </Button>
 
-            {/* Messages */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="relative h-9 w-9 p-0"
-              onClick={() => window.location.href = '/app/messages'}
-            >
-              <MessageCircle className="h-4 w-4" />
-              {messageUnreadCount > 0 && (
-                <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 text-xs bg-blue-500 text-white flex items-center justify-center">
-                  {messageUnreadCount > 9 ? '9+' : messageUnreadCount}
-                </Badge>
-              )}
-            </Button>
 
             {/* Logout Button - Always visible on mobile */}
             <Button

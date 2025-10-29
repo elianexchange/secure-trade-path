@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, CheckCircle, ShoppingCart, Store, Clipboard, X, Info, Calculator } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, ShoppingCart, Store, Clipboard, X, Info, Calculator } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { useWebSocket } from '@/contexts/WebSocketContext';
@@ -345,13 +345,13 @@ export default function CreateTransaction() {
   };
 
   const renderStep1 = () => (
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="text-lg font-semibold text-foreground">Select Your Role</h2>
-        <p className="text-xs text-muted-foreground">Choose your role in this transaction</p>
+        <h2 className="text-lg sm:text-xl font-semibold text-foreground">Select Your Role</h2>
+        <p className="text-sm text-muted-foreground">Choose your role in this transaction</p>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         {/* Buyer Option */}
         <Card 
           className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
@@ -361,7 +361,7 @@ export default function CreateTransaction() {
           }`}
           onClick={() => setTransactionData(prev => ({ ...prev, role: 'BUYER' }))}
         >
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center space-x-3">
               <div className={`p-2 rounded-lg ${
                 transactionData.role === 'BUYER' 
@@ -390,7 +390,7 @@ export default function CreateTransaction() {
           }`}
           onClick={() => setTransactionData(prev => ({ ...prev, role: 'SELLER' }))}
         >
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center space-x-3">
               <div className={`p-2 rounded-lg ${
                 transactionData.role === 'SELLER' 
@@ -942,42 +942,47 @@ export default function CreateTransaction() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
-      {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-3">
+      <div className="max-w-4xl mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6">
+      {/* Header - Mobile Optimized */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 space-y-3 sm:space-y-0">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={handleBack} 
               disabled={currentStep === 1}
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground p-2"
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
+              <ArrowLeft className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Back</span>
             </Button>
             <div className="flex items-center space-x-2">
-              <ShoppingCart className="h-5 w-5 text-primary" />
-              <h1 className="text-xl font-semibold text-foreground">Create Transaction</h1>
+              <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              <h1 className="text-lg sm:text-xl font-semibold text-foreground">Create Transaction</h1>
             </div>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => navigate('/app/escrow-calculator')}
-            className="flex items-center gap-2"
-          >
-            <Calculator className="h-4 w-4" />
-            Fee Calculator
-          </Button>
+          
+          {/* Mobile: Stack buttons vertically, Desktop: Keep horizontal */}
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => navigate('/app/escrow-calculator')}
+              className="flex items-center justify-center gap-2 w-full sm:w-auto"
+            >
+              <Calculator className="h-4 w-4" />
+              <span className="hidden sm:inline">Fee Calculator</span>
+              <span className="sm:hidden">Calculator</span>
+            </Button>
+          </div>
       </div>
 
-      {/* Progress Indicator */}
-        <div className="flex justify-center mb-4">
-          <div className="flex items-center space-x-2">
+      {/* Progress Indicator - Mobile Optimized */}
+        <div className="flex justify-center mb-4 sm:mb-6">
+          <div className="flex items-center space-x-1 sm:space-x-2">
             {[1, 2, 3, 4, 5].map((step) => (
-              <div key={step} className="flex items-center space-x-1">
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium transition-all duration-200 ${
+              <div key={step} className="flex items-center space-x-0.5 sm:space-x-1">
+                <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-xs font-medium transition-all duration-200 ${
                   step <= currentStep 
                     ? 'bg-primary text-primary-foreground' 
                     : 'bg-muted text-muted-foreground'
@@ -985,7 +990,7 @@ export default function CreateTransaction() {
                   {step}
                 </div>
                 {step < 5 && (
-                  <div className={`w-6 h-0.5 rounded-full transition-all duration-200 ${
+                  <div className={`w-4 sm:w-6 h-0.5 rounded-full transition-all duration-200 ${
                     step < currentStep ? 'bg-primary' : 'bg-muted'
                   }`} />
                 )}
@@ -995,8 +1000,8 @@ export default function CreateTransaction() {
         </div>
 
         {/* Step Content */}
-        <Card className="mb-6">
-          <CardContent className="p-6">
+        <Card className="mb-4 sm:mb-6">
+          <CardContent className="p-4 sm:p-6">
           {currentStep === 1 && renderStep1()}
           {currentStep === 2 && renderStep2()}
           {currentStep === 3 && renderStep3()}
@@ -1005,8 +1010,19 @@ export default function CreateTransaction() {
           </CardContent>
         </Card>
 
-        {/* Navigation Buttons */}
-        <div className="flex justify-center">
+        {/* Navigation Buttons - Mobile Optimized */}
+        <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 mt-6">
+          {currentStep > 1 && (
+            <Button 
+              variant="outline"
+              onClick={handleBack}
+              className="w-full sm:w-auto px-6 py-3 text-sm font-medium"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Previous
+            </Button>
+          )}
+          
           {currentStep < 5 ? (
             <Button 
               onClick={handleNext}
@@ -1016,16 +1032,18 @@ export default function CreateTransaction() {
                 (currentStep === 3 && (!transactionData.description || transactionData.price <= 0)) ||
                 (currentStep === 4 && transactionData.role === 'SELLER' && (!transactionData.itemType || !transactionData.itemCategory || !transactionData.itemCondition))
               }
-              className="px-6 py-2 text-sm"
+              className="w-full sm:w-auto px-6 py-3 text-sm font-medium"
             >
               Continue
+              <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           ) : (
             <Button 
               onClick={handleCreateTransaction}
               disabled={!transactionData.description || transactionData.price <= 0}
-              className="px-6 py-2 text-sm"
+              className="w-full sm:w-auto px-6 py-3 text-sm font-medium"
             >
+              <CheckCircle className="h-4 w-4 mr-2" />
               Create Transaction
             </Button>
           )}
