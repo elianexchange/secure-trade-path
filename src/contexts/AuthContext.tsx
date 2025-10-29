@@ -155,19 +155,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setAuthState(prev => ({ ...prev, isLoading: true }));
       
-      console.log('🔍 AuthContext.signup - Starting signup for:', userData.email);
+      // Call signup API
+      await authAPI.signup(userData.email, userData.password, userData.firstName, userData.lastName);
       
-      // Call signup API but don't auto-login
-      const result = await authAPI.signup(userData.email, userData.password, userData.firstName, userData.lastName);
-      console.log('🔍 AuthContext.signup - Signup API result:', result);
-      
-      // Clear any existing transaction data for new users
+      // Clear any existing data for new users
       localStorage.removeItem('tranzio_transactions');
       localStorage.removeItem('tranzio_conversations');
       localStorage.removeItem('tranzio_messages');
       
-      // Don't store token or set authenticated state
-      // User needs to login manually after signup
+      // Reset auth state
       setAuthState({
         user: null,
         token: null,
@@ -175,12 +171,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isLoading: false,
       });
       
-      // Don't show onboarding yet - user needs to login first
       setShowOnboarding(false);
       
-      console.log('✅ AuthContext.signup - Signup completed successfully');
     } catch (error) {
-      console.error('❌ AuthContext.signup - Signup failed:', error);
       setAuthState(prev => ({ ...prev, isLoading: false }));
       throw error;
     }

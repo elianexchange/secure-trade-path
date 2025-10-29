@@ -106,6 +106,10 @@ export default function Signup() {
   const onSubmit = async (data: SignupFormData) => {
     try {
       setIsLoading(true);
+      
+      // Show immediate feedback
+      toast.loading('Creating your account...', { id: 'signup' });
+      
       await signup({
         firstName: data.firstName,
         lastName: data.lastName,
@@ -113,12 +117,23 @@ export default function Signup() {
         password: data.password,
       });
       
-      // Show success message and redirect to login
-      toast.success('Account created successfully! Please login to continue.');
+      // Success feedback
+      toast.success('Account created successfully! Please login to continue.', { id: 'signup' });
+      
+      // Navigate to login
       navigate('/login');
     } catch (error: any) {
       console.error('Signup error:', error);
-      toast.error(error.message || 'Failed to create account. Please try again.');
+      
+      let errorMessage = error.message || 'Failed to create account. Please try again.';
+      
+      if (error.message?.includes('timeout')) {
+        errorMessage = 'Request timed out. Please check your connection and try again.';
+      } else if (error.message?.includes('Network connection failed')) {
+        errorMessage = 'Please check your internet connection and try again.';
+      }
+      
+      toast.error(errorMessage, { id: 'signup' });
     } finally {
       setIsLoading(false);
     }

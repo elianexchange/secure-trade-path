@@ -84,20 +84,19 @@ export const handleApiResponse = async <T>(response: Response): Promise<T> => {
   return rest as T;
 };
 
-// Generic API request function
+// Generic API request function with timeout and performance optimizations
 const apiRequest = async <T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> => {
   const token = getAuthToken();
-  console.log('🔍 apiRequest - Debug Info:');
-  console.log('  - Endpoint:', endpoint);
-  console.log('  - Has Token:', !!token);
-  console.log('  - Options:', options);
   
   // Use production API URL only
   const url = `${API_BASE_URL}${endpoint}`;
-  console.log('  - Full URL:', url);
+  
+  // Create AbortController for timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
   
   const config: RequestInit = {
     headers: {
@@ -105,18 +104,31 @@ const apiRequest = async <T>(
       ...(token && { Authorization: `Bearer ${token}` }),
       ...options.headers,
     },
+    signal: controller.signal,
     ...options,
   };
 
-  console.log('  - Request Config:', config);
-
   try {
-    console.log('  - Making fetch request...');
     const response = await fetch(url, config);
-    console.log('  - Fetch completed, status:', response.status);
+    clearTimeout(timeoutId);
+    
+    // Handle different response types efficiently
+    if (!response.ok) {
+      if (response.status === 401) {
+        // Clear invalid token
+        localStorage.removeItem('authToken');
+        throw new Error('Session expired. Please login again.');
+      }
+      throw new Error(`Request failed with status ${response.status}`);
+    }
+    
     return handleApiResponse<T>(response);
   } catch (error) {
-    console.error('❌ apiRequest - Fetch Error:', error);
+    clearTimeout(timeoutId);
+    
+    if (error.name === 'AbortError') {
+      throw new Error('Request timeout. Please check your connection and try again.');
+    }
     
     // Provide more specific error messages for mobile devices
     if (error instanceof TypeError && error.message.includes('fetch')) {
@@ -1379,9 +1391,9 @@ export const disputesAPI = {
       }
     });
 
-    const result = await handleApiResponse<{ success: boolean; data: any[] }>(response);
+    const result = await handleApiResponse<any[]>(response);
     
-    // The handleApiResponse already extracts data.data, so we need to wrap it back
+    // Wrap the result in the expected format
     return {
       success: true,
       data: result

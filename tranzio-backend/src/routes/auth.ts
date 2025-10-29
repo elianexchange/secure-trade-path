@@ -48,8 +48,8 @@ router.post('/signup', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12);
+    // Hash password with optimized rounds for better performance
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user with default role
     const user = await prisma.user.create({

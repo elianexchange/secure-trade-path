@@ -101,14 +101,16 @@ export default function Login() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setIsLoading(true);
-      console.log('Login attempt - Device info:', {
-        isMobile,
-        userAgent: navigator.userAgent,
-        screenWidth: window.innerWidth
-      });
+      
+      // Show immediate feedback
+      toast.loading('Signing you in...', { id: 'login' });
       
       await login(data.email, data.password);
-      toast.success('Successfully signed in!');
+      
+      // Success feedback
+      toast.success('Successfully signed in!', { id: 'login' });
+      
+      // Navigate immediately for better UX
       navigate('/app/dashboard');
     } catch (error: any) {
       console.error('Login error:', error);
@@ -122,9 +124,11 @@ export default function Login() {
         errorMessage = 'Unable to connect to the server. Please check your internet connection.';
       } else if (isMobile && error.message?.includes('Invalid response format')) {
         errorMessage = 'Server response error. Please try again or refresh the page.';
+      } else if (error.message?.includes('timeout')) {
+        errorMessage = 'Request timed out. Please check your connection and try again.';
       }
       
-      toast.error(errorMessage);
+      toast.error(errorMessage, { id: 'login' });
     } finally {
       setIsLoading(false);
     }
