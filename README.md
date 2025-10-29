@@ -1,73 +1,111 @@
-# Welcome to your Lovable project
+# Tranzio Frontend
 
-## Project info
+The frontend application for Tranzio - Nigeria's leading secure escrow trading platform.
 
-**URL**: https://lovable.dev/projects/f8c70546-047c-4e36-8129-69e819d42ff9
+## 🚀 Quick Start
 
-## How can I edit this code?
+```bash
+# Install dependencies
+npm install
 
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/f8c70546-047c-4e36-8129-69e819d42ff9) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start development server
 npm run dev
+
+# Build for production
+npm run build
 ```
 
-**Edit a file directly in GitHub**
+## 🛠️ Development
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Prerequisites
+- Node.js 18+
+- npm or yarn
 
-**Use GitHub Codespaces**
+### Available Scripts
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
 
-## What technologies are used for this project?
+### Environment Variables
 
-This project is built with:
+Create a `.env.local` file for local development:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```env
+VITE_API_BASE_URL=http://localhost:3000/api
+VITE_WS_URL=http://localhost:3000
+VITE_APP_NAME=Tranzio
+```
 
-## How can I deploy this project?
+## 📱 Features
 
-Simply open [Lovable](https://lovable.dev/projects/f8c70546-047c-4e36-8129-69e819d42ff9) and click on Share -> Publish.
+- **Responsive Design**: Mobile-first approach
+- **Real-time Updates**: WebSocket integration
+- **Secure Authentication**: JWT-based auth
+- **Transaction Management**: Create and manage escrow transactions
+- **Dispute Resolution**: Built-in dispute handling
+- **PWA Support**: Progressive Web App capabilities
 
-## Can I connect a custom domain to my Lovable project?
+## 🏗️ Project Structure
 
-Yes, you can!
+```
+src/
+├── components/          # Reusable UI components
+├── pages/              # Page components
+├── contexts/           # React contexts
+├── hooks/              # Custom hooks
+├── services/           # API services
+├── utils/              # Utility functions
+├── types/              # TypeScript types
+└── lib/                # Library configurations
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 🎨 UI Components
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+Built with:
+- **React 18** - UI library
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Styling
+- **Shadcn/ui** - Component library
+- **Lucide React** - Icons
+
+## 🔗 API Integration
+
+- **REST API**: Backend communication
+- **WebSocket**: Real-time updates
+- **File Upload**: Image and document handling
+
+## 📦 Deployment
+
+The frontend is deployed on Netlify:
+- **URL**: https://tranzzio.netlify.app
+- **Build Command**: `npm run build`
+- **Publish Directory**: `dist`
+
+## 🧪 Testing
+
+```bash
+# Run tests (when implemented)
+npm run test
+
+# Run tests in watch mode
+npm run test:watch
+```
+
+## 📚 Documentation
+
+- [Component Documentation](./src/components/README.md)
+- [API Integration](./src/services/README.md)
+- [Deployment Guide](./DEPLOYMENT.md)
+
+## 🤝 Contributing
+
+1. Follow the existing code style
+2. Add TypeScript types for new features
+3. Test on mobile devices
+4. Update documentation as needed
+
+## 📄 License
+
+This project is part of Tranzio and is licensed under the MIT License.
