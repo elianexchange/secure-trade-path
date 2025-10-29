@@ -1,11 +1,18 @@
 import { PrismaClient } from '@prisma/client';
 
-// Optimized Prisma client with performance settings
+// Optimized Prisma client with connection pooling and performance settings
 const prisma = new PrismaClient({
   log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
   datasources: {
     db: {
       url: process.env.DATABASE_URL,
+    },
+  },
+  // Connection pooling configuration
+  __internal: {
+    engine: {
+      connectTimeout: 10000, // 10 seconds
+      queryTimeout: 30000,   // 30 seconds
     },
   },
 });
