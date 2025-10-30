@@ -51,60 +51,66 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
-  // Load user from localStorage on mount
+  // Load user from localStorage on mount (optimistic: decode JWT, then hydrate profile in background)
   useEffect(() => {
     const loadUser = async () => {
       try {
         const token = localStorage.getItem('authToken');
-        console.log('AuthContext: Checking for existing token:', token ? 'Found' : 'Not found');
-        
         if (token) {
-          // Verify token by getting user profile
-          console.log('AuthContext: Verifying existing token...');
-          const user = await authAPI.getProfile();
-          console.log('AuthContext: Token verified, user loaded:', user.email);
-          setAuthState({
-            user,
-            token,
-            isAuthenticated: true,
-            isLoading: false,
-          });
-        } else {
-          // For development: Auto-login test user if no token exists (desktop only)
-          if (process.env.NODE_ENV === 'development' && !isMobileDevice()) {
-            console.log('AuthContext: No auth token found, attempting auto-login for development (desktop only)...');
-            try {
-              const { user, token } = await authAPI.login('test@example.com', 'password123');
-              console.log('AuthContext: Auto-login successful, storing token and user data');
-              localStorage.setItem('authToken', token);
+          try {
+            const payloadBase64 = token.split('.')[1];
+            const payloadJson = atob(payloadBase64);
+            const payload = JSON.parse(payloadJson) as { userId?: string; email?: string; role?: string; exp?: number };
+            const nowSec = Math.floor(Date.now() / 1000);
+            if (payload?.exp && payload.exp > nowSec) {
+              // Set minimal auth state immediately
               setAuthState({
-                user,
+                user: {
+                  id: (payload as any).userId || '',
+                  email: payload.email || '',
+                  firstName: '',
+                  lastName: '',
+                  role: (payload as any).role || 'BUYER',
+                  status: 'ACTIVE',
+                } as unknown as User,
                 token,
                 isAuthenticated: true,
                 isLoading: false,
               });
-              console.log('AuthContext: Auto-login completed successfully');
+              // Hydrate full profile in background
+              authAPI.getProfile()
+                .then((fullUser) => {
+                  setAuthState(prev => ({ ...prev, user: fullUser }));
+                })
+                .catch(() => {
+                  // keep minimal token-derived user
+                });
               return;
-            } catch (autoLoginError) {
-              console.error('AuthContext: Auto-login failed:', autoLoginError);
-              console.log('AuthContext: User needs to login manually');
             }
+          } catch {
+            // invalid token format -> fall through and clear
           }
-          setAuthState(prev => ({ ...prev, isLoading: false }));
+          // Invalid/expired token
+          localStorage.removeItem('authToken');
         }
+
+        // For development: optional auto-login on desktop only
+        if (process.env.NODE_ENV === 'development' && !isMobileDevice()) {
+          try {
+            const { user, token: devToken } = await authAPI.login('test@example.com', 'password123');
+            localStorage.setItem('authToken', devToken);
+            setAuthState({ user, token: devToken, isAuthenticated: true, isLoading: false });
+            return;
+          } catch {
+            // ignore
+          }
+        }
+        setAuthState(prev => ({ ...prev, isLoading: false }));
       } catch (error) {
-        console.error('AuthContext: Failed to load user:', error);
-        // Clear invalid token
         localStorage.removeItem('authToken');
-        setAuthState({
-          user: null,
-          token: null,
-          isAuthenticated: false,
-          isLoading: false,
-        });
+        setAuthState({ user: null, token: null, isAuthenticated: false, isLoading: false });
       }
     };
-
     loadUser();
   }, []);
 

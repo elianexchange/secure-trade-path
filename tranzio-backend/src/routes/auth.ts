@@ -6,7 +6,7 @@ import { UserRole } from '../types';
 import { emailService } from '../services/emailService';
 import { User } from '@prisma/client';
 
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 
 const router = Router();
 
@@ -380,7 +380,7 @@ router.put('/change-password', authenticateToken, async (req: Request, res: Resp
     }
 
     // Hash new password
-    const saltRounds = parseInt(process.env.BCRYPT_ROUNDS || '12');
+    const saltRounds = parseInt(process.env.BCRYPT_ROUNDS || '10');
     const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
 
     // Update password
@@ -526,7 +526,7 @@ router.post('/set-new-password', async (req: Request, res: Response): Promise<vo
     }
 
     // Hash new password
-    const saltRounds = parseInt(process.env.BCRYPT_ROUNDS || '12');
+    const saltRounds = parseInt(process.env.BCRYPT_ROUNDS || '10');
     const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
 
     // Update password
