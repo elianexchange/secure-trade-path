@@ -217,40 +217,38 @@ export default function Login() {
           </div>
 
           {/* Login Form */}
-          <Card className="shadow-xl border-0 bg-card/50 backdrop-blur-sm">
-            <CardContent className="pt-6">
-              <div className="text-center mb-6">
-                <h2 className="text-xl font-bold text-foreground">Sign In</h2>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Access your secure escrow account
-                </p>
-                {isMobile && (
-                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-xs text-blue-700">
-                      <strong>Mobile users:</strong> If you're having trouble logging in, try refreshing the page or check your internet connection.
-                    </p>
+          <Card className="shadow-xl border border-gray-200 bg-white">
+            <CardContent className="pt-8 pb-8 px-6 sm:px-8">
+              <div className="text-center mb-8">
+                <div className="flex items-center justify-center mb-4">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg">
+                    <Shield className="h-6 w-6 text-white" />
                   </div>
-                )}
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900">Welcome Back</h2>
+                <p className="text-sm text-gray-600 mt-2">
+                  Sign in to access your secure escrow account
+                </p>
               </div>
 
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 {/* Email Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium">
+                  <Label htmlFor="email" className="text-sm font-semibold text-gray-700">
                     Email Address
                   </Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <Input
                       id="email"
                       type="email"
-                      placeholder="Enter your email"
-                      className="pl-10 h-11 border-2 focus:border-primary transition-colors"
+                      placeholder="name@example.com"
+                      className="pl-11 h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                       {...register('email')}
                     />
                   </div>
                   {errors.email && (
-                    <div className="flex items-center gap-2 text-sm text-destructive">
+                    <div className="flex items-center gap-2 text-sm text-red-600 mt-1">
                       <AlertCircle className="h-4 w-4" />
                       {errors.email.message}
                     </div>
@@ -259,34 +257,42 @@ export default function Login() {
 
                 {/* Password Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-sm font-medium">
-                    Password
-                  </Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password" className="text-sm font-semibold text-gray-700">
+                      Password
+                    </Label>
+                    <Link 
+                      to="/forgot-password" 
+                      className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                    >
+                      Forgot?
+                    </Link>
+                  </div>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <Input
                       id="password"
                       type={showPassword ? 'text' : 'password'}
                       placeholder="Enter your password"
-                      className="pl-10 pr-12 h-11 border-2 focus:border-primary transition-colors"
+                      className="pl-11 pr-12 h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                       {...register('password')}
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="absolute right-1 top-1/2 transform -translate-y-1/2 h-9 w-9 p-0 hover:bg-muted"
+                      className="absolute right-1 top-1/2 transform -translate-y-1/2 h-10 w-10 p-0 hover:bg-gray-100 text-gray-500 hover:text-gray-700"
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
+                        <EyeOff className="h-5 w-5" />
                       ) : (
-                        <Eye className="h-4 w-4" />
+                        <Eye className="h-5 w-5" />
                       )}
                     </Button>
                   </div>
                   {errors.password && (
-                    <div className="flex items-center gap-2 text-sm text-destructive">
+                    <div className="flex items-center gap-2 text-sm text-red-600 mt-1">
                       <AlertCircle className="h-4 w-4" />
                       {errors.password.message}
                     </div>
@@ -296,18 +302,18 @@ export default function Login() {
                 {/* Submit Button */}
                 <Button 
                   type="submit" 
-                  className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all duration-200 transform hover:scale-[1.02] shadow-lg hover:shadow-xl mt-6"
+                  className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold text-base transition-all duration-200 shadow-lg hover:shadow-xl mt-6"
                   disabled={isLoading}
                 >
                   {isLoading ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                       Signing in...
                     </>
                   ) : (
                     <>
                       Sign In
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                      <ArrowRight className="ml-2 h-5 w-5" />
                     </>
                   )}
                 </Button>
@@ -337,25 +343,17 @@ export default function Login() {
                   className="w-full"
                 />
 
-                {/* Links */}
-                <div className="text-center space-y-3">
-                  <div className="text-sm">
+                {/* Sign Up Link */}
+                <div className="text-center pt-2">
+                  <p className="text-sm text-gray-600">
                     Don't have an account?{' '}
                     <Link 
                       to="/signup" 
-                      className="text-primary hover:text-primary/80 font-medium hover:underline transition-colors"
+                      className="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition-colors"
                     >
                       Sign up now
                     </Link>
-                  </div>
-                  <div className="text-sm">
-                    <Link 
-                      to="/forgot-password" 
-                      className="text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      Forgot your password?
-                    </Link>
-                  </div>
+                  </p>
                 </div>
               </form>
             </CardContent>

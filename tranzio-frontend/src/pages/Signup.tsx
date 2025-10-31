@@ -231,149 +231,170 @@ export default function Signup() {
             <p className="text-sm text-muted-foreground">Secure Trading Platform</p>
           </div>
 
-          {/* Form Header */}
-          <div className="text-center space-y-2">
-            <h2 className="text-2xl font-bold text-foreground">Create Account</h2>
-            <p className="text-sm text-muted-foreground">Start your secure trading journey today</p>
-          </div>
-
           {/* Signup Form */}
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Name Fields */}
-            <div className="grid grid-cols-2 gap-3">
+          <Card className="shadow-xl border border-gray-200 bg-white">
+            <CardContent className="pt-8 pb-8 px-6 sm:px-8">
+              {/* Form Header */}
+              <div className="text-center mb-8">
+                <div className="flex items-center justify-center mb-4">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg">
+                    <Shield className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900">Create Account</h2>
+                <p className="text-sm text-gray-600 mt-2">Start your secure trading journey today</p>
+              </div>
+
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+              {/* Name Fields */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName" className="text-sm font-semibold text-gray-700">First Name</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Input
+                      id="firstName"
+                      type="text"
+                      placeholder="John"
+                      className="pl-11 h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      {...register('firstName')}
+                    />
+                  </div>
+                  {errors.firstName && (
+                    <div className="flex items-center gap-2 text-sm text-red-600 mt-1">
+                      <AlertCircle className="h-4 w-4" />
+                      {errors.firstName.message}
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName" className="text-sm font-semibold text-gray-700">Last Name</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Input
+                      id="lastName"
+                      type="text"
+                      placeholder="Doe"
+                      className="pl-11 h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      {...register('lastName')}
+                    />
+                  </div>
+                  {errors.lastName && (
+                    <div className="flex items-center gap-2 text-sm text-red-600 mt-1">
+                      <AlertCircle className="h-4 w-4" />
+                      {errors.lastName.message}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="space-y-2">
-                <Label htmlFor="firstName">First Name *</Label>
+                <Label htmlFor="email" className="text-sm font-semibold text-gray-700">Email Address</Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <Input
-                    id="firstName"
-                    type="text"
-                    placeholder="First Name"
-                    className="pl-10 h-11 border-2 focus:border-primary transition-colors"
-                    {...register('firstName')}
+                    id="email"
+                    type="email"
+                    placeholder="name@example.com"
+                    className="pl-11 h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    {...register('email')}
                   />
                 </div>
-                {errors.firstName && (
-                  <div className="flex items-center gap-2 text-sm text-destructive">
+                {errors.email && (
+                  <div className="flex items-center gap-2 text-sm text-red-600 mt-1">
                     <AlertCircle className="h-4 w-4" />
-                    {errors.firstName.message}
+                    {errors.email.message}
                   </div>
                 )}
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name *</Label>
+                <Label htmlFor="password" className="text-sm font-semibold text-gray-700">Password</Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <Input
-                    id="lastName"
-                    type="text"
-                    placeholder="Last Name"
-                    className="pl-10 h-11 border-2 focus:border-primary transition-colors"
-                    {...register('lastName')}
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Create a password (min. 6 characters)"
+                    className="pl-11 pr-12 h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    {...register('password')}
                   />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-1 top-1/2 transform -translate-y-1/2 h-10 w-10 p-0 hover:bg-gray-100 text-gray-500 hover:text-gray-700"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </Button>
                 </div>
-                {errors.lastName && (
-                  <div className="flex items-center gap-2 text-sm text-destructive">
+                {errors.password && (
+                  <div className="flex items-center gap-2 text-sm text-red-600 mt-1">
                     <AlertCircle className="h-4 w-4" />
-                    {errors.lastName.message}
+                    {errors.password.message}
                   </div>
                 )}
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  className="pl-10 h-11 border-2 focus:border-primary transition-colors"
-                  {...register('email')}
-                />
-              </div>
-              {errors.email && (
-                <div className="flex items-center gap-2 text-sm text-destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  {errors.email.message}
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword" className="text-sm font-semibold text-gray-700">Confirm Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    placeholder="Re-enter your password"
+                    className="pl-11 pr-12 h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    {...register('confirmPassword')}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-1 top-1/2 transform -translate-y-1/2 h-10 w-10 p-0 hover:bg-gray-100 text-gray-500 hover:text-gray-700"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </Button>
                 </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Password *</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Create a password"
-                  className="pl-10 pr-12 h-11 border-2 focus:border-primary transition-colors"
-                  {...register('password')}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-9 w-9 p-0 hover:bg-muted"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
+                {errors.confirmPassword && (
+                  <div className="flex items-center gap-2 text-sm text-red-600 mt-1">
+                    <AlertCircle className="h-4 w-4" />
+                    {errors.confirmPassword.message}
+                  </div>
+                )}
               </div>
-              {errors.password && (
-                <div className="flex items-center gap-2 text-sm text-destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  {errors.password.message}
-                </div>
-              )}
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password *</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  placeholder="Confirm your password"
-                  className="pl-10 pr-12 h-11 border-2 focus:border-primary transition-colors"
-                  {...register('confirmPassword')}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-9 w-9 p-0 hover:bg-muted"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-              {errors.confirmPassword && (
-                <div className="flex items-center gap-2 text-sm text-destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  {errors.confirmPassword.message}
-                </div>
-              )}
-            </div>
+              <Button 
+                type="submit" 
+                className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold text-base transition-all duration-200 shadow-lg hover:shadow-xl mt-6"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Creating Account...
+                  </>
+                ) : (
+                  <>
+                    Create Account
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </>
+                )}
+              </Button>
+            </form>
 
-            <Button type="submit" className="w-full h-11" disabled={isLoading}>
-              {isLoading ? 'Creating Account...' : 'Create Account'}
-            </Button>
-          </form>
-
-          {/* Divider */}
-          <div className="relative my-6">
+            {/* Divider */}
+            <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
             </div>
@@ -397,36 +418,30 @@ export default function Signup() {
             className="w-full"
           />
 
-          {/* Terms and Conditions */}
-          <div className="text-center text-xs text-muted-foreground">
-            By creating an account, you agree to our{' '}
+            {/* Terms and Conditions */}
+            <div className="text-center text-xs text-gray-600 mt-6 pt-4 border-t border-gray-200">
+              By creating an account, you agree to our{' '}
+              <Link 
+                to="/terms-and-conditions" 
+                className="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition-colors"
+              >
+                Terms & Conditions
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Login Link */}
+        <div className="text-center pt-4">
+          <p className="text-sm text-gray-600">
+            Already have an account?{' '}
             <Link 
-              to="/terms-and-conditions" 
-              className="text-primary hover:text-primary/80 font-medium hover:underline transition-colors"
+              to="/login" 
+              className="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition-colors"
             >
-              Terms & Conditions
-            </Link>
-          </div>
-
-          {/* Trust Badges */}
-          <div className="flex justify-center items-center gap-4 pt-4">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Shield className="h-3 w-3" />
-              Bank-Grade Security
-            </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <CheckCircle className="h-3 w-3" />
-              100% Verified
-            </div>
-          </div>
-
-          {/* Login Link */}
-          <div className="text-center text-sm">
-            <span className="text-muted-foreground">Already have an account? </span>
-            <Link to="/login" className="text-primary hover:underline font-medium">
               Sign in
             </Link>
-          </div>
+          </p>
         </div>
       </div>
     </div>
