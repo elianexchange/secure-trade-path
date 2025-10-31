@@ -155,9 +155,30 @@ export default function HelpAndSupport() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [expandedQuestion, setExpandedQuestion] = useState<number | null>(null);
 
+  // Prepare FAQ structured data
+  const faqStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqCategories.flatMap(category => 
+      category.questions.map(qa => ({
+        "@type": "Question",
+        "name": qa.q,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": qa.a
+        }
+      }))
+    )
+  };
+
   useSEO({
     title: 'Help & Support - Tranzio',
-    description: 'Get help with your Tranzio account. Find answers to common questions, contact support, or browse our help articles.'
+    description: 'Get help with your Tranzio account. Find answers to common questions, contact support, or browse our help articles.',
+    structuredData: faqStructuredData,
+    breadcrumbs: [
+      { name: 'Home', item: 'https://tranzzio.com/' },
+      { name: 'Help & Support', item: 'https://tranzzio.com/app/help' }
+    ]
   });
 
   const filteredCategories = faqCategories.filter(category => {

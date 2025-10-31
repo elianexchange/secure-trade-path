@@ -1,7 +1,15 @@
 # Tranzio - Secure Escrow Platform
 # Robots.txt for SEO optimization
 
-# Allow all major search engines
+# IMPORTANT: Block Netlify subdomain to prevent duplicate content
+# This robots.txt should be deployed to BOTH tranzzio.com and tranzzio.netlify.app
+# On Netlify: Use conditional logic or deploy this same file
+
+# For Netlify subdomain - block all crawlers
+User-agent: *
+Disallow: /
+
+# Allow only main domain (tranzzio.com)
 User-agent: Googlebot
 Allow: /
 Crawl-delay: 1
@@ -40,7 +48,7 @@ Allow: /
 Crawl-delay: 2
 
 # Sitemap location
-Sitemap: https://tranzzio.netlify.app/sitemap.xml
+Sitemap: https://tranzzio.com/sitemap.xml
 
 # Disallow sensitive areas
 Disallow: /admin/
@@ -64,6 +72,7 @@ Disallow: /app/notifications/
 # Allow public app pages
 Allow: /app/create-transaction
 Allow: /app/join-transaction
+Allow: /app/help
 
 # Disallow search parameters
 Disallow: /*?*
