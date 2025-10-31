@@ -41,6 +41,7 @@ import AIChatbot from '@/components/AIChatbot';
 import { useChatbot } from '@/contexts/ChatbotContext';
 import { DebugInfo } from '@/components/DebugInfo';
 import { SEOLinks } from '@/components/SEOLinks';
+import { SkipToMain } from '@/components/SkipToMain';
 
 const navigationItems = [
   { name: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard },
@@ -186,6 +187,7 @@ export function Layout() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SkipToMain />
       <DebugInfo />
       <SEOLinks />
       {/* Sticky Header */}
@@ -340,7 +342,12 @@ export function Layout() {
         </aside>
 
         {/* Main Content */}
-        <main className={`flex-1 ${isMobile ? 'pt-6 px-4 pb-28' : 'p-2 sm:p-6'}`}>
+        <main 
+          id="main-content"
+          className={`flex-1 ${isMobile ? 'pt-6 px-4 pb-28' : 'p-2 sm:p-6'}`}
+          role="main"
+          aria-label="Main content"
+        >
           <div className={`space-y-4 ${isMobile ? 'max-w-full' : ''}`}>
             <React.Suspense fallback={
               <div className="flex items-center justify-center h-64">

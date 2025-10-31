@@ -74,45 +74,45 @@ export function ProfessionalMobileNavigation() {
 
   return (
     <>
-      {/* Mobile Header with Hamburger Menu */}
+      {/* Mobile Header with Hamburger Menu - Enhanced */}
       <header className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-200",
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         isScrolled 
-          ? "bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm" 
-          : "bg-white border-b border-gray-200"
+          ? "bg-white/98 backdrop-blur-md border-b border-gray-200 shadow-lg" 
+          : "bg-white border-b border-gray-100"
       )}>
         <div className="flex items-center justify-between h-14 px-4">
-          {/* Logo */}
-          <div className="flex items-center space-x-2">
-            <div className="rounded-lg bg-blue-600 p-1.5">
+          {/* Logo - Enhanced */}
+          <div className="flex items-center space-x-2.5">
+            <div className="rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 p-2 shadow-md">
               <Shield className="h-4 w-4 text-white" />
             </div>
-            <h1 className="font-bold text-gray-900 text-lg">Tranzio</h1>
+            <h1 className="font-bold text-gray-900 text-lg tracking-tight">Tranzio</h1>
           </div>
 
           {/* Right side actions */}
           <div className="flex items-center space-x-2">
-            {/* Notifications */}
+            {/* Notifications - Enhanced */}
             <Button
               variant="ghost"
               size="sm"
-              className="relative h-9 w-9 p-0"
+              className="relative h-9 w-9 p-0 hover:bg-gray-100 transition-colors"
               onClick={() => window.location.href = '/app/notifications'}
             >
-              <Bell className="h-4 w-4" />
+              <Bell className="h-4 w-4 text-gray-700" />
               {unreadCount > 0 && (
-                <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 text-xs bg-red-500 text-white flex items-center justify-center">
+                <Badge className="absolute -top-0.5 -right-0.5 h-5 w-5 p-0 text-xs bg-red-500 text-white flex items-center justify-center rounded-full shadow-sm animate-pulse">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </Badge>
               )}
             </Button>
 
 
-            {/* Logout Button - Always visible on mobile */}
+            {/* Logout Button - Enhanced */}
             <Button
               variant="ghost"
               size="sm"
-              className="h-9 w-9 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+              className="h-9 w-9 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-200"
               onClick={handleLogout}
               title="Sign Out"
             >
@@ -131,48 +131,51 @@ export function ProfessionalMobileNavigation() {
                 </Button>
               </SheetTrigger>
               
-              <SheetContent side="left" className="w-80 p-0">
-                <SheetHeader className="p-6 pb-4 border-b">
+              <SheetContent side="left" className="w-80 sm:w-96 p-0 overflow-y-auto">
+                <SheetHeader className="p-6 pb-4 border-b bg-gradient-to-r from-blue-50 to-white">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="rounded-lg bg-blue-600 p-2">
+                      <div className="rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 p-2.5 shadow-md">
                         <Shield className="h-5 w-5 text-white" />
                       </div>
                       <div>
-                        <SheetTitle className="text-lg font-semibold">Tranzio</SheetTitle>
-                        <p className="text-sm text-muted-foreground">Secure Trading Platform</p>
+                        <SheetTitle className="text-lg font-bold text-gray-900">Tranzio</SheetTitle>
+                        <p className="text-sm text-gray-600">Secure Trading Platform</p>
                       </div>
                     </div>
                   </div>
                 </SheetHeader>
 
-                {/* User Profile Section */}
-                <div className="p-6 border-b bg-gray-50/50">
+                {/* User Profile Section - Enhanced */}
+                <div className="p-6 border-b bg-gradient-to-br from-blue-50/50 via-white to-gray-50/50">
                   <div className="flex items-center space-x-3">
-                    <Avatar className="h-12 w-12">
+                    <Avatar className="h-14 w-14 ring-2 ring-blue-200 ring-offset-2">
                       <AvatarImage src={user?.profilePicture} alt="Profile" />
-                      <AvatarFallback className="bg-blue-100 text-blue-600">
-                        <span className="text-lg font-medium">
-                          {user?.firstName?.[0]}{user?.lastName?.[0]}
-                        </span>
+                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-lg font-semibold">
+                        {user?.firstName?.[0]}{user?.lastName?.[0]}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 truncate">
+                      <p className="font-bold text-gray-900 truncate text-base">
                         {user?.firstName} {user?.lastName}
                       </p>
-                      <p className="text-sm text-muted-foreground truncate">
+                      <p className="text-sm text-gray-600 truncate mt-0.5">
                         {user?.email}
                       </p>
-                      <p className="text-xs text-gray-500">
-                        {user?.role} • {user?.status}
-                      </p>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">
+                          {user?.role}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {user?.status}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Navigation Items */}
-                <nav className="flex-1 p-6 space-y-2">
+                {/* Navigation Items - Enhanced */}
+                <nav className="flex-1 p-4 sm:p-6 space-y-1.5">
                   {navigationItems.map((item) => {
                     const isActive = location.pathname === item.href;
                     const Icon = item.icon;
@@ -181,34 +184,50 @@ export function ProfessionalMobileNavigation() {
                       <Link
                         key={item.href}
                         to={item.href}
+                        onClick={() => setIsOpen(false)}
                         className={cn(
-                          "flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 group",
+                          "flex items-center space-x-3 p-3.5 rounded-xl transition-all duration-200 group focus-visible-ring interactive-scale",
                           isActive
-                            ? "bg-blue-50 text-blue-700 border border-blue-200"
-                            : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                            ? "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border border-blue-200 shadow-sm"
+                            : "text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm"
                         )}
+                        aria-current={isActive ? 'page' : undefined}
+                        aria-label={`Navigate to ${item.name}`}
                       >
                         <div className={cn(
-                          "flex-shrink-0 p-2 rounded-lg transition-colors",
+                          "flex-shrink-0 p-2.5 rounded-lg transition-all duration-200",
                           isActive 
-                            ? "bg-blue-100 text-blue-600" 
-                            : "bg-gray-100 text-gray-600 group-hover:bg-gray-200"
+                            ? "bg-blue-600 text-white shadow-md scale-110" 
+                            : "bg-gray-100 text-gray-600 group-hover:bg-gray-200 group-hover:scale-105"
                         )}>
                           <Icon className="h-4 w-4" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm">{item.name}</p>
-                          <p className="text-xs text-muted-foreground">{item.description}</p>
+                          <p className={cn(
+                            "font-semibold text-sm",
+                            isActive ? "text-blue-700" : "text-gray-900"
+                          )}>
+                            {item.name}
+                          </p>
+                          <p className={cn(
+                            "text-xs mt-0.5",
+                            isActive ? "text-blue-600" : "text-gray-500"
+                          )}>
+                            {item.description}
+                          </p>
                         </div>
                         {(item.name === 'Notifications' && unreadCount > 0) && (
-                          <Badge className="bg-red-500 text-white text-xs">
+                          <Badge className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full shadow-sm animate-pulse">
                             {unreadCount > 9 ? '9+' : unreadCount}
                           </Badge>
                         )}
                         {(item.name === 'Messages' && messageUnreadCount > 0) && (
-                          <Badge className="bg-blue-500 text-white text-xs">
+                          <Badge className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full shadow-sm">
                             {messageUnreadCount > 9 ? '9+' : messageUnreadCount}
                           </Badge>
+                        )}
+                        {isActive && (
+                          <div className="w-1.5 h-8 bg-blue-600 rounded-full"></div>
                         )}
                       </Link>
                     );

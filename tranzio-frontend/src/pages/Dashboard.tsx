@@ -17,6 +17,7 @@ import { MobileTransactionCard } from '@/components/MobileTransactionCard';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSEO } from '@/hooks/useSEO';
 import { Breadcrumbs } from '@/components/SEOLinks';
+import { DashboardSkeleton } from '@/components/SkeletonLoader';
 
 export default function Dashboard() {
   // SEO optimization
@@ -260,11 +261,7 @@ export default function Dashboard() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   // If no user, redirect to login
@@ -275,26 +272,28 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-4 pb-20" id="dashboard-main">
+    <div className="space-y-4 pb-20" id="dashboard-main" role="region" aria-label="Dashboard">
       {/* Breadcrumbs for SEO */}
-      <Breadcrumbs items={[
-        { label: 'Home', href: '/' },
-        { label: 'Dashboard' }
-      ]} />
+      <nav aria-label="Breadcrumb">
+        <Breadcrumbs items={[
+          { label: 'Home', href: '/' },
+          { label: 'Dashboard' }
+        ]} />
+      </nav>
       
-      {/* Header */}
-      <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-8 shadow-sm">
+      {/* Header - Enhanced with better visual hierarchy */}
+      <div className="bg-gradient-to-r from-blue-50 via-white to-blue-50/30 border border-blue-100 rounded-xl p-4 sm:p-8 elevation-1 transition-all duration-300 hover:elevation-2">
         <div className="flex flex-col space-y-4 sm:flex-row sm:items-start sm:justify-between sm:space-y-0">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-blue-600 shadow-sm">
-                <Shield className="h-5 w-5 text-white" />
+          <div className="space-y-3 flex-1">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg elevation-2">
+                <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
               <div className="flex-1">
-                <h1 className="text-lg sm:text-3xl font-bold text-gray-900">
-                  Welcome back, {user?.firstName}!
+                <h1 className="text-xl sm:text-3xl lg:text-4xl font-bold text-gray-900 leading-tight">
+                  Welcome back, <span className="text-blue-600">{user?.firstName}</span>!
                 </h1>
-                <p className="text-sm sm:text-base text-gray-600">
+                <p className="text-sm sm:text-base text-gray-600 mt-1.5">
                   Here's what's happening with your transactions today.
                 </p>
               </div>
@@ -315,9 +314,10 @@ export default function Dashboard() {
           <Button 
               id="create-transaction-btn"
             onClick={() => navigate('/app/create-transaction')}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 sm:px-6 sm:py-3 rounded-lg shadow-sm transition-colors w-full sm:w-auto"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 sm:px-6 sm:py-3 rounded-lg shadow-sm transition-colors w-full sm:w-auto focus-visible-ring interactive-scale"
+            aria-label="Create new transaction"
           >
-            <ShoppingCart className="mr-2 h-4 w-4" />
+            <ShoppingCart className="mr-2 h-4 w-4" aria-hidden="true" />
             <span className="hidden sm:inline">New Transaction</span>
             <span className="sm:hidden">New</span>
           </Button>
@@ -327,92 +327,121 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Stats Grid - Mobile Optimized */}
-      <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
-        {/* Total Transactions */}
-        <div className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-2">
-            <div className="p-1 rounded-md bg-blue-100">
-              <Package className="h-3.5 w-3.5 text-blue-600" />
+      {/* Stats Grid - Enhanced with better cards */}
+      <div 
+        className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 tablet-stats-grid"
+        role="region"
+        aria-label="Transaction statistics"
+      >
+        {/* Total Transactions - Enhanced */}
+        <div 
+          className="bg-white border border-gray-200 rounded-xl p-4 elevation-1 hover:elevation-2 transition-all duration-300 hover:-translate-y-0.5 group card-hover focus-visible-ring"
+          role="article"
+          aria-label={`Total transactions: ${stats.totalTransactions}`}
+          tabIndex={0}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 rounded-lg bg-blue-100 group-hover:bg-blue-200 transition-colors">
+              <Package className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
             </div>
-            <div className="text-xs font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
+            <div className="text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded-md">
               Total
             </div>
           </div>
-          <div className="space-y-0.5">
-            <div className="text-lg font-bold text-gray-900">{stats.totalTransactions}</div>
+          <div className="space-y-1">
+            <div className="text-2xl sm:text-3xl font-bold text-gray-900">{stats.totalTransactions}</div>
             <p className="text-xs text-gray-600 leading-tight">
               All time transactions
             </p>
           </div>
         </div>
 
-        {/* Total Value */}
-        <div className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-2">
-            <div className="p-1 rounded-md bg-green-100">
-              <Shield className="h-3.5 w-3.5 text-green-600" />
+        {/* Total Value - Enhanced */}
+        <div 
+          className="bg-white border border-gray-200 rounded-xl p-4 elevation-1 hover:elevation-2 transition-all duration-300 hover:-translate-y-0.5 group card-hover focus-visible-ring"
+          role="article"
+          aria-label={`Total transaction value: ${formatCurrency(stats.totalValue)}`}
+          tabIndex={0}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 rounded-lg bg-green-100 group-hover:bg-green-200 transition-colors">
+              <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
             </div>
-            <div className="text-xs font-medium text-green-600 bg-green-50 px-1.5 py-0.5 rounded">
+            <div className="text-xs font-semibold text-green-700 bg-green-50 px-2 py-1 rounded-md">
               Value
             </div>
           </div>
-          <div className="space-y-0.5">
-            <div className="text-lg font-bold text-gray-900">{formatCurrency(stats.totalValue)}</div>
+          <div className="space-y-1">
+            <div className="text-xl sm:text-2xl font-bold text-gray-900">{formatCurrency(stats.totalValue)}</div>
             <p className="text-xs text-gray-600 leading-tight">
               All transactions value
             </p>
           </div>
         </div>
 
-        {/* Active Transactions */}
-        <div className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-2">
-            <div className="p-1 rounded-md bg-amber-100">
-              <TrendingUp className="h-3.5 w-3.5 text-amber-600" />
+        {/* Active Transactions - Enhanced */}
+        <div 
+          className="bg-white border border-gray-200 rounded-xl p-4 elevation-1 hover:elevation-2 transition-all duration-300 hover:-translate-y-0.5 group card-hover focus-visible-ring"
+          role="article"
+          aria-label={`Active transactions: ${stats.activeTransactions}`}
+          tabIndex={0}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 rounded-lg bg-amber-100 group-hover:bg-amber-200 transition-colors">
+              <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
             </div>
-            <div className="text-xs font-medium text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
+            <div className="text-xs font-semibold text-amber-700 bg-amber-50 px-2 py-1 rounded-md">
               Active
             </div>
           </div>
-          <div className="space-y-0.5">
-            <div className="text-lg font-bold text-gray-900">{stats.activeTransactions}</div>
+          <div className="space-y-1">
+            <div className="text-2xl sm:text-3xl font-bold text-gray-900">{stats.activeTransactions}</div>
             <p className="text-xs text-gray-600 leading-tight">
               In progress
             </p>
           </div>
         </div>
 
-        {/* Completed Transactions */}
-        <div className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-2">
-            <div className="p-1 rounded-md bg-gray-100">
-              <CheckCircle className="h-3.5 w-3.5 text-gray-600" />
+        {/* Completed Transactions - Enhanced */}
+        <div 
+          className="bg-white border border-gray-200 rounded-xl p-4 elevation-1 hover:elevation-2 transition-all duration-300 hover:-translate-y-0.5 group card-hover focus-visible-ring"
+          role="article"
+          aria-label={`Completed transactions: ${stats.completedTransactions}`}
+          tabIndex={0}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 rounded-lg bg-emerald-100 group-hover:bg-emerald-200 transition-colors">
+              <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
             </div>
-            <div className="text-xs font-medium text-gray-600 bg-gray-50 px-1.5 py-0.5 rounded">
+            <div className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md">
               Completed
             </div>
           </div>
-          <div className="space-y-0.5">
-            <div className="text-lg font-bold text-gray-900">{stats.completedTransactions}</div>
+          <div className="space-y-1">
+            <div className="text-2xl sm:text-3xl font-bold text-gray-900">{stats.completedTransactions}</div>
             <p className="text-xs text-gray-600 leading-tight">
               Successfully completed
             </p>
           </div>
         </div>
 
-        {/* Disputed Transactions */}
-        <div className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-2">
-            <div className="p-1 rounded-md bg-red-100">
-              <AlertTriangle className="h-3.5 w-3.5 text-red-600" />
+        {/* Disputed Transactions - Enhanced */}
+        <div 
+          className="bg-white border border-gray-200 rounded-xl p-4 elevation-1 hover:elevation-2 transition-all duration-300 hover:-translate-y-0.5 group card-hover focus-visible-ring"
+          role="article"
+          aria-label={`Disputed transactions: ${stats.disputedTransactions}`}
+          tabIndex={0}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 rounded-lg bg-red-100 group-hover:bg-red-200 transition-colors">
+              <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
             </div>
-            <div className="text-xs font-medium text-red-600 bg-red-50 px-1.5 py-0.5 rounded">
+            <div className="text-xs font-semibold text-red-700 bg-red-50 px-2 py-1 rounded-md">
               Disputed
             </div>
           </div>
-          <div className="space-y-0.5">
-            <div className="text-lg font-bold text-gray-900">{stats.disputedTransactions}</div>
+          <div className="space-y-1">
+            <div className="text-2xl sm:text-3xl font-bold text-gray-900">{stats.disputedTransactions}</div>
             <p className="text-xs text-gray-600 leading-tight">
               Under dispute
             </p>
@@ -420,44 +449,47 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Recent Transactions */}
-      <Card className="border border-gray-200 shadow-sm">
-        <CardHeader className="pb-4">
+      {/* Recent Transactions - Enhanced */}
+      <Card className="border border-gray-200 rounded-xl elevation-1 overflow-hidden" role="region" aria-label="Recent transactions">
+        <CardHeader className="pb-4 bg-gradient-to-r from-gray-50 to-white border-b">
           <div className="flex flex-col space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-xl font-semibold text-gray-900">
+              <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900" id="recent-transactions-title">
                 Recent Transactions
               </CardTitle>
-              <CardDescription className="text-gray-600">
+              <CardDescription className="text-sm text-gray-600 mt-1">
                 Your latest trading activities
               </CardDescription>
             </div>
             <Button 
               variant="outline" 
-              className="border-gray-300 text-gray-700 hover:bg-gray-50 rounded-md px-4 py-2"
+              className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 rounded-lg px-4 py-2 transition-all duration-200 hover:shadow-md focus-visible-ring interactive-scale"
               onClick={() => navigate('/app/transactions')}
+              aria-label="View all transactions"
             >
               View All
             </Button>
             </div>
             
-            {/* Filters and Search */}
+            {/* Filters and Search - Enhanced */}
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
-                <Search className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
+                <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true" />
                 <input
                   type="text"
                   placeholder="Search transactions..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 input-focus"
+                  aria-label="Search transactions"
                 />
               </div>
               <select
                 value={transactionFilter}
                 onChange={(e) => setTransactionFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white input-focus"
+                aria-label="Filter transactions by status"
               >
                 <option value="all">All Status</option>
                 <option value="PENDING">Pending</option>
@@ -471,7 +503,7 @@ export default function Dashboard() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-6">
+        <CardContent className="p-4 sm:p-6">
           {(() => {
             // Use transactions from state - ensure it's an array
             let filteredTransactions = Array.isArray(userTransactions) ? userTransactions : [];
@@ -507,29 +539,38 @@ export default function Dashboard() {
                     />
                   ))
                 ) : (
-                  // Desktop layout
+                  // Desktop layout - Enhanced
                   filteredTransactions.map((tx: any) => (
                     <div 
                       key={tx.id} 
-                      className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 p-4 border border-gray-100 rounded-md hover:bg-gray-50 transition-colors cursor-pointer"
+                      className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 p-4 border border-gray-200 rounded-lg hover:bg-blue-50/50 hover:border-blue-200 hover:shadow-md transition-all duration-200 cursor-pointer group card-hover focus-visible-ring"
                       onClick={() => navigate(`/app/transactions/${tx.id}`)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          navigate(`/app/transactions/${tx.id}`);
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`View transaction ${tx.id?.slice(-8)} - ${getStatusDisplayName(tx.status || 'UNKNOWN')}`}
                     >
-                      <div className="flex items-center space-x-3">
-                        <div className="flex-shrink-0 p-2 rounded-md bg-gray-100">
-                          <Package className="h-5 w-5 text-gray-600" />
+                      <div className="flex items-center space-x-3 flex-1">
+                        <div className="flex-shrink-0 p-2.5 rounded-lg bg-gray-100 group-hover:bg-blue-100 transition-colors">
+                          <Package className="h-5 w-5 text-gray-600 group-hover:text-blue-600 transition-colors" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">
+                          <p className="text-sm font-semibold text-gray-900 truncate group-hover:text-blue-700 transition-colors">
                             Transaction #{tx.id ? tx.id.slice(-8) : 'N/A'}
                           </p>
-                          <div className="flex items-center space-x-2 text-sm text-gray-600">
-                            <span>{formatCurrency(tx.total || 0)}</span>
-                            <span>•</span>
+                          <div className="flex items-center space-x-2 text-sm text-gray-600 mt-0.5">
+                            <span className="font-medium text-gray-900">{formatCurrency(tx.total || 0)}</span>
+                            <span className="text-gray-400">•</span>
                             <span>{tx.creatorId === user?.id ? 'Created' : 'Joined'}</span>
                             {tx.counterpartyName && (
                               <>
-                                <span>•</span>
-                                <span className="truncate">with {tx.counterpartyName}</span>
+                                <span className="text-gray-400">•</span>
+                                <span className="truncate text-gray-600">with {tx.counterpartyName}</span>
                               </>
                             )}
                           </div>
@@ -540,16 +581,16 @@ export default function Dashboard() {
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center space-x-3">
-                        <Badge className={`${getStatusColor(tx.status || 'UNKNOWN')} px-2 py-1 text-xs font-medium rounded`}>
+                      <div className="flex items-center space-x-4">
+                        <Badge className={`${getStatusColor(tx.status || 'UNKNOWN')} px-3 py-1.5 text-xs font-semibold rounded-lg shadow-sm`}>
                           {getStatusDisplayName(tx.status || 'UNKNOWN')}
                         </Badge>
                         <div className="text-right">
-                          <span className="text-sm text-gray-500 block">
+                          <span className="text-sm font-medium text-gray-700 block">
                           {tx.createdAt ? new Date(tx.createdAt).toLocaleDateString() : 'N/A'}
                         </span>
                           {tx.updatedAt && tx.updatedAt !== tx.createdAt && (
-                            <span className="text-xs text-gray-400">
+                            <span className="text-xs text-gray-500">
                               Updated {tx.updatedAt ? new Date(tx.updatedAt).toLocaleDateString() : 'N/A'}
                             </span>
                           )}
@@ -560,16 +601,18 @@ export default function Dashboard() {
                 )}
               </div>
             ) : (
-              <div className="text-center py-8">
-                <div className="p-3 rounded-full bg-gray-100 w-16 h-16 mx-auto mb-3 flex items-center justify-center">
-                  <Package className="h-8 w-8 text-gray-400" />
+              <div className="text-center py-12 px-4">
+                <div className="p-4 rounded-full bg-gradient-to-br from-blue-50 to-blue-100 w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                  <Package className="h-10 w-10 text-blue-600" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-700 mb-1">No transactions yet</h3>
-                <p className="text-gray-500 mb-4">Start trading to see your transactions here</p>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">No transactions yet</h3>
+                <p className="text-gray-600 mb-6 max-w-sm mx-auto">Start trading to see your transactions here. Create your first secure transaction to get started!</p>
                 <Button 
                   onClick={() => navigate('/app/create-transaction')}
-                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-md px-4 py-2"
+                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg px-6 py-3 font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 focus-visible-ring interactive-scale"
+                  aria-label="Create your first transaction"
                 >
+                  <ShoppingCart className="h-4 w-4 mr-2" aria-hidden="true" />
                   Create Your First Transaction
                 </Button>
               </div>

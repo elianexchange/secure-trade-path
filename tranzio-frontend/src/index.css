@@ -285,13 +285,69 @@ All colors MUST be HSL.
     background-size: 20px 20px;
   }
 
-  /* Enhanced Shadows */
+  /* Enhanced Shadows & Elevation System */
   .shadow-2xl {
     box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
   }
 
   .shadow-3xl {
     box-shadow: 0 35px 60px -12px rgb(0 0 0 / 0.25);
+  }
+
+  /* Elevation Levels */
+  .elevation-0 {
+    box-shadow: none;
+  }
+
+  .elevation-1 {
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  }
+
+  .elevation-2 {
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  }
+
+  .elevation-3 {
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  }
+
+  /* Skeleton Loaders */
+  .skeleton {
+    background: linear-gradient(90deg, 
+      hsl(var(--muted)) 0%, 
+      hsl(var(--muted-foreground) / 0.1) 50%, 
+      hsl(var(--muted)) 100%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+    border-radius: 0.5rem;
+  }
+
+  @keyframes skeleton-loading {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  .skeleton-text {
+    @apply skeleton h-4 w-full;
+  }
+
+  .skeleton-title {
+    @apply skeleton h-6 w-3/4;
+  }
+
+  .skeleton-card {
+    @apply skeleton h-32 w-full;
+  }
+
+  .skeleton-avatar {
+    @apply skeleton rounded-full;
+    width: 40px;
+    height: 40px;
   }
 
   /* Glassmorphism Effects */
@@ -321,6 +377,71 @@ All colors MUST be HSL.
     animation: float 8s ease-in-out infinite;
   }
 
+  /* Enhanced Micro-interactions */
+  .interactive-scale {
+    @apply transition-transform duration-200 ease-out;
+  }
+
+  .interactive-scale:hover {
+    @apply scale-105;
+  }
+
+  .interactive-scale:active {
+    @apply scale-95;
+  }
+
+  .interactive-lift {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .interactive-lift:hover {
+    @apply -translate-y-1 shadow-lg;
+  }
+
+  .button-ripple {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .button-ripple::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+
+  .button-ripple:active::after {
+    width: 300px;
+    height: 300px;
+  }
+
+  /* Smooth page transitions */
+  .page-transition-enter {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  .page-transition-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 300ms ease-out, transform 300ms ease-out;
+  }
+
+  .page-transition-exit {
+    opacity: 1;
+  }
+
+  .page-transition-exit-active {
+    opacity: 0;
+    transition: opacity 200ms ease-in;
+  }
+
   /* Gradient Text */
   .text-gradient-primary {
     background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)));
@@ -343,20 +464,61 @@ All colors MUST be HSL.
     background-clip: text;
   }
 
-  /* Enhanced Buttons */
+  /* Enhanced Buttons with Micro-interactions */
   .btn-modern {
     @apply relative overflow-hidden rounded-xl px-6 py-3 font-semibold transition-all duration-300;
     @apply hover:scale-105 hover:shadow-lg active:scale-95;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
   }
 
   .btn-modern-primary {
     @apply btn-modern bg-gradient-to-r from-blue-600 to-indigo-600 text-white;
     @apply hover:from-blue-700 hover:to-indigo-700;
+    @apply focus-visible:ring-blue-500;
   }
 
   .btn-modern-secondary {
     @apply btn-modern bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700;
     @apply hover:from-slate-200 hover:to-slate-300 hover:shadow-md;
+    @apply focus-visible:ring-slate-500;
+  }
+
+  /* Card Hover Effects */
+  .card-hover {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .card-hover:hover {
+    @apply shadow-xl -translate-y-1;
+  }
+
+  .card-hover:focus-visible {
+    @apply outline-none ring-2 ring-blue-500 ring-offset-2;
+  }
+
+  /* Input Focus Animations */
+  .input-focus {
+    @apply transition-all duration-200;
+  }
+
+  .input-focus:focus {
+    @apply ring-2 ring-blue-500 border-blue-500;
+  }
+
+  /* Badge Pulse Animation */
+  .badge-pulse {
+    animation: pulse-badge 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-badge {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.8;
+      transform: scale(1.05);
+    }
   }
 
   /* Card Enhancements */
@@ -601,6 +763,65 @@ All colors MUST be HSL.
     .tablet-grid {
       grid-template-columns: repeat(2, 1fr);
     }
+
+    /* Enhanced Tablet Layouts */
+    .tablet-2-col {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .tablet-3-col {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    /* Tablet Navigation */
+    .tablet-nav {
+      width: 240px;
+    }
+
+    /* Tablet Cards */
+    .tablet-card {
+      padding: 1.5rem;
+    }
+
+    /* Tablet Forms */
+    .tablet-form {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Tablet Spacing */
+    .tablet-gap {
+      gap: 1.5rem;
+    }
+
+    .tablet-space-y {
+      space-y: 1.5rem;
+    }
+
+    /* Tablet Typography */
+    .tablet-text-lg {
+      font-size: 1.125rem;
+    }
+
+    .tablet-text-xl {
+      font-size: 1.25rem;
+    }
+
+    /* Tablet Stats Grid */
+    .tablet-stats-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    /* Tablet Transaction List */
+    .tablet-transaction-list {
+      grid-template-columns: repeat(1, 1fr);
+    }
+
+    /* Tablet Button Groups */
+    .tablet-button-group {
+      flex-direction: row;
+      gap: 1rem;
+    }
   }
 
   /* Desktop Enhancements */
@@ -632,15 +853,57 @@ All colors MUST be HSL.
     .animate-float,
     .animate-float-delayed,
     .animate-float-slow,
-    .animate-shimmer {
+    .animate-shimmer,
+    .badge-pulse {
       animation: none;
     }
     
     .hover\:scale-105:hover,
     .hover\:scale-110:hover,
     .hover\:-translate-y-1:hover,
-    .hover\:-translate-y-2:hover {
+    .hover\:-translate-y-2:hover,
+    .interactive-scale:hover,
+    .interactive-lift:hover {
       transform: none;
+    }
+
+    .card-hover:hover {
+      transform: none;
+      box-shadow: inherit;
+    }
+  }
+
+  /* Accessibility Enhancements */
+  .focus-visible-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2;
+  }
+
+  .focus-visible-ring-inset {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset;
+  }
+
+  /* Skip to main content link */
+  .skip-to-main {
+    @apply absolute left-4 top-4 z-[100] -translate-y-full focus:translate-y-0;
+    @apply bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold;
+    @apply transition-transform duration-200;
+  }
+
+  .skip-to-main:focus {
+    @apply outline-none ring-2 ring-blue-500 ring-offset-2;
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .card-modern,
+    .card-hover {
+      border-width: 2px;
+      border-color: currentColor;
+    }
+
+    button,
+    a {
+      border-width: 2px;
     }
   }
 
