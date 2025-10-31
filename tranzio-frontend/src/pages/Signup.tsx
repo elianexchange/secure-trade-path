@@ -395,28 +395,28 @@ export default function Signup() {
 
             {/* Divider */}
             <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-gray-500">
+                  Or continue with
+                </span>
+              </div>
             </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                Or continue with
-              </span>
-            </div>
-          </div>
 
-          {/* Google Sign-In */}
-          <GoogleSignIn 
-            onSuccess={(user) => {
-              toast.success('Account created successfully with Google!');
-              navigate('/dashboard');
-            }}
-            onError={(error) => {
-              toast.error(`Google sign-up failed: ${error.message}`);
-            }}
-            buttonText="Sign up with Google"
-            className="w-full"
-          />
+            {/* Google Sign-In */}
+            <GoogleSignIn 
+              onSuccess={(user) => {
+                toast.success('Account created successfully with Google!');
+                navigate('/dashboard');
+              }}
+              onError={(error) => {
+                toast.error(`Google sign-up failed: ${error.message}`);
+              }}
+              buttonText="Sign up with Google"
+              className="w-full"
+            />
 
             {/* Terms and Conditions */}
             <div className="text-center text-xs text-gray-600 mt-6 pt-4 border-t border-gray-200">
