@@ -135,7 +135,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex flex-col lg:flex-row relative">
+    <div className="min-h-screen lg:h-screen bg-gradient-to-br from-background via-background to-muted/20 flex flex-col lg:flex-row relative">
       {/* Back Button */}
       <button
         onClick={() => navigate('/')}
@@ -146,7 +146,7 @@ export default function Login() {
       </button>
       
       {/* Left Side - Trust Carousel */}
-      <div className="hidden lg:flex lg:w-1/2 lg:min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 lg:h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 relative overflow-hidden">
         <div className="absolute inset-0 bg-black/20"></div>
         
         {/* Animated Background Elements */}
@@ -205,7 +205,7 @@ export default function Login() {
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 overflow-y-auto min-h-0">
+      <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 lg:h-screen lg:overflow-hidden min-h-0">
         <div className="w-full max-w-sm lg:max-w-md space-y-4 sm:space-y-6 flex-shrink-0">
           {/* Logo Header - Visible on all screens */}
           <div className="text-center mb-4 sm:mb-6">
