@@ -441,6 +441,7 @@ export default function Signup() {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );
