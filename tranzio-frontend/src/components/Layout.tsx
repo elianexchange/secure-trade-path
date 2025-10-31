@@ -41,7 +41,6 @@ import AIChatbot from '@/components/AIChatbot';
 import { useChatbot } from '@/contexts/ChatbotContext';
 import { DebugInfo } from '@/components/DebugInfo';
 import { SEOLinks } from '@/components/SEOLinks';
-import { SkipToMain } from '@/components/SkipToMain';
 
 const navigationItems = [
   { name: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard },
@@ -53,6 +52,7 @@ const navigationItems = [
   { name: 'Wallet', href: '/app/wallet', icon: Wallet },
   { name: 'Disputes', href: '/app/disputes', icon: AlertTriangle },
   { name: 'User Profile', href: '/app/profile', icon: User },
+  { name: 'Help & Support', href: '/app/help', icon: HelpCircle },
 ];
 
 export function Layout() {
@@ -187,7 +187,6 @@ export function Layout() {
 
   return (
     <div className="min-h-screen bg-background">
-      <SkipToMain />
       <DebugInfo />
       <SEOLinks />
       {/* Sticky Header */}

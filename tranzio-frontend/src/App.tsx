@@ -39,6 +39,7 @@ import EscrowCalculatorPage from './pages/EscrowCalculatorPage';
 import Disputes from './pages/Disputes';
 import CreateDispute from './pages/CreateDispute';
 import DisputeDetails from './pages/DisputeDetails';
+import HelpAndSupport from './pages/HelpAndSupport';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
@@ -126,6 +127,7 @@ function App() {
             <Route path="disputes" element={<Disputes />} />
             <Route path="disputes/create" element={<CreateDispute />} />
             <Route path="disputes/:disputeId" element={<DisputeDetails />} />
+            <Route path="help" element={<HelpAndSupport />} />
                 <Route path="vendor" element={<VendorDetails />} />
                 <Route path="vendor/profile" element={<VendorDetails />} />
               </Route>

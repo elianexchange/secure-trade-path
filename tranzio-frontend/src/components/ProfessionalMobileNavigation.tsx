@@ -24,6 +24,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { useMessages } from '@/contexts/MessageContext';
+import { useNavigate } from 'react-router-dom';
 
 const navigationItems = [
   { name: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard, description: 'Overview and analytics' },
@@ -38,6 +39,7 @@ const navigationItems = [
 
 export function ProfessionalMobileNavigation() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { notifications } = useNotifications();
   const { unreadCount: messageUnreadCount } = useMessages();
@@ -248,7 +250,7 @@ export function ProfessionalMobileNavigation() {
                   <Button
                     variant="ghost"
                     className="w-full justify-start text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                    onClick={() => window.location.href = '/help'}
+                    onClick={() => navigate('/app/help')}
                   >
                     <HelpCircle className="h-4 w-4 mr-3" />
                     Help & Support

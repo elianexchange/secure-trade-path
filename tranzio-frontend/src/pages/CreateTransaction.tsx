@@ -7,7 +7,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, ArrowRight, CheckCircle, ShoppingCart, Store, Clipboard, X, Info, Calculator } from 'lucide-react';
-import { StepIndicator } from '@/components/StepIndicator';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { useWebSocket } from '@/contexts/WebSocketContext';
@@ -981,16 +980,6 @@ export default function CreateTransaction() {
           </div>
       </div>
 
-      {/* Enhanced Progress Indicator */}
-      <div className="mb-6 sm:mb-8">
-        <StepIndicator
-          currentStep={currentStep}
-          totalSteps={5}
-          stepLabels={['Role', 'Shipping', 'Details', 'Payment', 'Review']}
-          showLabels={true}
-          className="px-2 sm:px-0"
-        />
-      </div>
 
         {/* Step Content */}
         <Card className="mb-4 sm:mb-6">
