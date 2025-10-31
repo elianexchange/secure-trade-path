@@ -135,7 +135,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen h-screen bg-gradient-to-br from-background via-background to-muted/20 flex overflow-hidden relative">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex flex-col lg:flex-row relative">
       {/* Back Button */}
       <button
         onClick={() => navigate('/')}
@@ -146,7 +146,7 @@ export default function Login() {
       </button>
       
       {/* Left Side - Trust Carousel */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 lg:min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 relative overflow-hidden">
         <div className="absolute inset-0 bg-black/20"></div>
         
         {/* Animated Background Elements */}
@@ -205,29 +205,26 @@ export default function Login() {
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-8">
-        <div className="w-full max-w-sm lg:max-w-md space-y-6">
-          {/* Mobile Logo */}
-          <div className="lg:hidden text-center mb-6">
-            <div className="flex items-center justify-center mb-3">
-              <Shield className="h-10 w-10 text-primary" />
+      <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 overflow-y-auto min-h-0">
+        <div className="w-full max-w-sm lg:max-w-md space-y-4 sm:space-y-6 flex-shrink-0">
+          {/* Logo Header - Visible on all screens */}
+          <div className="text-center mb-4 sm:mb-6">
+            <div className="flex items-center justify-center mb-3 sm:mb-4">
+              <div className="p-2.5 sm:p-3 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-md">
+                <Shield className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
+              </div>
             </div>
-            <h1 className="text-2xl font-bold text-foreground">Tranzio</h1>
-            <p className="text-sm text-muted-foreground">Welcome back to secure trading</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Tranzio</h1>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">Welcome back to secure trading</p>
           </div>
 
           {/* Login Form */}
-          <Card className="shadow-xl border border-gray-200 bg-white">
-            <CardContent className="pt-8 pb-8 px-6 sm:px-8">
-              <div className="text-center mb-8">
-                <div className="flex items-center justify-center mb-4">
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg">
-                    <Shield className="h-6 w-6 text-white" />
-                  </div>
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900">Welcome Back</h2>
-                <p className="text-sm text-gray-600 mt-2">
-                  Sign in to access your secure escrow account
+          <Card className="border border-gray-300 bg-white">
+            <CardContent className="pt-6 sm:pt-8 pb-6 sm:pb-8 px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-6 sm:mb-8">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Sign In</h2>
+                <p className="text-sm text-gray-600 mt-1.5 sm:mt-2">
+                  Access your secure escrow account
                 </p>
               </div>
 
@@ -243,7 +240,7 @@ export default function Login() {
                       id="email"
                       type="email"
                       placeholder="name@example.com"
-                      className="pl-11 h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      className="pl-11 h-12 text-base border-gray-300 focus:border-blue-500"
                       {...register('email')}
                     />
                   </div>
@@ -257,24 +254,16 @@ export default function Login() {
 
                 {/* Password Field */}
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password" className="text-sm font-semibold text-gray-700">
-                      Password
-                    </Label>
-                    <Link 
-                      to="/forgot-password" 
-                      className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
-                    >
-                      Forgot?
-                    </Link>
-                  </div>
+                  <Label htmlFor="password" className="text-sm font-semibold text-gray-700">
+                    Password
+                  </Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <Input
                       id="password"
                       type={showPassword ? 'text' : 'password'}
                       placeholder="Enter your password"
-                      className="pl-11 pr-12 h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      className="pl-11 pr-12 h-12 text-base border-gray-300 focus:border-blue-500"
                       {...register('password')}
                     />
                     <Button
@@ -297,6 +286,14 @@ export default function Login() {
                       {errors.password.message}
                     </div>
                   )}
+                  <div className="text-right">
+                    <Link 
+                      to="/forgot-password" 
+                      className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                    >
+                      Forgot your password?
+                    </Link>
+                  </div>
                 </div>
 
                 {/* Submit Button */}
@@ -343,37 +340,22 @@ export default function Login() {
                   className="w-full"
                 />
 
-                {/* Sign Up Link */}
-                <div className="text-center pt-2">
-                  <p className="text-sm text-gray-600">
-                    Don't have an account?{' '}
-                    <Link 
-                      to="/signup" 
-                      className="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition-colors"
-                    >
-                      Sign up now
-                    </Link>
-                  </p>
-                </div>
               </form>
+
+              {/* Links Section */}
+              <div className="mt-6 pt-6 border-t border-gray-200 space-y-3">
+                <div className="text-center text-sm text-gray-600">
+                  Don't have an account?{' '}
+                  <Link 
+                    to="/signup" 
+                    className="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition-colors"
+                  >
+                    Sign up now
+                  </Link>
+                </div>
+              </div>
             </CardContent>
           </Card>
-
-          {/* Trust Badges */}
-          <div className="text-center space-y-3">
-            <p className="text-xs text-muted-foreground">Trusted by leading financial institutions</p>
-            <div className="flex justify-center items-center space-x-4 opacity-60">
-              <div className="w-14 h-7 bg-muted rounded flex items-center justify-center">
-                <span className="text-xs font-semibold text-muted-foreground">PCI DSS</span>
-              </div>
-              <div className="w-14 h-7 bg-muted rounded flex items-center justify-center">
-                <span className="text-xs font-semibold text-muted-foreground">SOC 2</span>
-              </div>
-              <div className="w-14 h-7 bg-muted rounded flex items-center justify-center">
-                <span className="text-xs font-semibold text-muted-foreground">ISO 27001</span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

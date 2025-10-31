@@ -6,21 +6,21 @@ import { Link } from 'react-router-dom';
 
 export default function TermsAndConditions() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-white shadow-sm border-b border-blue-200">
         <div className="max-w-4xl mx-auto px-4 py-4 sm:py-6">
           <div className="flex items-center gap-3">
             <Link to="/login">
-              <Button variant="ghost" size="sm" className="flex items-center gap-2 flex-shrink-0">
+              <Button variant="ghost" size="sm" className="flex items-center gap-2 flex-shrink-0 hover:bg-blue-50">
                 <ArrowLeft className="h-4 w-4" />
                 <span className="hidden sm:inline">Back to Login</span>
                 <span className="sm:hidden">Back</span>
               </Button>
             </Link>
             <div className="flex items-center gap-3 flex-1 min-w-0">
-              <div className="p-2 bg-slate-100 rounded-lg flex-shrink-0">
-                <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-slate-600" />
+              <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
+                <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
               </div>
               <div className="min-w-0 flex-1">
                 <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 truncate">Terms and Conditions</h1>
@@ -33,13 +33,13 @@ export default function TermsAndConditions() {
 
       {/* Content */}
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <Card className="shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-slate-700 to-blue-700 text-white">
+        <Card className="shadow-lg border border-blue-200">
+          <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
             <CardTitle className="flex items-center gap-3">
               <Shield className="h-6 w-6" />
               Tranzio Terms and Conditions
             </CardTitle>
-            <p className="text-slate-200 mt-2">
+            <p className="text-blue-50 mt-2">
               By using Tranzio, you agree to be bound by these terms and conditions.
             </p>
           </CardHeader>
@@ -48,7 +48,7 @@ export default function TermsAndConditions() {
             {/* Introduction */}
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Users className="h-5 w-5 text-slate-600" />
+                <Users className="h-5 w-5 text-blue-600" />
                 1. Introduction
               </h2>
               <div className="prose prose-gray max-w-none">
@@ -67,7 +67,7 @@ export default function TermsAndConditions() {
             {/* Service Description */}
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Shield className="h-5 w-5 text-slate-600" />
+                <Shield className="h-5 w-5 text-blue-600" />
                 2. Service Description
               </h2>
               <div className="prose prose-gray max-w-none">
@@ -232,7 +232,7 @@ export default function TermsAndConditions() {
             {/* Termination */}
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-slate-600" />
+                <Calendar className="h-5 w-5 text-blue-600" />
                 9. Termination
               </h2>
               <div className="prose prose-gray max-w-none">
@@ -256,7 +256,7 @@ export default function TermsAndConditions() {
             {/* Governing Law */}
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <FileText className="h-5 w-5 text-slate-600" />
+                <FileText className="h-5 w-5 text-blue-600" />
                 10. Governing Law and Disputes
               </h2>
               <div className="prose prose-gray max-w-none">
@@ -277,7 +277,7 @@ export default function TermsAndConditions() {
             {/* Changes to Terms */}
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-slate-600" />
+                <Calendar className="h-5 w-5 text-blue-600" />
                 11. Changes to Terms
               </h2>
               <div className="prose prose-gray max-w-none">
@@ -320,7 +320,7 @@ export default function TermsAndConditions() {
                     </Button>
                   </Link>
                   <Link to="/login">
-                    <Button size="sm" className="w-full sm:w-auto">
+                    <Button size="sm" className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white">
                       Back to Login
                     </Button>
                   </Link>

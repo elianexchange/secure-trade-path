@@ -140,7 +140,7 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen h-screen bg-gradient-to-br from-background via-background to-muted/20 flex overflow-hidden relative">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex flex-col lg:flex-row relative">
       {/* Back Button */}
       <button
         onClick={() => navigate('/')}
@@ -151,7 +151,7 @@ export default function Signup() {
       </button>
       
       {/* Left Side - Platform Benefits Carousel */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 lg:min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 relative overflow-hidden">
         <div className="absolute inset-0 bg-black/20"></div>
         
         {/* Animated Background Elements */}
@@ -223,26 +223,26 @@ export default function Signup() {
       </div>
 
       {/* Right Side - Signup Form */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-8 overflow-y-auto">
-        <div className="w-full max-w-sm lg:max-w-md space-y-6 pt-8">
-          {/* Mobile Logo */}
-          <div className="lg:hidden text-center">
-            <h1 className="text-2xl font-bold text-primary">Tranzio</h1>
-            <p className="text-sm text-muted-foreground">Secure Trading Platform</p>
+      <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 overflow-y-auto min-h-0">
+        <div className="w-full max-w-sm lg:max-w-md space-y-4 sm:space-y-6 flex-shrink-0">
+          {/* Logo Header - Visible on all screens */}
+          <div className="text-center mb-4 sm:mb-6">
+            <div className="flex items-center justify-center mb-3 sm:mb-4">
+              <div className="p-2.5 sm:p-3 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-md">
+                <Shield className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
+              </div>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Tranzio</h1>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">Secure Trading Platform</p>
           </div>
 
           {/* Signup Form */}
-          <Card className="shadow-xl border border-gray-200 bg-white">
-            <CardContent className="pt-8 pb-8 px-6 sm:px-8">
+          <Card className="border border-gray-300 bg-white">
+            <CardContent className="pt-6 sm:pt-8 pb-6 sm:pb-8 px-4 sm:px-6 lg:px-8">
               {/* Form Header */}
-              <div className="text-center mb-8">
-                <div className="flex items-center justify-center mb-4">
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg">
-                    <Shield className="h-6 w-6 text-white" />
-                  </div>
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900">Create Account</h2>
-                <p className="text-sm text-gray-600 mt-2">Start your secure trading journey today</p>
+              <div className="text-center mb-6 sm:mb-8">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Create Account</h2>
+                <p className="text-sm text-gray-600 mt-1.5 sm:mt-2">Start your secure trading journey today</p>
               </div>
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -256,7 +256,7 @@ export default function Signup() {
                       id="firstName"
                       type="text"
                       placeholder="John"
-                      className="pl-11 h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      className="pl-11 h-12 text-base border-gray-300 focus:border-blue-500"
                       {...register('firstName')}
                     />
                   </div>
@@ -275,7 +275,7 @@ export default function Signup() {
                       id="lastName"
                       type="text"
                       placeholder="Doe"
-                      className="pl-11 h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      className="pl-11 h-12 text-base border-gray-300 focus:border-blue-500"
                       {...register('lastName')}
                     />
                   </div>
@@ -296,7 +296,7 @@ export default function Signup() {
                     id="email"
                     type="email"
                     placeholder="name@example.com"
-                    className="pl-11 h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    className="pl-11 h-12 text-base border-gray-300 focus:border-blue-500"
                     {...register('email')}
                   />
                 </div>
@@ -316,7 +316,7 @@ export default function Signup() {
                     id="password"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Create a password (min. 6 characters)"
-                    className="pl-11 pr-12 h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    className="pl-11 pr-12 h-12 text-base border-gray-300 focus:border-blue-500"
                     {...register('password')}
                   />
                   <Button
@@ -349,7 +349,7 @@ export default function Signup() {
                     id="confirmPassword"
                     type={showConfirmPassword ? 'text' : 'password'}
                     placeholder="Re-enter your password"
-                    className="pl-11 pr-12 h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    className="pl-11 pr-12 h-12 text-base border-gray-300 focus:border-blue-500"
                     {...register('confirmPassword')}
                   />
                   <Button
@@ -418,32 +418,29 @@ export default function Signup() {
               className="w-full"
             />
 
-            {/* Terms and Conditions */}
-            <div className="text-center text-xs text-gray-600 mt-6 pt-4 border-t border-gray-200">
-              By creating an account, you agree to our{' '}
-              <Link 
-                to="/terms-and-conditions" 
-                className="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition-colors"
-              >
-                Terms & Conditions
-              </Link>
+            {/* Links Section */}
+            <div className="mt-6 pt-6 border-t border-gray-200 space-y-3">
+              <div className="text-center text-xs text-gray-600">
+                By creating an account, you agree to our{' '}
+                <Link 
+                  to="/terms-and-conditions" 
+                  className="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition-colors"
+                >
+                  Terms & Conditions
+                </Link>
+              </div>
+              <div className="text-center text-sm text-gray-600">
+                Already have an account?{' '}
+                <Link 
+                  to="/login" 
+                  className="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition-colors"
+                >
+                  Sign in
+                </Link>
+              </div>
             </div>
           </CardContent>
         </Card>
-
-        {/* Login Link */}
-        <div className="text-center pt-4">
-          <p className="text-sm text-gray-600">
-            Already have an account?{' '}
-            <Link 
-              to="/login" 
-              className="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition-colors"
-            >
-              Sign in
-            </Link>
-          </p>
-        </div>
-      </div>
       </div>
     </div>
   );

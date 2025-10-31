@@ -6,21 +6,21 @@ import { Link } from 'react-router-dom';
 
 export default function PrivacyPolicy() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-white shadow-sm border-b border-blue-200">
         <div className="max-w-4xl mx-auto px-4 py-4 sm:py-6">
           <div className="flex items-center gap-3">
             <Link to="/terms-and-conditions">
-              <Button variant="ghost" size="sm" className="flex items-center gap-2 flex-shrink-0">
+              <Button variant="ghost" size="sm" className="flex items-center gap-2 flex-shrink-0 hover:bg-blue-50">
                 <ArrowLeft className="h-4 w-4" />
                 <span className="hidden sm:inline">Back to Terms</span>
                 <span className="sm:hidden">Back</span>
               </Button>
             </Link>
             <div className="flex items-center gap-3 flex-1 min-w-0">
-              <div className="p-2 bg-slate-100 rounded-lg flex-shrink-0">
-                <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-slate-600" />
+              <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
+                <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
               </div>
               <div className="min-w-0 flex-1">
                 <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 truncate">Privacy Policy</h1>
@@ -33,13 +33,13 @@ export default function PrivacyPolicy() {
 
       {/* Content */}
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <Card className="shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-slate-700 to-blue-700 text-white">
+        <Card className="shadow-lg border border-blue-200">
+          <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
             <CardTitle className="flex items-center gap-3">
               <Shield className="h-6 w-6" />
               Tranzio Privacy Policy
             </CardTitle>
-            <p className="text-slate-200 mt-2">
+            <p className="text-blue-50 mt-2">
               We are committed to protecting your privacy and personal information.
             </p>
           </CardHeader>
@@ -48,7 +48,7 @@ export default function PrivacyPolicy() {
             {/* Introduction */}
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Eye className="h-5 w-5 text-slate-600" />
+                <Eye className="h-5 w-5 text-blue-600" />
                 1. Introduction
               </h2>
               <div className="prose prose-gray max-w-none">
@@ -67,7 +67,7 @@ export default function PrivacyPolicy() {
             {/* Information We Collect */}
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Database className="h-5 w-5 text-slate-600" />
+                <Database className="h-5 w-5 text-blue-600" />
                 2. Information We Collect
               </h2>
               <div className="prose prose-gray max-w-none">
@@ -106,7 +106,7 @@ export default function PrivacyPolicy() {
             {/* How We Use Information */}
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Globe className="h-5 w-5 text-slate-600" />
+                <Globe className="h-5 w-5 text-blue-600" />
                 3. How We Use Your Information
               </h2>
               <div className="prose prose-gray max-w-none">
@@ -152,7 +152,7 @@ export default function PrivacyPolicy() {
             {/* Data Security */}
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Lock className="h-5 w-5 text-slate-600" />
+                <Lock className="h-5 w-5 text-blue-600" />
                 5. Data Security
               </h2>
               <div className="prose prose-gray max-w-none">
@@ -179,7 +179,7 @@ export default function PrivacyPolicy() {
             {/* Data Retention */}
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-slate-600" />
+                <Calendar className="h-5 w-5 text-blue-600" />
                 6. Data Retention
               </h2>
               <div className="prose prose-gray max-w-none">
@@ -202,7 +202,7 @@ export default function PrivacyPolicy() {
             {/* Your Rights */}
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Shield className="h-5 w-5 text-slate-600" />
+                <Shield className="h-5 w-5 text-blue-600" />
                 7. Your Privacy Rights
               </h2>
               <div className="prose prose-gray max-w-none">
@@ -227,7 +227,7 @@ export default function PrivacyPolicy() {
             {/* Cookies and Tracking */}
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Eye className="h-5 w-5 text-slate-600" />
+                <Eye className="h-5 w-5 text-blue-600" />
                 8. Cookies and Tracking Technologies
               </h2>
               <div className="prose prose-gray max-w-none">
@@ -251,7 +251,7 @@ export default function PrivacyPolicy() {
             {/* Third-Party Services */}
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Globe className="h-5 w-5 text-slate-600" />
+                <Globe className="h-5 w-5 text-blue-600" />
                 9. Third-Party Services
               </h2>
               <div className="prose prose-gray max-w-none">
@@ -270,7 +270,7 @@ export default function PrivacyPolicy() {
             {/* International Transfers */}
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Globe className="h-5 w-5 text-slate-600" />
+                <Globe className="h-5 w-5 text-blue-600" />
                 10. International Data Transfers
               </h2>
               <div className="prose prose-gray max-w-none">
@@ -301,7 +301,7 @@ export default function PrivacyPolicy() {
             {/* Changes to Privacy Policy */}
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-slate-600" />
+                <Calendar className="h-5 w-5 text-blue-600" />
                 12. Changes to This Privacy Policy
               </h2>
               <div className="prose prose-gray max-w-none">
@@ -317,7 +317,7 @@ export default function PrivacyPolicy() {
             {/* Contact Information */}
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Mail className="h-5 w-5 text-slate-600" />
+                <Mail className="h-5 w-5 text-blue-600" />
                 13. Contact Us
               </h2>
               <div className="prose prose-gray max-w-none">
@@ -346,7 +346,7 @@ export default function PrivacyPolicy() {
                     </Button>
                   </Link>
                   <Link to="/login">
-                    <Button size="sm" className="w-full sm:w-auto">
+                    <Button size="sm" className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white">
                       Back to Login
                     </Button>
                   </Link>
